@@ -1,0 +1,91 @@
+@import "tailwindcss";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+@theme {
+  --color-eco-bg: #0b0d0c;
+  --color-eco-surface: #111514;
+  --color-eco-surface-secondary: #171c19;
+  --color-eco-border: #29362f;
+  --color-eco-primary: #39f58b;
+  --color-eco-secondary: #71e6a0;
+  --color-eco-warning: #ffad24;
+  --color-eco-critical: #ff5d68;
+  --color-eco-text: #e7f1e8;
+  --color-eco-muted: #85998d;
+}
+
+:root {
+  color-scheme: dark;
+  --primary: 145 90% 59%;
+  --primary-foreground: 145 35% 7%;
+  --ring: 145 90% 59%;
+  --accent: 145 20% 17%;
+  --accent-foreground: 145 90% 75%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0b0d0c;
+  color: #e7f1e8;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0b0d0c; }
+::-webkit-scrollbar-thumb { background: #29362f; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #39f58b; }
+
+/* Recolor legacy blue terminal utilities into a restrained green-on-charcoal system. */
+[class*="bg-[#080D16]"], [class*="bg-[#080D1A]"], [class*="bg-[#070C14]"],
+[class*="bg-[#060A10]"], [class*="bg-[#090E1A]"], [class*="bg-[#0A101D]"],
+[class*="bg-[#0B1220]"], [class*="bg-[#0B111A]"], [class*="bg-[#0F172A]"],
+[class*="bg-[#111827]"], [class*="bg-[#111A2E]"], [class*="bg-[#172131]"],
+[class*="bg-[#1E293B]"], [class*="bg-[#1E2C42]"] {
+  background-color: rgba(17, 21, 20, 0.92) !important;
+}
+[class*="border-[#080D"], [class*="border-[#1E293B]"], [class*="border-[#1E2C42]"],
+[class*="border-[#263447]"], [class*="border-[#172131]"] {
+  border-color: #29362f !important;
+}
+[class~="text-slate-100"], [class~="text-slate-200"], [class~="text-slate-300"] { color: #d8e8da !important; }
+[class~="text-slate-400"], [class~="text-slate-500"], [class~="text-slate-600"] { color: #85998d !important; }
+[class~="text-sky-300"], [class~="text-sky-400"], [class~="text-sky-500"], [class*="text-blue-"] { color: #39f58b !important; }
+[class~="text-emerald-300"], [class~="text-emerald-400"], [class~="text-emerald-500"] { color: #71e6a0 !important; }
+[class~="bg-sky-400"], [class~="bg-sky-500"], [class~="bg-emerald-400"], [class~="bg-emerald-500"], [class*="bg-blue-"] { background-color: #39d979 !important; }
+[class*="border-blue-"], [class*="border-sky-"] { border-color: #32885a !important; }
+[class*="ring-blue-"], [class*="ring-sky-"] { --tw-ring-color: #39f58b !important; }
+[class~="hover\:bg-[#172131]"]:hover, [class~="hover\:bg-[#1E293B]"]:hover { background-color: #171c19 !important; }
+
+.maplibregl-popup-content {
+  background-color: #111514 !important;
+  color: #e7f1e8 !important;
+  border: 1px solid #29362f !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.55) !important;
+  padding: 12px !important;
+}
+.maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: #122018 !important; }
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: #122018 !important; }
+.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: #122018 !important; }
+.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: #122018 !important; }
+.maplibregl-ctrl-group {
+  background: rgba(17, 21, 20, 0.96) !important;
+  border: 1px solid #29362f !important;
+  border-radius: 3px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+}
+.maplibregl-ctrl-group button { border-bottom: 1px solid #29362f !important; filter: invert(0.86) sepia(0.45) saturate(0.5); }
+.maplibregl-ctrl-group button:hover { background-color: #171c19 !important; }
+
+/* Keep utility-based components aligned with the calm environmental accent. */
+[class*="from-blue-"], [class*="from-sky-"] { --tw-gradient-from: #1f7e48 var(--tw-gradient-from-position) !important; }
+[class*="to-blue-"], [class*="to-sky-"] { --tw-gradient-to: #56ed91 var(--tw-gradient-to-position) !important; }
+[class*="shadow-blue-"] { --tw-shadow-color: rgb(57 245 139 / 0.24) !important; }
+
+button, input, select { font-family: inherit; }
+[class*="uppercase"] { letter-spacing: 0.08em; }
