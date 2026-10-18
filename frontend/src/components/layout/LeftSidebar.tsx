@@ -1,18 +1,25 @@
 import React, { useState } from 'react';
-import {
-  Layers,
-  ChevronDown,
-  SlidersHorizontal,
-  Search,
-  Filter,
-  Flame,
-  Droplets,
-  Building2,
-  RotateCcw,
-} from 'lucide-react';
+import { Building2, ChevronDown, Droplets, Filter, Flame, Layers, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useDashboardStore } from '../../stores/dashboardStore';
 import { DEMO_LAYERS } from '../../data/demo/layers';
+import { IconButton } from '../ui/Button';
+import { Select } from '../ui/Field';
+import { SourceTag } from '../ui/Badge';
 import type { InfrastructureType, RiskLevel } from '../../types';
+
+const RISK_TIERS: Array<{ value: RiskLevel | 'all'; label: string }> = [
+  { value: 'all', label: 'All' },
+  { value: 'critical', label: 'Crit' },
+  { value: 'high', label: 'High' },
+  { value: 'moderate', label: 'Mod' },
+  { value: 'low', label: 'Low' },
+];
+
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  infrastructure: <Building2 className="h-3.5 w-3.5" />,
+  environmental: <Droplets className="h-3.5 w-3.5" />,
+  predictive: <Flame className="h-3.5 w-3.5" />,
+};
 
 export const LeftSidebar: React.FC = () => {
   const {
@@ -30,7 +37,7 @@ export const LeftSidebar: React.FC = () => {
   } = useDashboardStore();
 
   const [searchLayerText, setSearchLayerText] = useState('');
-  const [collapsedCategories, setCollapsedCategories] = useState<{ [key: string]: boolean }>({
+  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({
     predictive: false,
     environmental: false,
     infrastructure: false,
@@ -42,9 +49,9 @@ export const LeftSidebar: React.FC = () => {
   };
 
   const categories = [
-    { id: 'infrastructure', name: 'Infrastructure Layers', count: 8 },
-    { id: 'environmental', name: 'Environmental & Hazard Layers', count: 7 },
-    { id: 'predictive', name: 'Predictive & Stress Forecast Layers', count: 4 },
+    { id: 'infrastructure', name: 'Infrastructure layers' },
+    { id: 'environmental', name: 'Environmental & hazard layers' },
+    { id: 'predictive', name: 'Predictive & stress forecast layers' },
   ];
 
   const filteredLayers = DEMO_LAYERS.filter((layer) => {
@@ -62,52 +69,37 @@ export const LeftSidebar: React.FC = () => {
   }
 
   return (
-    <aside className="w-80 md:w-84 bg-[#090E1A]/95 backdrop-blur-md border-r border-[#1E293B] flex flex-col h-full z-30 shrink-0 select-none shadow-xl font-sans">
-      {/* Sidebar Header */}
-      <div className="h-12 border-b border-[#1E293B] px-4 flex items-center justify-between bg-[#0F172A]">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-100">
-          <Layers className="w-4 h-4 text-sky-400" />
-          <span>Layers & Intelligence Filters</span>
+    <aside className="z-30 flex h-full w-80 shrink-0 flex-col border-r border-eco-border bg-eco-surface md:w-[340px]">
+      <div className="flex h-12 shrink-0 items-center justify-between border-b border-eco-border px-4">
+        <div className="flex items-center gap-2 text-body font-semibold text-eco-text">
+          <Layers className="h-4 w-4 text-eco-primary" />
+          <span>Layers &amp; filters</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={resetLayers}
-            className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-[#1E293B] rounded-md transition-colors cursor-pointer"
-            title="Reset All Layers to Default"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={toggleLeftSidebar}
-            className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-[#1E293B] rounded-md transition-colors cursor-pointer"
-            title="Close Sidebar"
-          >
-            <ChevronDown className="w-4 h-4 rotate-90" />
-          </button>
+        <div className="flex items-center gap-1">
+          <IconButton label="Reset layers to defaults" icon={<RotateCcw className="h-3.5 w-3.5" />} onClick={resetLayers} />
+          <IconButton label="Close panel" icon={<X className="h-4 w-4" />} onClick={toggleLeftSidebar} />
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-4">
-        {/* Layer Search Box */}
+      <div className="flex-1 space-y-4 overflow-y-auto p-3">
         <div className="relative">
-          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-eco-muted" />
           <input
             type="text"
-            placeholder="Search geospatial layers..."
+            aria-label="Search geospatial layers"
+            placeholder="Search geospatial layers"
             value={searchLayerText}
             onChange={(e) => setSearchLayerText(e.target.value)}
-            className="w-full bg-[#111827] border border-[#263447] rounded-sm pl-8 pr-2.5 py-1 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-500 font-mono"
+            className="h-7 w-full rounded-sm border border-eco-border bg-eco-surface pl-8 pr-2.5 text-meta text-eco-text placeholder:text-eco-muted focus-visible:border-eco-primary/60"
           />
         </div>
 
-        {/* Global Facility Filters */}
-        <div className="bg-[#111827]/90 border border-[#263447] rounded-sm p-2.5 space-y-2.5 text-xs font-mono">
-          <div className="flex items-center justify-between text-slate-300 font-semibold border-b border-[#263447]/60 pb-1">
-            <span className="flex items-center gap-1.5 text-slate-200">
-              <Filter className="w-3.5 h-3.5 text-emerald-400" />
-              <span>FACILITY FILTERS</span>
+        {/* Facility filters */}
+        <div className="space-y-3 rounded-md border border-eco-border bg-eco-surface p-3">
+          <div className="flex items-center justify-between border-b border-eco-border/60 pb-2">
+            <span className="flex items-center gap-1.5 font-mono text-micro uppercase tracking-[0.06em] text-eco-text">
+              <Filter className="h-3.5 w-3.5 text-eco-primary" />
+              Facility filters
             </span>
             {(typeFilter !== 'all' || riskFilter !== 'all') && (
               <button
@@ -116,57 +108,57 @@ export const LeftSidebar: React.FC = () => {
                   setTypeFilter('all');
                   setRiskFilter('all');
                 }}
-                className="text-[10px] text-sky-400 hover:underline"
+                className="cursor-pointer text-meta text-eco-muted underline-offset-2 hover:text-eco-primary hover:underline"
               >
                 Clear
               </button>
             )}
           </div>
 
-          {/* Type Filter Dropdown */}
           <div className="space-y-1">
-            <label className="text-[10px] text-slate-400 uppercase tracking-wider">Infrastructure Type</label>
-            <select
+            <label htmlFor="filter-type" className="block text-meta text-eco-muted">
+              Infrastructure type
+            </label>
+            <Select
+              id="filter-type"
+              size="sm"
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value as InfrastructureType | 'all')}
-              className="w-full bg-[#172131] border border-[#263447] rounded-sm px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-sky-500 font-sans"
             >
-              <option value="all">All Infrastructure Types</option>
-              <option value="data_centre">Data Centres (IT Load)</option>
-              <option value="thermal_power">Thermal Power Plants</option>
-              <option value="solar_farm">Solar Farms</option>
-              <option value="wind_farm">Wind Farms</option>
-              <option value="hydro_power">Hydro Power Plants</option>
-              <option value="substation">Substations & Grid</option>
-              <option value="industrial">Industrial & Fab Clusters</option>
-            </select>
+              <option value="all">All infrastructure types</option>
+              <option value="data_centre">Data centres (IT load)</option>
+              <option value="thermal_power">Thermal power plants</option>
+              <option value="solar_farm">Solar farms</option>
+              <option value="wind_farm">Wind farms</option>
+              <option value="hydro_power">Hydro power plants</option>
+              <option value="substation">Substations &amp; grid</option>
+              <option value="industrial">Industrial &amp; fab clusters</option>
+            </Select>
           </div>
 
-          {/* Risk Filter Buttons */}
           <div className="space-y-1">
-            <label className="text-[10px] text-slate-400 uppercase tracking-wider">Screening Risk Tier</label>
-            <div className="grid grid-cols-4 gap-1 text-[10px]">
-              {(['all', 'critical', 'high', 'moderate', 'low'] as const)
-                .slice(0, 4)
-                .map((tier) => (
-                  <button
-                    key={tier}
-                    type="button"
-                    onClick={() => setRiskFilter(tier as RiskLevel | 'all')}
-                    className={`py-1 rounded-sm border uppercase font-mono transition-colors text-center ${
-                      riskFilter === tier
-                        ? 'bg-[#1E2C42] text-sky-300 border-sky-500 font-bold'
-                        : 'bg-[#172131]/60 text-slate-400 border-[#263447] hover:text-slate-200'
-                    }`}
-                  >
-                    {tier}
-                  </button>
-                ))}
+            <span className="block text-meta text-eco-muted">Screening risk tier</span>
+            <div className="grid grid-cols-5 gap-1" role="group" aria-label="Screening risk tier">
+              {RISK_TIERS.map((tier) => (
+                <button
+                  key={tier.value}
+                  type="button"
+                  aria-pressed={riskFilter === tier.value}
+                  onClick={() => setRiskFilter(tier.value)}
+                  className={`cursor-pointer rounded-sm border py-1 text-center font-mono text-micro uppercase tracking-[0.06em] transition-colors ${
+                    riskFilter === tier.value
+                      ? 'border-eco-primary/40 bg-eco-primary/10 font-semibold text-eco-primary'
+                      : 'border-eco-border text-eco-muted hover:text-eco-text'
+                  }`}
+                >
+                  {tier.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Layer Categories */}
+        {/* Layer categories */}
         <div className="space-y-3">
           {categories.map((category) => {
             const isCollapsed = collapsedCategories[category.id];
@@ -175,121 +167,94 @@ export const LeftSidebar: React.FC = () => {
             if (categoryLayers.length === 0) return null;
 
             return (
-              <div key={category.id} className="border border-[#263447] rounded-sm overflow-hidden bg-[#111827]">
-                {/* Category Header */}
+              <div key={category.id} className="overflow-hidden rounded-md border border-eco-border bg-eco-surface">
                 <button
                   type="button"
                   onClick={() => toggleCategory(category.id)}
-                  className="w-full px-3 py-2 bg-[#172131]/80 hover:bg-[#1E2C42] flex items-center justify-between text-xs font-mono font-medium text-slate-200 transition-colors border-b border-[#263447]"
+                  aria-expanded={!isCollapsed}
+                  className="flex w-full cursor-pointer items-center justify-between border-b border-eco-border bg-eco-surface-secondary/60 px-3 py-2 text-meta font-medium text-eco-text transition-colors hover:bg-eco-surface-secondary"
                 >
                   <div className="flex items-center gap-1.5">
-                    {category.id === 'infrastructure' && <Building2 className="w-3.5 h-3.5 text-sky-400" />}
-                    {category.id === 'environmental' && <Droplets className="w-3.5 h-3.5 text-emerald-400" />}
-                    {category.id === 'predictive' && <Flame className="w-3.5 h-3.5 text-rose-400" />}
-                    <span className="text-[11px] font-semibold">{category.name}</span>
+                    <span className="text-eco-muted">{CATEGORY_ICONS[category.id]}</span>
+                    <span>{category.name}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-slate-400 text-[10px]">
-                    <span className="px-1.5 py-0.2 bg-[#080D16] rounded border border-[#263447]">
+                  <div className="flex items-center gap-1.5 text-eco-muted">
+                    <span className="rounded-sm border border-eco-border bg-eco-bg px-1.5 font-mono text-micro">
                       {categoryLayers.filter((l) => activeLayers[l.id]).length}/{categoryLayers.length}
                     </span>
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                        isCollapsed ? '-rotate-90' : ''
-                      }`}
-                    />
+                    <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`} />
                   </div>
                 </button>
 
-                {/* Layer Items List */}
                 {!isCollapsed && (
-                  <div className="divide-y divide-[#263447]/60">
+                  <div className="divide-y divide-eco-border/60">
                     {categoryLayers.map((layer) => {
                       const isActive = !!activeLayers[layer.id];
                       const opacity = layerOpacities[layer.id] ?? 1.0;
                       const isOpacityOpen = expandedOpacityLayerId === layer.id;
 
                       return (
-                        <div
-                          key={layer.id}
-                          className={`p-2.5 transition-colors ${
-                            isActive ? 'bg-[#172131]/30' : 'bg-transparent opacity-85'
-                          }`}
-                        >
+                        <div key={layer.id} className={`p-2.5 transition-colors ${isActive ? 'bg-eco-surface-secondary/40' : 'opacity-90'}`}>
                           <div className="flex items-start justify-between gap-2">
-                            {/* Layer Checkbox & Title */}
                             <button
                               type="button"
                               onClick={() => toggleLayer(layer.id)}
-                              className="flex items-start gap-2 text-left flex-1 group"
+                              aria-pressed={isActive}
+                              className="group flex flex-1 items-start gap-2 text-left"
                             >
-                              <div className="mt-0.5 shrink-0">
+                              <span className="mt-0.5 shrink-0">
                                 {isActive ? (
-                                  <div
-                                    className="w-3.5 h-3.5 rounded-sm flex items-center justify-center border border-current text-[10px]"
+                                  <span
+                                    className="flex h-3.5 w-3.5 items-center justify-center rounded-sm border border-current text-micro"
                                     style={{ color: layer.color }}
                                   >
                                     ✓
-                                  </div>
-                                ) : (
-                                  <div className="w-3.5 h-3.5 rounded-sm border border-slate-600 group-hover:border-slate-400" />
-                                )}
-                              </div>
-                              <div>
-                                <div className="flex items-center gap-1.5">
-                                  <span
-                                    className={`text-xs font-medium ${
-                                      isActive ? 'text-slate-100 font-semibold' : 'text-slate-400'
-                                    }`}
-                                  >
-                                    {layer.name}
                                   </span>
-                                  <span
-                                    className="w-2 h-2 rounded-full shrink-0"
-                                    style={{ backgroundColor: layer.color }}
-                                  />
-                                </div>
-                                <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">
-                                  {layer.description}
-                                </p>
-                              </div>
+                                ) : (
+                                  <span className="block h-3.5 w-3.5 rounded-sm border border-eco-border group-hover:border-eco-muted" />
+                                )}
+                              </span>
+                              <span>
+                                <span className={`flex items-center gap-1.5 text-body ${isActive ? 'font-medium text-eco-text' : 'text-eco-muted'}`}>
+                                  {layer.name}
+                                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: layer.color }} />
+                                </span>
+                                <span className="mt-0.5 line-clamp-1 text-meta text-eco-muted">{layer.description}</span>
+                              </span>
                             </button>
 
-                            {/* Opacity & Info Toggle */}
-                            <div className="flex items-center gap-1 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setExpandedOpacityLayerId(isOpacityOpen ? null : layer.id)
-                                }
-                                className={`p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-[#1E2C42] ${
-                                  isOpacityOpen ? 'text-sky-400 bg-[#1E2C42]' : ''
-                                }`}
-                                title="Adjust Layer Opacity"
-                              >
-                                <SlidersHorizontal className="w-3 h-3" />
-                              </button>
-                            </div>
+                            <IconButton
+                              size="sm"
+                              label={isOpacityOpen ? 'Hide opacity control' : 'Adjust layer opacity'}
+                              aria-pressed={isOpacityOpen}
+                              icon={<SlidersHorizontal className="h-3 w-3" />}
+                              onClick={() => setExpandedOpacityLayerId(isOpacityOpen ? null : layer.id)}
+                              className={isOpacityOpen ? 'text-eco-primary' : ''}
+                            />
                           </div>
 
-                          {/* Expanded Opacity Slider & Metadata */}
                           {isOpacityOpen && (
-                            <div className="mt-2.5 pt-2 border-t border-[#263447]/60 space-y-1.5 text-xs font-mono">
-                              <div className="flex items-center justify-between text-[10px] text-slate-400">
-                                <span>Opacity</span>
-                                <span className="text-sky-400 font-semibold">{Math.round(opacity * 100)}%</span>
+                            <div className="mt-2.5 space-y-1.5 border-t border-eco-border/60 pt-2">
+                              <div className="flex items-center justify-between text-meta text-eco-muted">
+                                <label htmlFor={`opacity-${layer.id}`}>Opacity</label>
+                                <span className="font-mono text-eco-primary">{Math.round(opacity * 100)}%</span>
                               </div>
                               <input
+                                id={`opacity-${layer.id}`}
                                 type="range"
                                 min="0.1"
                                 max="1.0"
                                 step="0.05"
                                 value={opacity}
                                 onChange={(e) => setLayerOpacity(layer.id, parseFloat(e.target.value))}
-                                className="w-full accent-sky-400 h-1 bg-[#263447] rounded cursor-pointer"
+                                className="h-1 w-full cursor-pointer rounded accent-eco-primary"
                               />
-                              <div className="text-[10px] text-slate-500 pt-1 flex justify-between">
-                                <span>Source: {layer.provenance.sourceOrganization.slice(0, 24)}...</span>
-                                <span className="uppercase text-amber-400">{layer.provenance.dataStatus}</span>
+                              <div className="flex items-center justify-between gap-2 pt-1">
+                                <SourceTag
+                                  organization={layer.provenance.sourceOrganization}
+                                  status={layer.provenance.dataStatus}
+                                  className="min-w-0 truncate"
+                                />
                               </div>
                             </div>
                           )}

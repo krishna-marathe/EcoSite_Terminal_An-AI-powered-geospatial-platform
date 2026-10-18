@@ -8,70 +8,62 @@ interface DataConfidenceTagProps {
   className?: string;
 }
 
+const statusConfig: Record<DataStatus, { Icon: React.ComponentType<{ className?: string }>; label: string; classes: string }> = {
+  observed: {
+    Icon: ShieldCheck,
+    label: 'Observed telemetry',
+    classes: 'border-eco-primary/40 bg-eco-primary/10 text-eco-primary',
+  },
+  estimated: {
+    Icon: Database,
+    label: 'Spatial estimate',
+    classes: 'border-eco-border bg-eco-surface-secondary text-eco-text',
+  },
+  synthetic: {
+    Icon: Sparkles,
+    label: 'Synthetic demo data',
+    classes: 'border-eco-warning/40 bg-eco-warning/10 text-eco-warning',
+  },
+  unavailable: {
+    Icon: AlertCircle,
+    label: 'Data unavailable',
+    classes: 'border-eco-border bg-eco-surface-secondary text-eco-muted',
+  },
+};
+
+/**
+ * Provenance tag — the single place data trust is stated.
+ * Confidence percentages are hidden for synthetic data: a fixture cannot carry
+ * a meaningful calibration, so it must not appear to.
+ */
 export const DataConfidenceTag: React.FC<DataConfidenceTagProps> = ({
   provenance,
   showDetails = false,
   className = '',
 }) => {
-  const getStatusConfig = (status: DataStatus) => {
-    switch (status) {
-      case 'observed':
-        return {
-          icon: <ShieldCheck className="w-3 h-3 text-emerald-400" />,
-          label: 'Observed Telemetry',
-          border: 'border-emerald-500/30',
-          bg: 'bg-emerald-950/40',
-          text: 'text-emerald-300',
-        };
-      case 'estimated':
-        return {
-          icon: <Database className="w-3 h-3 text-sky-400" />,
-          label: 'Spatial Estimate',
-          border: 'border-sky-500/30',
-          bg: 'bg-sky-950/40',
-          text: 'text-sky-300',
-        };
-      case 'synthetic':
-        return {
-          icon: <Sparkles className="w-3 h-3 text-amber-400" />,
-          label: 'Demo Synthetic Data',
-          border: 'border-amber-500/30',
-          bg: 'bg-amber-950/40',
-          text: 'text-amber-300',
-        };
-      default:
-        return {
-          icon: <AlertCircle className="w-3 h-3 text-rose-400" />,
-          label: 'Data Unavailable',
-          border: 'border-rose-500/30',
-          bg: 'bg-rose-950/40',
-          text: 'text-rose-300',
-        };
-    }
-  };
-
-  const config = getStatusConfig(provenance.dataStatus);
+  const config = statusConfig[provenance.dataStatus];
+  const showConfidence = provenance.dataStatus !== 'synthetic' && provenance.confidenceScore > 0;
 
   return (
     <div
-      className={`inline-flex flex-col gap-1 text-xs ${className}`}
+      className={`inline-flex flex-col gap-1 ${className}`}
       title={`Source: ${provenance.sourceOrganization} (${provenance.publicationDate})`}
     >
-      <div
-        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded border ${config.border} ${config.bg} ${config.text} font-mono`}
+      <span
+        className={`inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 text-meta font-medium ${config.classes}`}
       >
-        {config.icon}
-        <span className="font-medium">{config.label}</span>
-        <span className="text-slate-400 font-normal">| {provenance.confidenceScore}% conf</span>
-      </div>
+        <config.Icon className="h-3 w-3" />
+        <span>{config.label}</span>
+        {showConfidence && <span className="font-normal opacity-80">· {provenance.confidenceScore}% confidence</span>}
+      </span>
 
       {showDetails && (
-        <div className="text-[11px] text-slate-400 pl-0.5 space-y-0.5">
+        <div className="space-y-0.5 pl-0.5 text-meta text-eco-muted">
           <p className="truncate">
-            <span className="text-slate-500">Source:</span> {provenance.sourceOrganization}
+            <span>Source:</span> {provenance.sourceOrganization}
           </p>
-          <p className="text-[10px] text-slate-500">
-            Updated: {provenance.lastUpdated} • Res: {provenance.geographicResolution}
+          <p>
+            Updated: {provenance.lastUpdated} · Resolution: {provenance.geographicResolution}
           </p>
         </div>
       )}

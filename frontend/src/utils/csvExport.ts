@@ -1,24 +1,20 @@
-export const downloadCsv = (filename: string, rows: (string | number)[][]) => {
-  const processRow = (row: (string | number)[]) => {
-    return row
-      .map((val) => {
-        let text = val === null || val === undefined ? '' : String(val);
-        // Escape quotes
-        text = text.replace(/"/g, '""');
-        if (text.search(/("|,|\n)/g) >= 0) {
-          text = `"${text}"`;
-        }
-        return text;
-      })
-      .join(',');
-  };
+export const serializeCsv = (rows: (string | number | null | undefined)[][]) => rows.map((row) => row.map((value) => {
+  let text = value == null ? 'Unavailable' : String(value);
+  // Spreadsheet programs may execute string cells as formulas even when quoted.
+  if (typeof value === 'string' && /^[\s]*[=+@-]/.test(text)) text = `'${text}`;
+  return `"${text.replace(/"/g, '""')}"`;
+}).join(',')).join('\r\n');
 
-  const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(processRow).join('\n');
-  const encodedUri = encodeURI(csvContent);
+export const downloadFile = (filename: string, content: string, mimeType: string) => {
+  const url = URL.createObjectURL(new Blob([content], { type: mimeType }));
   const link = document.createElement('a');
-  link.setAttribute('href', encodedUri);
-  link.setAttribute('download', filename);
+  link.href = url;
+  link.download = filename;
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
+
+export const downloadCsv = (filename: string, rows: (string | number | null | undefined)[][]) =>
+  downloadFile(filename, '\uFEFF' + serializeCsv(rows), 'text/csv;charset=utf-8');

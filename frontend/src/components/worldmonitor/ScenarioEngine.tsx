@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FlaskConical, Play, RotateCcw, X } from 'lucide-react';
 import { useDashboardStore } from '../../stores/dashboardStore';
+import { Button, IconButton } from '../ui/Button';
 import type { ScenarioType } from '../../types';
 
 const SCENARIOS: { type: ScenarioType; label: string; description: string }[] = [
@@ -16,17 +17,77 @@ export const ScenarioEngine: React.FC<{ onClose: () => void }> = ({ onClose }) =
   const [severity, setSeverity] = useState(scenario?.severity || 30);
 
   return (
-    <div className="absolute left-3 top-11 z-50 w-[min(360px,calc(100vw-24px))] rounded-lg border border-[#294033] bg-[#122018]/95 p-3 shadow-2xl backdrop-blur-xl">
-      <div className="mb-3 flex items-center justify-between border-b border-[#294033] pb-2">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-100"><FlaskConical className="h-4 w-4 text-emerald-300" /> Scenario engine <span className="text-[10px] font-normal text-slate-500">what-if analysis</span></div>
-        <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-200" aria-label="Close scenario engine"><X className="h-4 w-4" /></button>
+    <div className="absolute left-3 top-11 z-40 w-[min(360px,calc(100vw-24px))] rounded-md border border-eco-border bg-eco-surface/95 p-3 shadow-2xl backdrop-blur-xl">
+      <div className="mb-3 flex items-center justify-between gap-2 border-b border-eco-border pb-2">
+        <div className="flex min-w-0 items-center gap-2 text-body font-semibold text-eco-text">
+          <FlaskConical className="h-4 w-4 shrink-0 text-eco-primary" />
+          <span className="truncate">Scenario engine</span>
+          <span className="truncate text-meta font-normal text-eco-muted">what-if analysis</span>
+        </div>
+        <IconButton
+          label="Close scenario panel"
+          size="sm"
+          onClick={onClose}
+          icon={<X className="h-4 w-4" />}
+        />
       </div>
+
       <div className="space-y-2">
-        {SCENARIOS.map((item) => <button key={item.type} type="button" onClick={() => setType(item.type)} className={`w-full rounded border px-2.5 py-2 text-left ${type === item.type ? 'border-emerald-400/60 bg-emerald-950/30 text-emerald-200' : 'border-[#294033] text-slate-300 hover:bg-[#182a20]'}`}><div className="text-[11px] font-medium">{item.label}</div><div className="mt-0.5 text-[10px] text-slate-500">{item.description}</div></button>)}
+        {SCENARIOS.map((item) => (
+          <button
+            key={item.type}
+            type="button"
+            aria-pressed={type === item.type}
+            onClick={() => setType(item.type)}
+            className={`block w-full rounded-sm border px-2.5 py-2 text-left transition-colors ${
+              type === item.type
+                ? 'border-eco-primary/40 bg-eco-primary/10 text-eco-text'
+                : 'border-eco-border text-eco-muted hover:bg-eco-surface-secondary hover:text-eco-text'
+            }`}
+          >
+            <span className="block text-body font-medium">{item.label}</span>
+            <span className="mt-0.5 block text-meta text-eco-muted">{item.description}</span>
+          </button>
+        ))}
       </div>
-      <label className="mt-3 block text-[10px] uppercase tracking-widest text-slate-500">Severity · {severity}%<input aria-label="Scenario severity" className="mt-2 w-full accent-emerald-300" type="range" min="10" max="80" step="5" value={severity} onChange={(event) => setSeverity(Number(event.target.value))} /></label>
-      <div className="mt-3 flex gap-2"><button type="button" onClick={() => setScenario({ type, severity })} className="flex flex-1 items-center justify-center gap-1.5 rounded bg-emerald-400/80 px-2 py-1.5 text-[11px] font-semibold text-[#0b1510] hover:bg-emerald-300"><Play className="h-3 w-3" /> Apply scenario</button><button type="button" onClick={() => setScenario(null)} className="rounded border border-[#294033] px-2 text-slate-400 hover:bg-[#182a20]" title="Clear scenario"><RotateCcw className="h-3 w-3" /></button></div>
-      {scenario && <div className="mt-2 rounded border border-emerald-400/20 bg-emerald-950/20 p-2 text-[10px] text-emerald-200">Scenario active. Hotspot scores and facility dossier indicators now reflect a {scenario.severity}% stress adjustment.</div>}
+
+      <label className="mt-3 block text-meta text-eco-muted">
+        Severity <span className="font-medium text-eco-text">{severity}%</span>
+        <input
+          aria-label="Scenario severity"
+          className="mt-2 w-full accent-eco-primary"
+          type="range"
+          min="10"
+          max="80"
+          step="5"
+          value={severity}
+          onChange={(event) => setSeverity(Number(event.target.value))}
+        />
+      </label>
+
+      <div className="mt-3 flex gap-2">
+        <Button
+          variant="primary"
+          size="sm"
+          className="flex-1"
+          icon={<Play className="h-3 w-3" />}
+          onClick={() => setScenario({ type, severity })}
+        >
+          Apply scenario
+        </Button>
+        <IconButton
+          label="Clear scenario"
+          size="sm"
+          onClick={() => setScenario(null)}
+          icon={<RotateCcw className="h-3.5 w-3.5" />}
+        />
+      </div>
+
+      {scenario && (
+        <div className="mt-2 rounded-sm border border-eco-primary/30 bg-eco-primary/5 p-2 text-meta text-eco-text">
+          Scenario active. Hotspot scores and facility dossier indicators now reflect a {scenario.severity}% stress adjustment.
+        </div>
+      )}
     </div>
   );
 };

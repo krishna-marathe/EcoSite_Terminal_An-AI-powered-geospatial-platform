@@ -11,7 +11,7 @@ export const GROUNDWATER_ZONES_GEOJSON: FeatureCollection<Polygon, GeoJsonProper
         name: 'Indo-Gangetic Upper Aquifer (Punjab-Haryana-West UP)',
         status: 'Over-Exploited',
         extractionStage: 164,
-        color: '#EF4444', // Red
+        color: '#ff5d68', // Red
         description: 'Critical tubewell overdraft for paddy-wheat cycle. Water table dropping > 1m/year.',
       },
       geometry: {
@@ -35,7 +35,7 @@ export const GROUNDWATER_ZONES_GEOJSON: FeatureCollection<Polygon, GeoJsonProper
         name: 'Western Arid & Shekhawati Hardrock Basin',
         status: 'Over-Exploited',
         extractionStage: 148,
-        color: '#EF4444',
+        color: '#ff5d68',
         description: 'Hyper-arid crystalline aquifer with deep saline water interface.',
       },
       geometry: {
@@ -58,7 +58,7 @@ export const GROUNDWATER_ZONES_GEOJSON: FeatureCollection<Polygon, GeoJsonProper
         name: 'Tamil Nadu Crystalline & Cauvery Delta',
         status: 'Critical',
         extractionStage: 94,
-        color: '#F59E0B', // Amber
+        color: '#ffad24', // Amber
         description: 'Hard-rock fissure aquifers with erratic northeast monsoon recharge.',
       },
       geometry: {
@@ -81,7 +81,7 @@ export const GROUNDWATER_ZONES_GEOJSON: FeatureCollection<Polygon, GeoJsonProper
         name: 'Bengaluru Urban & Arkavathi Watershed',
         status: 'Over-Exploited',
         extractionStage: 138,
-        color: '#EF4444',
+        color: '#ff5d68',
         description: 'Severe commercial and IT park borewell extraction, localized contamination.',
       },
       geometry: {
@@ -104,7 +104,7 @@ export const GROUNDWATER_ZONES_GEOJSON: FeatureCollection<Polygon, GeoJsonProper
         name: 'Central Deccan Basaltic Trap (Vidarbha & Marathwada)',
         status: 'Semi-Critical',
         extractionStage: 78,
-        color: '#3B82F6', // Blue
+        color: '#56b8f0', // Blue
         description: 'Low-porosity vesicular basalt with rapid summer depletion.',
       },
       geometry: {
@@ -134,7 +134,7 @@ export const AIR_QUALITY_ZONES_GEOJSON: FeatureCollection<Polygon, GeoJsonProper
         name: 'Indo-Gangetic Airshed (Severe PM2.5 Belt)',
         status: 'Severe Hazard',
         pm25Value: 142,
-        color: '#DC2626', // Deep Red
+        color: '#ff5d68', // Deep Red
         description: 'Persistent winter temperature inversion, crop residue burning, and coal power emissions.',
       },
       geometry: {
@@ -159,7 +159,7 @@ export const AIR_QUALITY_ZONES_GEOJSON: FeatureCollection<Polygon, GeoJsonProper
         name: 'Mumbai Metropolitan & Pune Industrial Basin',
         status: 'Poor Air Quality',
         pm25Value: 74,
-        color: '#F97316', // Orange
+        color: '#ffad24', // Orange
         description: 'Vehicular emissions, marine aerosol trap, and petrochemical refining corridors.',
       },
       geometry: {
@@ -189,7 +189,7 @@ export const HEAT_ANOMALY_ZONES_GEOJSON: FeatureCollection<Polygon, GeoJsonPrope
         name: 'Thar Desert Summer Thermal Peak',
         status: 'Extreme Heat (>45°C)',
         anomaly: '+4.2°C above baseline',
-        color: '#EA580C',
+        color: '#ffad24',
         description: 'High dry-bulb temperature reducing solar PV inverter efficiency by 12-18%.',
       },
       geometry: {
@@ -212,7 +212,7 @@ export const HEAT_ANOMALY_ZONES_GEOJSON: FeatureCollection<Polygon, GeoJsonPrope
         name: 'Deccan Interior Heat Corridor',
         status: 'High Heat Wave Exposure',
         anomaly: '+2.8°C above baseline',
-        color: '#F59E0B',
+        color: '#ffad24',
         description: 'Extended dry heat spells straining data center chiller condensing temperatures.',
       },
       geometry: {
@@ -241,7 +241,7 @@ export const FLOOD_HAZARD_ZONES_GEOJSON: FeatureCollection<Polygon, GeoJsonPrope
         id: 'flood-mumbai-thane-creek',
         name: 'Thane Creek & Konkan Lowland Basin',
         status: 'High Surge / Flash Flood Tier',
-        color: '#0284C7', // Sky Blue
+        color: '#56b8f0', // Sky Blue
         description: 'High-tide storm surge and monsoon flash-flood vulnerability for coastal data parks.',
       },
       geometry: {
@@ -263,7 +263,7 @@ export const FLOOD_HAZARD_ZONES_GEOJSON: FeatureCollection<Polygon, GeoJsonPrope
         id: 'flood-odisha-coastal',
         name: 'Mahanadi Delta & Coastal Odisha Surge Corridor',
         status: 'Bay of Bengal Cyclone Inundation',
-        color: '#0369A1',
+        color: '#56b8f0',
         description: 'Category 4/5 cyclone landfall corridor with saline intrusion risk.',
       },
       geometry: {
@@ -292,7 +292,7 @@ export const PROTECTED_AREAS_GEOJSON: FeatureCollection<Polygon, GeoJsonProperti
         id: 'prot-western-ghats',
         name: 'Western Ghats UNESCO Biosphere Reserve',
         status: 'Strict Eco-Sensitive Zone (ESZ 1)',
-        color: '#10B981', // Emerald
+        color: '#39f58b', // Emerald
         description: 'Statutory 10km buffer constraint for heavy power lines and thermal emissions.',
       },
       geometry: {
@@ -316,7 +316,7 @@ export const PROTECTED_AREAS_GEOJSON: FeatureCollection<Polygon, GeoJsonProperti
         id: 'prot-sundarbans',
         name: 'Sundarbans Mangrove Tiger Reserve',
         status: 'Ramsar Wetland & Critical Wildlife Habitat',
-        color: '#059669',
+        color: '#39f58b',
         description: 'Tidal mangrove barrier with zero industrial effluent allowance.',
       },
       geometry: {
@@ -346,7 +346,7 @@ export const TRANSMISSION_GRID_GEOJSON: FeatureCollection<LineString, GeoJsonPro
         name: 'Singrauli Thermal to Delhi-NCR 765kV HVDC Highway',
         voltage: '765 kV AC / 800 kV DC',
         operator: 'PGCIL Northern Corridor',
-        color: '#EAB308', // Gold
+        color: '#ffad24', // Gold
       },
       geometry: {
         type: 'LineString',
@@ -365,7 +365,7 @@ export const TRANSMISSION_GRID_GEOJSON: FeatureCollection<LineString, GeoJsonPro
         name: 'Korba - Champa - Raigarh 765kV Western Evacuation Link',
         voltage: '765 kV',
         operator: 'PGCIL Western Grid',
-        color: '#EAB308',
+        color: '#ffad24',
       },
       geometry: {
         type: 'LineString',
@@ -385,7 +385,7 @@ export const TRANSMISSION_GRID_GEOJSON: FeatureCollection<LineString, GeoJsonPro
         name: 'Bhadla Solar Green Energy Corridor (Rajasthan -> Gujarat)',
         voltage: '765 kV Green Energy Corridor',
         operator: 'PGCIL Renewable Highway',
-        color: '#22C55E', // Green Link
+        color: '#39f58b', // Green Link
       },
       geometry: {
         type: 'LineString',
@@ -404,7 +404,7 @@ export const TRANSMISSION_GRID_GEOJSON: FeatureCollection<LineString, GeoJsonPro
         name: 'Pavagada - Bengaluru - Siruseri 400kV Southern Corridor',
         voltage: '400 kV Synchronous Ring',
         operator: 'SRLDC Interconnect',
-        color: '#EAB308',
+        color: '#ffad24',
       },
       geometry: {
         type: 'LineString',

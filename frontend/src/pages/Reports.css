@@ -1,0 +1,21 @@
+/*
+ * Print styles for the planning dossier (spec §4.4).
+ * Screen styling is unchanged; controls opt out of print via `.print-hidden`
+ * and the paper-only header block opts in via `.print-only`.
+ */
+.print-only {
+  display: none;
+}
+
+@media print {
+  body, #root, #root > div, main { height: auto !important; width: auto !important; overflow: visible !important; background: white !important; }
+  #root > div > :not(main), .print-hidden { display: none !important; }
+  .print-only { display: block !important; }
+  .planning-report { display: block !important; overflow: visible !important; height: auto !important; background: white !important; padding: 0 !important; }
+  .planning-report * { color: black !important; background: transparent !important; box-shadow: none !important; }
+  .planning-report section { break-inside: auto; overflow: visible !important; }
+  .planning-report tr, .planning-report li { break-inside: avoid; }
+  .planning-report .overflow-x-auto { overflow: visible !important; }
+  .planning-report table { font-size: 9pt; }
+  .planning-report h2, .planning-report h3 { break-after: avoid; }
+}

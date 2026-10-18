@@ -24,18 +24,18 @@ import { useDashboardStore } from '../../stores/dashboardStore';
 import type { WorldMonitorLayerKey } from '../../types';
 
 const ICON_MAP: Record<string, React.ReactNode> = {
-  Flame: <Flame className="w-3 h-3" />,
-  Droplets: <Droplets className="w-3 h-3" />,
-  Server: <Server className="w-3 h-3" />,
-  Zap: <Zap className="w-3 h-3" />,
-  Radio: <Radio className="w-3 h-3" />,
-  Wind: <Wind className="w-3 h-3" />,
-  Sun: <Sun className="w-3 h-3" />,
-  Activity: <Activity className="w-3 h-3" />,
-  Waves: <Waves className="w-3 h-3" />,
-  ShieldAlert: <ShieldAlert className="w-3 h-3" />,
-  Compass: <Compass className="w-3 h-3" />,
-  TreePine: <TreePine className="w-3 h-3" />,
+  Flame: <Flame className="h-3 w-3" />,
+  Droplets: <Droplets className="h-3 w-3" />,
+  Server: <Server className="h-3 w-3" />,
+  Zap: <Zap className="h-3 w-3" />,
+  Radio: <Radio className="h-3 w-3" />,
+  Wind: <Wind className="h-3 w-3" />,
+  Sun: <Sun className="h-3 w-3" />,
+  Activity: <Activity className="h-3 w-3" />,
+  Waves: <Waves className="h-3 w-3" />,
+  ShieldAlert: <ShieldAlert className="h-3 w-3" />,
+  Compass: <Compass className="h-3 w-3" />,
+  TreePine: <TreePine className="h-3 w-3" />,
 };
 
 export const WorldMonitorLayerRibbon: React.FC = () => {
@@ -66,8 +66,7 @@ export const WorldMonitorLayerRibbon: React.FC = () => {
     setAllWmLayers(active);
     const newParams = new URLSearchParams(searchParams);
     if (active) {
-      const allKeys = WM_LAYER_CATALOG.map((l) => l.key).join(',');
-      newParams.set('layers', allKeys);
+      newParams.set('layers', WM_LAYER_CATALOG.map((l) => l.key).join(','));
     } else {
       newParams.delete('layers');
     }
@@ -75,117 +74,121 @@ export const WorldMonitorLayerRibbon: React.FC = () => {
   };
 
   const activeCount = Object.values(wmLayers).filter(Boolean).length;
-  const filteredCatalog = useMemo(() => WM_LAYER_CATALOG.filter((layer) => `${layer.label} ${layer.description} ${layer.source}`.toLowerCase().includes(catalogQuery.toLowerCase())), [catalogQuery]);
+  const totalCount = WM_LAYER_CATALOG.length;
+  const filteredCatalog = useMemo(
+    () =>
+      WM_LAYER_CATALOG.filter((layer) =>
+        `${layer.label} ${layer.description} ${layer.source}`.toLowerCase().includes(catalogQuery.toLowerCase()),
+      ),
+    [catalogQuery],
+  );
 
   return (
-    <div className="bg-[#090E1A]/90 border-b border-[#1E293B] px-3 transition-all z-20 shrink-0 select-none text-xs backdrop-blur-sm">
-      {/* Collapsed / Summary Bar */}
-      <div className="h-8 flex items-center justify-between">
+    <div className="z-20 shrink-0 select-none border-b border-eco-border bg-eco-surface/90 px-3 text-meta backdrop-blur-sm">
+      <div className="flex h-8 items-center justify-between">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-1.5 text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="flex cursor-pointer items-center gap-1.5 text-meta font-medium text-eco-text transition-colors hover:text-eco-primary"
           >
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span>Map Layers</span>
-            <span className="text-[10px] text-emerald-400 font-mono bg-emerald-950/80 px-1.5 py-0.2 rounded border border-emerald-800/60">
-              {activeCount}/12 active
+            {isExpanded ? <ChevronUp className="h-3 w-3 text-eco-muted" /> : <ChevronDown className="h-3 w-3 text-eco-muted" />}
+            <span>Map layers</span>
+            <span className="rounded-sm border border-eco-primary/40 bg-eco-primary/10 px-1.5 py-0.5 font-mono text-micro text-eco-primary">
+              {activeCount}/{totalCount} active
             </span>
-            {isExpanded ? (
-              <ChevronUp className="w-3 h-3 text-slate-400" />
-            ) : (
-              <ChevronDown className="w-3 h-3 text-slate-400" />
-            )}
           </button>
 
-          {/* Quick Active Indicators in collapsed mode */}
           {!isExpanded && (
-            <div className="hidden md:flex items-center gap-1 text-[11px] text-slate-400 truncate max-w-xl">
-              <span className="text-slate-500">Active:</span>
+            <div className="hidden max-w-xl items-center gap-1 truncate md:flex">
+              <span className="text-eco-muted">Active:</span>
               {WM_LAYER_CATALOG.filter((l) => wmLayers[l.key])
                 .slice(0, 6)
                 .map((l) => (
-                  <span
-                    key={l.key}
-                    className="px-1.5 py-0.2 rounded text-[10px] bg-[#111A2E] text-slate-300 border border-[#1E293B]"
-                  >
+                  <span key={l.key} className="rounded-sm border border-eco-border bg-eco-surface-secondary px-1.5 py-0.5 font-mono text-micro text-eco-text">
                     {l.shortLabel}
                   </span>
                 ))}
               {activeCount > 6 && (
-                <span className="text-[10px] text-slate-500">+{activeCount - 6} more</span>
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(true)}
+                  title="Show all layers"
+                  className="cursor-pointer font-mono text-micro text-eco-muted underline-offset-2 hover:text-eco-primary hover:underline"
+                >
+                  +{activeCount - 6} more
+                </button>
               )}
             </div>
           )}
         </div>
 
-        {/* Global Controls */}
-        <div className="flex items-center gap-2 text-[11px]">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => handleSetAll(true)}
-            className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-[#111A2E] transition-colors cursor-pointer"
+            className="flex cursor-pointer items-center gap-1 rounded-sm px-1.5 py-0.5 text-eco-primary transition-colors hover:bg-eco-surface-secondary"
             title="Enable all layers"
           >
-            <CheckCheck className="w-3 h-3" />
-            <span className="hidden sm:inline">Select All</span>
+            <CheckCheck className="h-3 w-3" />
+            <span className="hidden sm:inline">Select all</span>
           </button>
-          <span className="text-slate-600">|</span>
           <button
             type="button"
             onClick={() => handleSetAll(false)}
-            className="text-slate-400 hover:text-rose-400 flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-[#111A2E] transition-colors cursor-pointer"
+            className="flex cursor-pointer items-center gap-1 rounded-sm px-1.5 py-0.5 text-eco-muted transition-colors hover:bg-eco-surface-secondary hover:text-eco-critical"
             title="Clear all layers"
           >
-            <XCircle className="w-3 h-3" />
+            <XCircle className="h-3 w-3" />
             <span className="hidden sm:inline">Clear</span>
           </button>
         </div>
       </div>
 
-      {/* Expanded Layer Grid / Pills */}
       {isExpanded && (
-        <div className="border-t border-[#1E293B]/60 py-2.5 pt-1">
-          <div className="mb-2 flex items-center gap-2 rounded border border-[#294033] bg-[#122018]/60 px-2 py-1">
-            <Search className="h-3.5 w-3.5 text-emerald-300" /><input value={catalogQuery} onChange={(event) => setCatalogQuery(event.target.value)} placeholder="Search layers, sources, or hazards" className="min-w-0 flex-1 bg-transparent text-[11px] text-slate-200 outline-none placeholder:text-slate-500" />
+        <div className="border-t border-eco-border/60 pb-2.5 pt-2">
+          <div className="mb-2 flex items-center gap-2 rounded-sm border border-eco-border bg-eco-surface px-2 py-1">
+            <Search className="h-3.5 w-3.5 text-eco-muted" />
+            <input
+              value={catalogQuery}
+              onChange={(event) => setCatalogQuery(event.target.value)}
+              placeholder="Search layers, sources, or hazards"
+              aria-label="Search map layers"
+              className="min-w-0 flex-1 bg-transparent text-meta text-eco-text outline-none placeholder:text-eco-muted"
+            />
           </div>
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
-          {filteredCatalog.map((layer) => {
-            const isActive = !!wmLayers[layer.key];
-            return (
-              <button
-                key={layer.key}
-                type="button"
-                onClick={() => handleToggle(layer.key)}
-                title={`${layer.label}: ${layer.description} (${layer.source})`}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border whitespace-nowrap transition-all text-xs cursor-pointer ${
-                  isActive
-                    ? 'bg-[#15233D] border-sky-500/50 text-slate-100 shadow-sm font-medium'
-                    : 'bg-[#0B1220]/60 border-[#1E293B] text-slate-400 hover:text-slate-200 hover:border-slate-600'
-                }`}
-              >
-                <span
-                  className="w-1.5 h-1.5 rounded-full shrink-0"
-                  style={{ backgroundColor: layer.color }}
-                />
-                <span className="shrink-0" style={{ color: isActive ? layer.color : '#64748B' }}>
-                  {ICON_MAP[layer.iconName] || <Activity className="w-3 h-3" />}
-                </span>
-                <span>{layer.shortLabel}</span>
-                <span
-                  className={`text-[10px] px-1 py-0.2 rounded font-mono ${
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-2">
+            {filteredCatalog.map((layer) => {
+              const isActive = !!wmLayers[layer.key];
+              return (
+                <button
+                  key={layer.key}
+                  type="button"
+                  onClick={() => handleToggle(layer.key)}
+                  title={`${layer.label}: ${layer.description} (${layer.source})`}
+                  aria-pressed={isActive}
+                  className={`flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-sm border px-2.5 py-1 text-meta transition-colors ${
                     isActive
-                      ? 'bg-[#0A101D] text-sky-300 border border-[#1E293B]'
-                      : 'text-slate-500'
+                      ? 'border-eco-primary/40 bg-eco-primary/10 font-medium text-eco-text'
+                      : 'border-eco-border bg-eco-surface text-eco-muted hover:border-eco-border hover:text-eco-text'
                   }`}
                 >
-                  {layer.count}
-                </span>
-              </button>
-            );
-          })}
-          {filteredCatalog.length === 0 && <span className="px-2 text-[10px] text-slate-500">No matching layers</span>}
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: layer.color }} />
+                  <span className="shrink-0" style={{ color: isActive ? layer.color : undefined }}>
+                    {ICON_MAP[layer.iconName] || <Activity className="h-3 w-3" />}
+                  </span>
+                  <span>{layer.shortLabel}</span>
+                  <span
+                    className={`rounded-sm px-1 font-mono text-micro ${
+                      isActive ? 'border border-eco-border bg-eco-bg text-eco-primary' : 'text-eco-muted'
+                    }`}
+                  >
+                    {layer.count}
+                  </span>
+                </button>
+              );
+            })}
+            {filteredCatalog.length === 0 && <span className="px-2 text-eco-muted">No matching layers</span>}
           </div>
         </div>
       )}

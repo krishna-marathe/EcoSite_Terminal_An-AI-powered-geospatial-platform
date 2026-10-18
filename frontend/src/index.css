@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "maplibre-gl/dist/maplibre-gl.css";
 
+/*
+ * Canonical EcoSite design tokens.
+ * See docs/design/2026-10-18-frontend-clarity-spec.md §4 — do not introduce
+ * new colors outside this @theme block (chart/map palettes live in src/theme/tokens.ts).
+ */
 @theme {
   --color-eco-bg: #0b0d0c;
   --color-eco-surface: #111514;
@@ -12,6 +17,25 @@
   --color-eco-critical: #ff5d68;
   --color-eco-text: #e7f1e8;
   --color-eco-muted: #85998d;
+
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Type scale — floor is 12px for text; 11px only for uppercase chip labels. */
+  --text-micro: 11px;
+  --text-micro--line-height: 16px;
+  --text-meta: 12px;
+  --text-meta--line-height: 16px;
+  --text-body: 14px;
+  --text-body--line-height: 22px;
+  --text-data: 13px;
+  --text-data--line-height: 18px;
+  --text-data-lg: 22px;
+  --text-data-lg--line-height: 28px;
+  --text-h2: 16px;
+  --text-h2--line-height: 24px;
+  --text-display: 28px;
+  --text-display--line-height: 34px;
 }
 
 :root {
@@ -26,20 +50,65 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #0b0d0c;
-  color: #e7f1e8;
-  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  background-color: var(--color-eco-bg);
+  color: var(--color-eco-text);
+  font-family: var(--font-sans);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #0b0d0c; }
-::-webkit-scrollbar-thumb { background: #29362f; border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: #39f58b; }
+:focus-visible {
+  outline: 2px solid var(--color-eco-primary);
+  outline-offset: 2px;
+}
 
-/* Recolor legacy blue terminal utilities into a restrained green-on-charcoal system. */
+::selection {
+  background-color: color-mix(in srgb, var(--color-eco-primary) 25%, transparent);
+  color: var(--color-eco-text);
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-eco-bg); }
+::-webkit-scrollbar-thumb { background: var(--color-eco-border); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-eco-primary); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.maplibregl-popup-content {
+  background-color: var(--color-eco-surface) !important;
+  color: var(--color-eco-text) !important;
+  border: 1px solid var(--color-eco-border) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.55) !important;
+  padding: 12px !important;
+}
+.maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: var(--color-eco-surface-secondary) !important; }
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: var(--color-eco-surface-secondary) !important; }
+.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--color-eco-surface-secondary) !important; }
+.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--color-eco-surface-secondary) !important; }
+.maplibregl-ctrl-group {
+  background: rgba(17, 21, 20, 0.96) !important;
+  border: 1px solid var(--color-eco-border) !important;
+  border-radius: 3px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+}
+.maplibregl-ctrl-group button { border-bottom: 1px solid var(--color-eco-border) !important; filter: invert(0.86) sepia(0.45) saturate(0.5); }
+.maplibregl-ctrl-group button:hover { background-color: var(--color-eco-surface-secondary) !important; }
+
+/*
+ * LEGACY BRIDGE — temporary, delete after the P0/P1 retokenization pass.
+ * Recolors leftover blue/navy utility classes into the restrained green-on-charcoal
+ * system so unmigrated surfaces do not visually clash mid-migration.
+ */
 [class*="bg-[#080D16]"], [class*="bg-[#080D1A]"], [class*="bg-[#070C14]"],
 [class*="bg-[#060A10]"], [class*="bg-[#090E1A]"], [class*="bg-[#0A101D]"],
 [class*="bg-[#0B1220]"], [class*="bg-[#0B111A]"], [class*="bg-[#0F172A]"],
@@ -59,33 +128,8 @@ body {
 [class*="border-blue-"], [class*="border-sky-"] { border-color: #32885a !important; }
 [class*="ring-blue-"], [class*="ring-sky-"] { --tw-ring-color: #39f58b !important; }
 [class~="hover\:bg-[#172131]"]:hover, [class~="hover\:bg-[#1E293B]"]:hover { background-color: #171c19 !important; }
-
-.maplibregl-popup-content {
-  background-color: #111514 !important;
-  color: #e7f1e8 !important;
-  border: 1px solid #29362f !important;
-  border-radius: 8px !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.55) !important;
-  padding: 12px !important;
-}
-.maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: #122018 !important; }
-.maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: #122018 !important; }
-.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: #122018 !important; }
-.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: #122018 !important; }
-.maplibregl-ctrl-group {
-  background: rgba(17, 21, 20, 0.96) !important;
-  border: 1px solid #29362f !important;
-  border-radius: 3px !important;
-  overflow: hidden;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
-}
-.maplibregl-ctrl-group button { border-bottom: 1px solid #29362f !important; filter: invert(0.86) sepia(0.45) saturate(0.5); }
-.maplibregl-ctrl-group button:hover { background-color: #171c19 !important; }
-
-/* Keep utility-based components aligned with the calm environmental accent. */
 [class*="from-blue-"], [class*="from-sky-"] { --tw-gradient-from: #1f7e48 var(--tw-gradient-from-position) !important; }
 [class*="to-blue-"], [class*="to-sky-"] { --tw-gradient-to: #56ed91 var(--tw-gradient-to-position) !important; }
 [class*="shadow-blue-"] { --tw-shadow-color: rgb(57 245 139 / 0.24) !important; }
-
-button, input, select { font-family: inherit; }
+/* END LEGACY BRIDGE */button, input, select { font-family: inherit; }
 [class*="uppercase"] { letter-spacing: 0.08em; }

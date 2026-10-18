@@ -19,7 +19,23 @@ import {
 } from 'lucide-react';
 import { useDashboardStore } from '../../stores/dashboardStore';
 import { ApiKeyModal } from '../ui/ApiKeyModal';
+import { IconButton } from '../ui/Button';
 import type { TimeRange, DashboardViewMode } from '../../types';
+
+const NAV_MODULES = [
+  { to: '/dashboard', label: 'Dashboard', icon: <Globe2 className="h-3.5 w-3.5" /> },
+  { to: '/risk-analysis', label: 'Risk', icon: <Activity className="h-3.5 w-3.5" /> },
+  { to: '/forecast', label: 'Forecast', icon: <TrendingUp className="h-3.5 w-3.5" /> },
+  { to: '/site-analysis', label: 'Site analysis', icon: <MapPin className="h-3.5 w-3.5" /> },
+  { to: '/mitigation', label: 'Mitigation', icon: <Sparkles className="h-3.5 w-3.5" /> },
+  { to: '/reports', label: 'Reports', icon: <FileSpreadsheet className="h-3.5 w-3.5" /> },
+];
+
+const VIEW_MODES: Array<{ mode: DashboardViewMode; label: string; icon: React.ReactNode; title: string }> = [
+  { mode: 'split', label: 'Split', icon: <Columns2 className="h-3 w-3" />, title: 'Split view — map and intelligence panels' },
+  { mode: 'map_only', label: 'Map', icon: <MapIcon className="h-3 w-3" />, title: 'Maximized map' },
+  { mode: 'grid_only', label: 'Grid', icon: <LayoutGrid className="h-3 w-3" />, title: 'Data grid' },
+];
 
 export const WorldMonitorHeader: React.FC = () => {
   const {
@@ -47,15 +63,13 @@ export const WorldMonitorHeader: React.FC = () => {
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const utcString = now.toUTCString().slice(17, 25);
-      setUtcTime(`UTC ${utcString}`);
+      setUtcTime(`UTC ${now.toUTCString().slice(17, 25)}`);
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // Sync timeRange & viewMode with URL
   const handleTimeRangeChange = (tr: TimeRange) => {
     setTimeRange(tr);
     const newParams = new URLSearchParams(searchParams);
@@ -70,59 +84,43 @@ export const WorldMonitorHeader: React.FC = () => {
     setSearchParams(newParams, { replace: true });
   };
 
-  const navModules = [
-    { to: '/dashboard', label: 'Dashboard', icon: <Globe2 className="w-3.5 h-3.5" /> },
-    { to: '/risk-analysis', label: 'Risk Analysis', icon: <Activity className="w-3.5 h-3.5" /> },
-    { to: '/forecast', label: 'ML Forecast', icon: <TrendingUp className="w-3.5 h-3.5" /> },
-    { to: '/site-analysis', label: 'Site Evaluation', icon: <MapPin className="w-3.5 h-3.5" /> },
-    { to: '/mitigation', label: 'AI Mitigation', icon: <Sparkles className="w-3.5 h-3.5" /> },
-    { to: '/reports', label: 'Reports', icon: <FileSpreadsheet className="w-3.5 h-3.5" /> },
-  ];
-
   const activeLayerCount = Object.values(wmLayers).filter(Boolean).length;
 
   return (
-    <header className="h-14 bg-[#080D1A]/95 border-b border-[#1E293B] px-4 flex items-center justify-between z-30 select-none shrink-0 backdrop-blur-md">
-      {/* Brand & Live Status */}
-      <div className="flex items-center gap-3 shrink-0">
-        <NavLink to="/dashboard" className="flex items-center gap-2.5 group">
-          <div className="w-7 h-7 rounded-lg bg-emerald-950/80 border border-emerald-500/40 flex items-center justify-center relative shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping absolute opacity-70" />
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+    <header className="z-30 flex h-14 shrink-0 select-none items-center justify-between border-b border-eco-border bg-eco-bg/95 px-4 backdrop-blur-md">
+      {/* Brand + live clock */}
+      <div className="flex shrink-0 items-center gap-3">
+        <NavLink to="/dashboard" className="group flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md border border-eco-primary/40 bg-eco-primary/10">
+            <span className="h-1.5 w-1.5 rounded-full bg-eco-primary" />
           </div>
           <div>
             <div className="flex items-center gap-1.5 leading-tight">
-              <span className="font-bold text-slate-100 text-sm tracking-tight group-hover:text-emerald-400 transition-colors">
-                EcoSite<span className="text-emerald-400 font-semibold"> Terminal</span>
-              </span>
-              <span className="text-[10px] text-amber-300/90 font-medium bg-amber-950/60 border border-amber-800/60 px-1.5 py-0.2 rounded">
-                Demo Data
+              <span className="font-mono text-body font-semibold tracking-tight text-eco-text transition-colors group-hover:text-eco-primary">
+                EcoSite<span className="text-eco-primary"> Terminal</span>
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 hidden lg:block leading-none mt-0.5 font-medium">
-              Environmental Intelligence Platform
-            </p>
+            <p className="mt-0.5 hidden text-micro text-eco-muted lg:block">Environmental intelligence platform</p>
           </div>
         </NavLink>
 
-        {/* Live Clock Chip */}
-        <div className="hidden 2xl:flex items-center gap-1.5 px-2 py-0.5 bg-[#0F172A] border border-[#1E293B] rounded-md text-[11px] text-slate-300 font-mono">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <div className="hidden items-center gap-1.5 rounded-sm border border-eco-border bg-eco-surface px-2 py-0.5 font-mono text-micro text-eco-muted 2xl:flex">
+          <span className="h-1.5 w-1.5 rounded-full bg-eco-primary" />
           <span>{utcTime || 'UTC --:--:--'}</span>
         </div>
       </div>
 
-      {/* Primary Navigation Tabs */}
-      <nav className="hidden md:flex items-center gap-1 bg-[#0B1220]/60 p-1 rounded-lg border border-[#1E293B]/60">
-        {navModules.map((item) => (
+      {/* Primary navigation */}
+      <nav className="hidden items-center gap-1 rounded-md border border-eco-border/60 bg-eco-surface-secondary/60 p-1 md:flex">
+        {NAV_MODULES.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              `flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-meta font-medium transition-colors ${
                 isActive
-                  ? 'bg-[#1E293B] text-emerald-400 shadow-sm font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-[#111A2E]'
+                  ? 'border border-eco-border bg-eco-surface text-eco-primary'
+                  : 'border border-transparent text-eco-muted hover:bg-eco-surface-secondary hover:text-eco-text'
               }`
             }
           >
@@ -132,74 +130,51 @@ export const WorldMonitorHeader: React.FC = () => {
         ))}
       </nav>
 
-      {/* Right Controls: Search, View Switcher, Time Range, Layers */}
+      {/* Search · view · time · layers · utilities */}
       <div className="flex items-center gap-2">
-        {/* Search */}
         <div className="relative w-36 sm:w-48">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-eco-muted" />
           <input
             type="text"
-            placeholder="Search facilities, states..."
+            aria-label="Search facilities"
+            placeholder="Search facilities"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#0F172A] border border-[#1E293B] rounded-lg pl-8 pr-2.5 py-1 text-xs text-slate-200 placeholder-slate-400 focus:outline-none focus:border-emerald-500/80 transition-colors"
+            className="h-8 w-full rounded-sm border border-eco-border bg-eco-surface pl-8 pr-2.5 text-meta text-eco-text placeholder:text-eco-muted transition-colors focus-visible:border-eco-primary/60"
           />
         </div>
 
-        {/* View Mode Switcher */}
-        <div className="hidden lg:flex items-center bg-[#0F172A] border border-[#1E293B] rounded-lg p-0.5 text-xs">
-          <button
-            type="button"
-            onClick={() => handleViewModeChange('split')}
-            title="Split Mode (Map & Telemetry)"
-            className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors cursor-pointer ${
-              viewMode === 'split'
-                ? 'bg-[#1E293B] text-emerald-400 font-semibold shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Columns2 className="w-3 h-3" />
-            <span className="hidden xl:inline">Split</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleViewModeChange('map_only')}
-            title="Maximized Map Mode"
-            className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors cursor-pointer ${
-              viewMode === 'map_only'
-                ? 'bg-[#1E293B] text-emerald-400 font-semibold shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <MapIcon className="w-3 h-3" />
-            <span className="hidden xl:inline">Map</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleViewModeChange('grid_only')}
-            title="Data Grid Mode"
-            className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors cursor-pointer ${
-              viewMode === 'grid_only'
-                ? 'bg-[#1E293B] text-emerald-400 font-semibold shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <LayoutGrid className="w-3 h-3" />
-            <span className="hidden xl:inline">Grid</span>
-          </button>
+        <div className="hidden items-center rounded-md border border-eco-border bg-eco-surface p-0.5 text-meta lg:flex">
+          {VIEW_MODES.map((view) => (
+            <button
+              key={view.mode}
+              type="button"
+              onClick={() => handleViewModeChange(view.mode)}
+              title={view.title}
+              aria-pressed={viewMode === view.mode}
+              className={`flex cursor-pointer items-center gap-1 rounded-sm px-2 py-1 transition-colors ${
+                viewMode === view.mode
+                  ? 'bg-eco-surface-secondary font-semibold text-eco-primary'
+                  : 'text-eco-muted hover:text-eco-text'
+              }`}
+            >
+              {view.icon}
+              <span className="hidden xl:inline">{view.label}</span>
+            </button>
+          ))}
         </div>
 
-        {/* Time Range Pills */}
-        <div className="hidden sm:flex items-center bg-[#0F172A] border border-[#1E293B] rounded-lg p-0.5 text-[11px]">
+        <div className="hidden items-center rounded-md border border-eco-border bg-eco-surface p-0.5 font-mono text-micro sm:flex">
           {(['24h', '7d', '30d'] as TimeRange[]).map((tr) => (
             <button
               key={tr}
               type="button"
               onClick={() => handleTimeRangeChange(tr)}
-              className={`px-2 py-0.5 rounded-md uppercase font-medium transition-colors cursor-pointer ${
+              aria-pressed={timeRange === tr}
+              className={`cursor-pointer rounded-sm px-2 py-0.5 uppercase transition-colors ${
                 timeRange === tr
-                  ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/40 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'border border-eco-primary/30 bg-eco-surface-secondary font-semibold text-eco-primary'
+                  : 'border border-transparent text-eco-muted hover:text-eco-text'
               }`}
             >
               {tr}
@@ -207,63 +182,48 @@ export const WorldMonitorHeader: React.FC = () => {
           ))}
         </div>
 
-        {/* Layers Sidebar Toggle Button */}
         <button
           type="button"
           onClick={toggleLeftSidebar}
-          className={`px-2.5 py-1 rounded-lg border text-xs flex items-center gap-1.5 transition-colors cursor-pointer ${
+          aria-pressed={isLeftSidebarOpen}
+          className={`flex cursor-pointer items-center gap-1.5 rounded-md border px-2.5 py-1 text-meta transition-colors ${
             isLeftSidebarOpen
-              ? 'bg-[#1E293B] text-emerald-400 border-emerald-500/50 shadow-sm'
-              : 'bg-[#0F172A] text-slate-300 border-[#1E293B] hover:bg-[#1E293B]'
+              ? 'border-eco-primary/40 bg-eco-surface-secondary text-eco-primary'
+              : 'border-eco-border bg-eco-surface text-eco-muted hover:text-eco-text'
           }`}
-          title="Toggle Layers & Filters Panel"
+          title="Toggle layers & filters panel"
         >
-          <Layers className="w-3.5 h-3.5 text-sky-400" />
-          <span className="font-medium hidden sm:inline">Layers</span>
-          <span className="text-[10px] text-slate-400 bg-[#080D1A] px-1 py-0.2 rounded border border-[#1E293B] font-mono">
+          <Layers className="h-3.5 w-3.5" />
+          <span className="hidden font-medium sm:inline">Layers</span>
+          <span className="rounded-sm border border-eco-border bg-eco-bg px-1 font-mono text-micro text-eco-muted">
             {activeLayerCount}
           </span>
         </button>
 
-        {/* Fit Map Button */}
-        <button
-          type="button"
+        <IconButton
+          label="Recenter map"
+          icon={<Compass className="h-4 w-4" />}
           onClick={() => {
             fitToIndia();
             navigate('/dashboard');
           }}
-          className="p-1.5 rounded-lg bg-[#0F172A] border border-[#1E293B] text-slate-300 hover:text-emerald-400 hover:bg-[#1E293B] transition-colors cursor-pointer"
-          title="Recenter Map on India"
-        >
-          <Compass className="w-4 h-4" />
-        </button>
+        />
 
-        {/* Audio Alert Toggle */}
-        <button
-          type="button"
+        <IconButton
+          label={audioAlertsEnabled ? 'Mute audio alerts' : 'Enable audio alerts'}
+          aria-pressed={audioAlertsEnabled}
+          icon={audioAlertsEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           onClick={toggleAudioAlerts}
-          className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
-            audioAlertsEnabled
-              ? 'bg-emerald-950/60 text-emerald-400 border-emerald-700/60'
-              : 'bg-[#0F172A] text-slate-400 border-[#1E293B] hover:text-slate-200'
-          }`}
-          title={audioAlertsEnabled ? 'Audio Alerts Enabled' : 'Audio Alerts Muted'}
-        >
-          {audioAlertsEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-        </button>
+          className={audioAlertsEnabled ? 'text-eco-primary' : ''}
+        />
 
-        {/* API Key & Settings Modal Toggle */}
-        <button
-          type="button"
+        <IconButton
+          label="API keys & settings"
+          icon={<Key className="h-4 w-4" />}
           onClick={() => setIsApiKeyModalOpen(true)}
-          className="p-1.5 rounded-lg bg-[#0F172A] border border-[#1E293B] text-slate-300 hover:text-emerald-400 hover:bg-[#1E293B] transition-colors cursor-pointer"
-          title="API Keys & Platform Settings"
-        >
-          <Key className="w-4 h-4" />
-        </button>
+        />
       </div>
 
-      {/* API Key Modal Dialog */}
       <ApiKeyModal isOpen={isApiKeyModalOpen} onClose={() => setIsApiKeyModalOpen(false)} />
     </header>
   );

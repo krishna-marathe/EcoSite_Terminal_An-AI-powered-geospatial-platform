@@ -1,3 +1,4 @@
+import { CityComparison } from '../components/worldmonitor/CityComparison';
 import React, { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { WorldMonitorLayerRibbon } from '../components/worldmonitor/WorldMonitorLayerRibbon';
@@ -8,6 +9,7 @@ import { SlideOverDeepDive } from '../components/worldmonitor/SlideOverDeepDive'
 import { EcoWorkspace } from '../components/worldmonitor/EcoWorkspace';
 import { LeftSidebar } from '../components/layout/LeftSidebar';
 import { MainMap } from '../components/map/MainMap';
+import { Card } from '../components/ui/Card';
 import { useDashboardStore } from '../stores/dashboardStore';
 import type { TimeRange, WorldMonitorLayerKey } from '../types';
 
@@ -56,41 +58,50 @@ export const Dashboard: React.FC = () => {
   }, [searchParams, setTimeRange, setViewMode, setWmLayer]);
 
   return (
-    <div className="flex flex-col w-full h-full bg-[#080D1A] text-[#F1F5F9] overflow-hidden select-none font-sans">
-      {/* 1. Tactical Layer Ribbon Dock (Collapsible) */}
+    <div className="flex h-full w-full flex-col overflow-hidden bg-eco-bg text-eco-text select-none">
+      {/* Tactical layer ribbon (collapsible) */}
       <WorldMonitorLayerRibbon />
+      <CityComparison />
 
-      {/* 2. Main Workspace */}
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* Collapsible Detailed GIS Sidebar */}
+      {/* Main workspace */}
+      <div className="relative flex flex-1 overflow-hidden">
+        {/* Collapsible GIS layer sidebar */}
         <LeftSidebar />
 
-        {/* Dynamic Multi-Pane Layout Based on View Mode */}
         {viewMode === 'map_only' ? (
-          // Maximized Map View (100% Canvas)
-          <div className="flex-1 relative h-full w-full overflow-hidden">
+          // Maximized map view
+          <div className="relative flex-1 h-full w-full overflow-hidden">
             <MainMap />
           </div>
         ) : viewMode === 'grid_only' ? (
-          // Full Terminal Grid Matrix View
-          <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-[#080D1A]">
-            <div>
-              <h2 className="text-sm font-semibold text-slate-200 mb-2">Macro Infrastructure Telemetry</h2>
+          // Full terminal grid: telemetry matrix plus signal and hotspot panels
+          <div className="flex-1 space-y-4 overflow-y-auto bg-eco-bg p-4">
+            <Card title="Macro infrastructure telemetry">
               <MacroTelemetryPanel />
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[calc(100vh-240px)]">
-              <LiveSignalsWirePanel />
-              <ActiveHotspotsPanel />
+            </Card>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <Card
+                title="Environmental alerts"
+                className="flex h-[calc(100vh-330px)] min-h-[320px] flex-col"
+              >
+                <LiveSignalsWirePanel />
+              </Card>
+              <Card
+                title="Environmental hotspots"
+                className="flex h-[calc(100vh-330px)] min-h-[320px] flex-col"
+              >
+                <ActiveHotspotsPanel />
+              </Card>
             </div>
           </div>
         ) : (
-          // World Monitor-inspired split workspace with map surface and modular intelligence panels
-          <div className="flex-1 flex flex-col w-full h-full min-h-0 overflow-hidden relative">
+          // Split workspace: map surface with modular intelligence panels
+          <div className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
             <EcoWorkspace />
           </div>
         )}
 
-        {/* 3. Slide-Over Deep Dive Panel */}
+        {/* Slide-over deep dive */}
         <SlideOverDeepDive />
       </div>
     </div>

@@ -9,7 +9,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'Hyperscale and enterprise computing facilities with grid and water consumption profiles.',
     active: true,
     opacity: 1.0,
-    color: '#38BDF8', // Blue
+    color: '#56b8f0', // Blue
     unit: 'MW IT Load',
     isAvailable: true,
     provenance: {
@@ -28,7 +28,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'Coal and gas-fired generation units with emissions and cooling water demand.',
     active: true,
     opacity: 1.0,
-    color: '#EF4444', // Red
+    color: '#ff5d68', // Red
     unit: 'Installed MW',
     isAvailable: true,
     provenance: {
@@ -47,7 +47,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'Reservoir storage and run-of-river hydroelectric stations.',
     active: true,
     opacity: 1.0,
-    color: '#06B6D4', // Cyan
+    color: '#71e6a0', // Cyan
     unit: 'Installed MW',
     isAvailable: true,
     provenance: {
@@ -66,7 +66,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'Utility-scale photovoltaic installations and ultra-mega solar parks.',
     active: true,
     opacity: 1.0,
-    color: '#22C55E', // Green
+    color: '#39f58b', // Green
     unit: 'Installed MW',
     isAvailable: true,
     provenance: {
@@ -85,7 +85,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'Onshore wind turbine clusters and high-yield wind corridors.',
     active: true,
     opacity: 1.0,
-    color: '#10B981', // Emerald
+    color: '#39f58b', // Emerald
     unit: 'Installed MW',
     isAvailable: true,
     provenance: {
@@ -104,7 +104,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'High-voltage grid transmission switching and transformer substations.',
     active: true,
     opacity: 1.0,
-    color: '#F59E0B', // Yellow/Amber
+    color: '#ffad24', // Yellow/Amber
     unit: 'kV / MVA',
     isAvailable: true,
     provenance: {
@@ -123,7 +123,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: '765kV & 400kV inter-state transmission corridors across India.',
     active: false,
     opacity: 0.8,
-    color: '#EAB308',
+    color: '#ffad24',
     unit: 'Voltage Class',
     isAvailable: true,
     provenance: {
@@ -142,7 +142,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'High water and energy-intensive manufacturing clusters and chip hubs.',
     active: true,
     opacity: 1.0,
-    color: '#A855F7', // Purple
+    color: '#9d8df1', // Purple
     unit: 'Demand Intensity',
     isAvailable: true,
     provenance: {
@@ -163,7 +163,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'CGWB Aquifer extraction stage categorization (Safe, Semi-Critical, Critical, Over-Exploited).',
     active: true,
     opacity: 0.65,
-    color: '#3B82F6',
+    color: '#56b8f0',
     unit: '% Extraction Stage',
     isAvailable: true,
     provenance: {
@@ -183,7 +183,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'CPCB National Air Quality Index monitoring and satellite-derived PM2.5 concentrations.',
     active: false,
     opacity: 0.6,
-    color: '#F97316',
+    color: '#ffad24',
     unit: 'µg/m³ annual mean',
     isAvailable: true,
     provenance: {
@@ -202,7 +202,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'MODIS / Sentinel-3 Land Surface Temperature (LST) anomaly patterns.',
     active: false,
     opacity: 0.55,
-    color: '#EF4444',
+    color: '#ff5d68',
     unit: '°C Thermal Anomaly',
     isAvailable: true,
     provenance: {
@@ -221,7 +221,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'NDMA flood hazard mapping, coastal storm surge, and inland riverine inundation buffers.',
     active: false,
     opacity: 0.55,
-    color: '#0284C7',
+    color: '#56b8f0',
     unit: 'Return Period Hazard Tier',
     isAvailable: true,
     provenance: {
@@ -240,7 +240,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'NRSC 1:50,000 scale thematic classification (barren, agricultural, wetland, scrub).',
     active: false,
     opacity: 0.5,
-    color: '#84CC16',
+    color: '#39f58b',
     unit: 'NRSC Classification Class',
     isAvailable: true,
     provenance: {
@@ -259,7 +259,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'High-resolution population distribution within 5km, 15km, and 25km facility radii.',
     active: false,
     opacity: 0.6,
-    color: '#EC4899',
+    color: '#9d8df1',
     unit: 'Persons / km²',
     isAvailable: true,
     provenance: {
@@ -278,7 +278,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'National parks, wildlife sanctuaries, biosphere reserves, and designated tiger corridors.',
     active: false,
     opacity: 0.65,
-    color: '#14B8A6',
+    color: '#71e6a0',
     unit: '10km Statutory Buffer',
     isAvailable: true,
     provenance: {
@@ -299,7 +299,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'CMIP6 climate scenario SSP2-4.5 combined with projected regional industrial water abstraction.',
     active: false,
     opacity: 0.6,
-    color: '#0284C7',
+    color: '#56b8f0',
     unit: 'Projected Stress Ratio',
     isAvailable: true,
     provenance: {
@@ -318,7 +318,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'Regional grid substation saturation risk driven by hyperscale DC and EV charging clustering.',
     active: false,
     opacity: 0.6,
-    color: '#EAB308',
+    color: '#ffad24',
     unit: 'Compound Annual MW Growth',
     isAvailable: true,
     provenance: {
@@ -337,7 +337,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'Seasonal atmospheric inversion modeling and projected thermal stack particulate dispersal.',
     active: false,
     opacity: 0.55,
-    color: '#F43F5E',
+    color: '#ff5d68',
     unit: 'Forecast AQI Tier',
     isAvailable: true,
     provenance: {
@@ -356,7 +356,7 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     description: 'Projections of annual cooling degree days (CDD) and extreme wet-bulb temperature events.',
     active: false,
     opacity: 0.6,
-    color: '#DC2626',
+    color: '#ff5d68',
     unit: 'Days/Year >42°C',
     isAvailable: true,
     provenance: {

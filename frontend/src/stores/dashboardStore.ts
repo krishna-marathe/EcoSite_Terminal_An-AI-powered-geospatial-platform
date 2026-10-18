@@ -1,9 +1,12 @@
 import { create } from 'zustand';
-import { DEMO_FACILITIES } from '../data/demo/facilities';
+import { persist } from 'zustand/middleware';
+import { getPilotCity } from '../data/pilotCities';
 import { DEMO_LAYERS } from '../data/demo/layers';
-import { DEMO_SIGNALS } from '../data/demo/signals';
+
 import type {
   Facility,
+  CityId,
+  DataMode,
   InfrastructureType,
   IntelligenceSignal,
   ProposedSite,
@@ -15,6 +18,15 @@ import type {
 } from '../types';
 
 export interface DashboardState {
+  cityId: CityId;
+  setCityId: (cityId: CityId) => void;
+  dataMode: DataMode;
+  setDataMode: (mode: DataMode) => void;
+  facilities: Facility[];
+  setFacilities: (facilities: Facility[]) => void;
+  facilitiesStatus: 'loading' | 'ready' | 'error';
+  facilitiesError: string | null;
+  scenariosByCity: Partial<Record<CityId, { type: ScenarioType; severity: number } | null>>;
   // Facility Selection
   selectedFacilityId: string | null;
   selectedFacility: Facility | null;
@@ -102,21 +114,32 @@ const initialWmLayers: Record<WorldMonitorLayerKey, boolean> = {
   sanctions: true,
 };
 
-const DEFAULT_INDIA_VIEWPORT = {
-  longitude: 78.9629,
-  latitude: 22.5937,
-  zoom: 4.8,
+const cityViewport = (cityId: CityId) => {
+  const city = getPilotCity(cityId);
+  return { longitude: city.center[0], latitude: city.center[1], zoom: city.zoom };
 };
 
-export const useDashboardStore = create<DashboardState>((set, get) => ({
-  selectedFacilityId: 'dc-mumbai-01',
-  selectedFacility: DEMO_FACILITIES[0],
+export const useDashboardStore = create<DashboardState>()(persist((set, get) => ({
+  cityId: 'pune',
+  dataMode: 'demo',
+  facilities: [],
+  facilitiesStatus: 'loading',
+  facilitiesError: null,
+  scenariosByCity: {},
+  setCityId: (cityId) => set({ cityId, facilities: [], facilitiesStatus: 'loading', facilitiesError: null, selectedFacility: null, selectedFacilityId: null, scenario: get().scenariosByCity[cityId] || null, viewport: cityViewport(cityId) }),
+  setDataMode: (dataMode) => set({ dataMode, facilities: [], facilitiesStatus: 'loading', facilitiesError: null, selectedFacility: null, selectedFacilityId: null }),
+  setFacilities: (facilities) => set((state) => {
+    const selectedFacility = facilities.find((facility) => facility.id === state.selectedFacilityId) || facilities[0] || null;
+    return { facilities, facilitiesStatus: 'ready', facilitiesError: null, selectedFacility, selectedFacilityId: selectedFacility?.id || null };
+  }),
+  selectedFacilityId: null,
+  selectedFacility: null,
   setSelectedFacilityId: (id) => {
     if (!id) {
       set({ selectedFacilityId: null, selectedFacility: null, isRightPanelOpen: false });
       return;
     }
-    const found = DEMO_FACILITIES.find((f) => f.id === id) || null;
+    const found = get().facilities.find((f) => f.id === id) || null;
     set({
       selectedFacilityId: id,
       selectedFacility: found,
@@ -172,12 +195,12 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     }),
 
   scenario: null,
-  setScenario: (scenario) => set({ scenario }),
+  setScenario: (scenario) => set((state) => ({ scenario, scenariosByCity: { ...state.scenariosByCity, [state.cityId]: scenario } })),
 
   audioAlertsEnabled: true,
   toggleAudioAlerts: () => set((state) => ({ audioAlertsEnabled: !state.audioAlertsEnabled })),
 
-  signals: DEMO_SIGNALS,
+  signals: [],
   signalFilter: 'all',
   setSignalFilter: (filter) => set({ signalFilter: filter }),
 
@@ -211,12 +234,12 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   mapStyle: 'dark',
   setMapStyle: (style) => set({ mapStyle: style }),
 
-  viewport: DEFAULT_INDIA_VIEWPORT,
+  viewport: cityViewport('pune'),
   setViewport: (vp) => set({ viewport: vp }),
 
   fitToIndia: () =>
     set({
-      viewport: DEFAULT_INDIA_VIEWPORT,
+      viewport: cityViewport(get().cityId),
     }),
 
   candidateSites: [],
@@ -228,11 +251,19 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     set((state) => ({
       candidateSites: state.candidateSites.filter((s) => s.id !== siteId),
     })),
-  clearCandidateSites: () => set({ candidateSites: [] }),
+  clearCandidateSites: () => set((state) => ({ candidateSites: state.candidateSites.filter((site) => site.cityId !== state.cityId) })),
 
   isLeftSidebarOpen: false, // Collapsed by default like World Monitor to give maximum room to map & panels!
   toggleLeftSidebar: () => set((state) => ({ isLeftSidebarOpen: !state.isLeftSidebarOpen })),
 
   isRightPanelOpen: false, // Opens upon facility click
   toggleRightPanel: () => set((state) => ({ isRightPanelOpen: !state.isRightPanelOpen })),
+}), {
+  name: 'ecosite-pilot-project-v1',
+  partialize: (state) => ({ cityId: state.cityId, dataMode: state.dataMode, candidateSites: state.candidateSites, scenariosByCity: state.scenariosByCity }),
+  merge: (persisted, current) => {
+    const saved = persisted as Partial<DashboardState>;
+    const cityId = saved.cityId === 'mumbai' ? 'mumbai' : 'pune';
+    return { ...current, ...saved, cityId, scenario: saved.scenariosByCity?.[cityId] || null, viewport: cityViewport(cityId) };
+  },
 }));

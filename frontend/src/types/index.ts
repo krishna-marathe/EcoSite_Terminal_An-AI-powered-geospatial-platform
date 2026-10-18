@@ -8,6 +8,8 @@ export type InfrastructureType =
   | 'industrial';
 
 export type RiskLevel = 'low' | 'moderate' | 'high' | 'critical';
+export type CityId = 'pune' | 'mumbai';
+export type DataMode = 'demo' | 'api';
 
 export type TimeRange = '1h' | '24h' | '7d' | '30d' | 'all';
 export type DashboardViewMode = 'split' | 'map_only' | 'grid_only';
@@ -68,6 +70,7 @@ export interface RiskIndicatorScore {
 }
 
 export interface Facility {
+  cityId?: CityId | null;
   id: string;
   name: string;
   type: InfrastructureType;
@@ -139,6 +142,8 @@ export interface ForecastResponse {
 }
 
 export interface ProposedSite {
+  cityId: CityId;
+  dataStatus: DataStatus;
   id: string;
   name: string;
   type: InfrastructureType;
@@ -148,12 +153,12 @@ export interface ProposedSite {
   capacityMw: number;
   waterDemandKld: number;
   powerDemandMw: number;
-  groundwaterZone: 'Safe' | 'Semi-Critical' | 'Critical' | 'Over-Exploited';
-  substationDistanceKm: number;
-  protectedAreaDistanceKm: number;
-  population5km: number;
-  suitabilityScore: number; // 0 - 100
-  suitabilityStatus: 'Highly Suitable' | 'Favorable with Mitigation' | 'High Risk / Unfavorable';
+  groundwaterZone: 'Safe' | 'Semi-Critical' | 'Critical' | 'Over-Exploited' | 'Unavailable';
+  substationDistanceKm: number | null;
+  protectedAreaDistanceKm: number | null;
+  population5km: number | null;
+  suitabilityScore: number | null;
+  suitabilityStatus: 'Highly Suitable' | 'Favorable with Mitigation' | 'High Risk / Unfavorable' | 'Insufficient data';
   flags: string[];
 }
 

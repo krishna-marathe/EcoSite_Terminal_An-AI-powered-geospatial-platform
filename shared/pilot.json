@@ -1,0 +1,369 @@
+{
+  "scoringVersion": "sector-screening-v1",
+  "cities": [
+    {
+      "id": "pune",
+      "name": "Pune",
+      "center": [
+        73.8567,
+        18.5204
+      ],
+      "bounds": [
+        73.72,
+        18.4,
+        74.02,
+        18.65
+      ],
+      "zoom": 10,
+      "extentDescription": "Illustrative Pune planning rectangle; not an official municipal boundary."
+    },
+    {
+      "id": "mumbai",
+      "name": "Mumbai",
+      "center": [
+        72.8777,
+        19.076
+      ],
+      "bounds": [
+        72.77,
+        18.89,
+        72.99,
+        19.27
+      ],
+      "zoom": 10,
+      "extentDescription": "Illustrative Mumbai planning rectangle; excludes Navi Mumbai; not an official municipal boundary."
+    }
+  ],
+  "sectorWeights": {
+    "data_centre": {
+      "waterStress": 0.22,
+      "gridPressure": 0.25,
+      "airPollution": 0.08,
+      "heatExposure": 0.18,
+      "floodHazard": 0.12,
+      "populationProximity": 0.05,
+      "landSensitivity": 0.05,
+      "biodiversityConstraint": 0.05
+    },
+    "thermal_power": {
+      "waterStress": 0.18,
+      "gridPressure": 0.06,
+      "airPollution": 0.28,
+      "heatExposure": 0.08,
+      "floodHazard": 0.06,
+      "populationProximity": 0.14,
+      "landSensitivity": 0.1,
+      "biodiversityConstraint": 0.1
+    },
+    "hydro_power": {
+      "waterStress": 0.1,
+      "gridPressure": 0.05,
+      "airPollution": 0.02,
+      "heatExposure": 0.03,
+      "floodHazard": 0.28,
+      "populationProximity": 0.12,
+      "landSensitivity": 0.2,
+      "biodiversityConstraint": 0.2
+    },
+    "solar_farm": {
+      "waterStress": 0.2,
+      "gridPressure": 0.1,
+      "airPollution": 0.02,
+      "heatExposure": 0.15,
+      "floodHazard": 0.08,
+      "populationProximity": 0.05,
+      "landSensitivity": 0.2,
+      "biodiversityConstraint": 0.2
+    },
+    "wind_farm": {
+      "waterStress": 0.02,
+      "gridPressure": 0.12,
+      "airPollution": 0.01,
+      "heatExposure": 0.05,
+      "floodHazard": 0.05,
+      "populationProximity": 0.15,
+      "landSensitivity": 0.25,
+      "biodiversityConstraint": 0.35
+    },
+    "substation": {
+      "waterStress": 0.05,
+      "gridPressure": 0.35,
+      "airPollution": 0.05,
+      "heatExposure": 0.2,
+      "floodHazard": 0.15,
+      "populationProximity": 0.1,
+      "landSensitivity": 0.05,
+      "biodiversityConstraint": 0.05
+    },
+    "industrial": {
+      "waterStress": 0.22,
+      "gridPressure": 0.18,
+      "airPollution": 0.2,
+      "heatExposure": 0.1,
+      "floodHazard": 0.1,
+      "populationProximity": 0.1,
+      "landSensitivity": 0.05,
+      "biodiversityConstraint": 0.05
+    }
+  },
+  "facilities": [
+    {
+      "id": "pilot-pune-industrial",
+      "cityId": "pune",
+      "name": "Pune demonstration industrial",
+      "type": "industrial",
+      "state": "Maharashtra",
+      "district": "Pune",
+      "coordinates": [
+        73.8567,
+        18.5204
+      ],
+      "capacityMw": 30,
+      "operator": "Synthetic planning example",
+      "overallRiskScore": 57,
+      "riskLevel": "moderate",
+      "indicators": {
+        "waterStress": 60,
+        "gridPressure": 55,
+        "airPollution": 62,
+        "heatExposure": 68,
+        "floodHazard": 45,
+        "populationProximity": 65,
+        "landSensitivity": 40,
+        "biodiversityConstraint": 35
+      },
+      "keyRiskFactors": [
+        "Illustrative environmental indicators; site measurements required."
+      ],
+      "nearbyPopulation": {
+        "radius5km": 0,
+        "radius15km": 0,
+        "radius25km": 0
+      },
+      "historicalTrends": [],
+      "provenance": {
+        "sourceOrganization": "EcoSite synthetic pilot dataset",
+        "publicationDate": "2026-10-18",
+        "lastUpdated": "2026-10-18",
+        "geographicResolution": "Illustrative facility point; no surveyed location",
+        "dataStatus": "synthetic",
+        "confidenceScore": 0
+      }
+    },
+    {
+      "id": "pilot-pune-substation",
+      "cityId": "pune",
+      "name": "Pune demonstration substation",
+      "type": "substation",
+      "state": "Maharashtra",
+      "district": "Pune",
+      "coordinates": [
+        73.8747,
+        18.534399999999998
+      ],
+      "capacityMw": 100,
+      "operator": "Synthetic planning example",
+      "overallRiskScore": 49,
+      "riskLevel": "moderate",
+      "indicators": {
+        "waterStress": 53,
+        "gridPressure": 48,
+        "airPollution": 55,
+        "heatExposure": 61,
+        "floodHazard": 38,
+        "populationProximity": 58,
+        "landSensitivity": 33,
+        "biodiversityConstraint": 28
+      },
+      "keyRiskFactors": [
+        "Illustrative environmental indicators; site measurements required."
+      ],
+      "nearbyPopulation": {
+        "radius5km": 0,
+        "radius15km": 0,
+        "radius25km": 0
+      },
+      "historicalTrends": [],
+      "provenance": {
+        "sourceOrganization": "EcoSite synthetic pilot dataset",
+        "publicationDate": "2026-10-18",
+        "lastUpdated": "2026-10-18",
+        "geographicResolution": "Illustrative facility point; no surveyed location",
+        "dataStatus": "synthetic",
+        "confidenceScore": 0
+      }
+    },
+    {
+      "id": "pilot-pune-solar_farm",
+      "cityId": "pune",
+      "name": "Pune demonstration solar farm",
+      "type": "solar_farm",
+      "state": "Maharashtra",
+      "district": "Pune",
+      "coordinates": [
+        73.83670000000001,
+        18.505399999999998
+      ],
+      "capacityMw": 10,
+      "operator": "Synthetic planning example",
+      "overallRiskScore": 37,
+      "riskLevel": "low",
+      "indicators": {
+        "waterStress": 46,
+        "gridPressure": 41,
+        "airPollution": 48,
+        "heatExposure": 54,
+        "floodHazard": 31,
+        "populationProximity": 51,
+        "landSensitivity": 26,
+        "biodiversityConstraint": 21
+      },
+      "keyRiskFactors": [
+        "Illustrative environmental indicators; site measurements required."
+      ],
+      "nearbyPopulation": {
+        "radius5km": 0,
+        "radius15km": 0,
+        "radius25km": 0
+      },
+      "historicalTrends": [],
+      "provenance": {
+        "sourceOrganization": "EcoSite synthetic pilot dataset",
+        "publicationDate": "2026-10-18",
+        "lastUpdated": "2026-10-18",
+        "geographicResolution": "Illustrative facility point; no surveyed location",
+        "dataStatus": "synthetic",
+        "confidenceScore": 0
+      }
+    },
+    {
+      "id": "pilot-mumbai-industrial",
+      "cityId": "mumbai",
+      "name": "Mumbai demonstration industrial",
+      "type": "industrial",
+      "state": "Maharashtra",
+      "district": "Mumbai",
+      "coordinates": [
+        72.8777,
+        19.076
+      ],
+      "capacityMw": 30,
+      "operator": "Synthetic planning example",
+      "overallRiskScore": 69,
+      "riskLevel": "high",
+      "indicators": {
+        "waterStress": 65,
+        "gridPressure": 72,
+        "airPollution": 68,
+        "heatExposure": 62,
+        "floodHazard": 78,
+        "populationProximity": 85,
+        "landSensitivity": 55,
+        "biodiversityConstraint": 48
+      },
+      "keyRiskFactors": [
+        "Illustrative environmental indicators; site measurements required."
+      ],
+      "nearbyPopulation": {
+        "radius5km": 0,
+        "radius15km": 0,
+        "radius25km": 0
+      },
+      "historicalTrends": [],
+      "provenance": {
+        "sourceOrganization": "EcoSite synthetic pilot dataset",
+        "publicationDate": "2026-10-18",
+        "lastUpdated": "2026-10-18",
+        "geographicResolution": "Illustrative facility point; no surveyed location",
+        "dataStatus": "synthetic",
+        "confidenceScore": 0
+      }
+    },
+    {
+      "id": "pilot-mumbai-substation",
+      "cityId": "mumbai",
+      "name": "Mumbai demonstration substation",
+      "type": "substation",
+      "state": "Maharashtra",
+      "district": "Mumbai",
+      "coordinates": [
+        72.8957,
+        19.09
+      ],
+      "capacityMw": 100,
+      "operator": "Synthetic planning example",
+      "overallRiskScore": 63,
+      "riskLevel": "moderate",
+      "indicators": {
+        "waterStress": 58,
+        "gridPressure": 65,
+        "airPollution": 61,
+        "heatExposure": 55,
+        "floodHazard": 71,
+        "populationProximity": 78,
+        "landSensitivity": 48,
+        "biodiversityConstraint": 41
+      },
+      "keyRiskFactors": [
+        "Illustrative environmental indicators; site measurements required."
+      ],
+      "nearbyPopulation": {
+        "radius5km": 0,
+        "radius15km": 0,
+        "radius25km": 0
+      },
+      "historicalTrends": [],
+      "provenance": {
+        "sourceOrganization": "EcoSite synthetic pilot dataset",
+        "publicationDate": "2026-10-18",
+        "lastUpdated": "2026-10-18",
+        "geographicResolution": "Illustrative facility point; no surveyed location",
+        "dataStatus": "synthetic",
+        "confidenceScore": 0
+      }
+    },
+    {
+      "id": "pilot-mumbai-solar_farm",
+      "cityId": "mumbai",
+      "name": "Mumbai demonstration solar farm",
+      "type": "solar_farm",
+      "state": "Maharashtra",
+      "district": "Mumbai",
+      "coordinates": [
+        72.85770000000001,
+        19.061
+      ],
+      "capacityMw": 10,
+      "operator": "Synthetic planning example",
+      "overallRiskScore": 48,
+      "riskLevel": "moderate",
+      "indicators": {
+        "waterStress": 51,
+        "gridPressure": 58,
+        "airPollution": 54,
+        "heatExposure": 48,
+        "floodHazard": 64,
+        "populationProximity": 71,
+        "landSensitivity": 41,
+        "biodiversityConstraint": 34
+      },
+      "keyRiskFactors": [
+        "Illustrative environmental indicators; site measurements required."
+      ],
+      "nearbyPopulation": {
+        "radius5km": 0,
+        "radius15km": 0,
+        "radius25km": 0
+      },
+      "historicalTrends": [],
+      "provenance": {
+        "sourceOrganization": "EcoSite synthetic pilot dataset",
+        "publicationDate": "2026-10-18",
+        "lastUpdated": "2026-10-18",
+        "geographicResolution": "Illustrative facility point; no surveyed location",
+        "dataStatus": "synthetic",
+        "confidenceScore": 0
+      }
+    }
+  ]
+}

@@ -1,16 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import {
-  Compass,
-  Layers,
-  ZoomIn,
-  ZoomOut,
-  Sparkles,
-  Grid,
-} from 'lucide-react';
+import { Compass, Layers, Sparkles, X, ZoomIn, ZoomOut } from 'lucide-react';
 import { useDashboardStore } from '../../stores/dashboardStore';
-import { DEMO_FACILITIES } from '../../data/demo/facilities';
+import { getPilotCity } from '../../data/pilotCities';
 import {
   GROUNDWATER_ZONES_GEOJSON,
   AIR_QUALITY_ZONES_GEOJSON,
@@ -19,6 +12,7 @@ import {
   PROTECTED_AREAS_GEOJSON,
   TRANSMISSION_GRID_GEOJSON,
 } from '../../data/demo/environmentalOverlays';
+import { FACILITY_TYPE_COLORS, FACILITY_TYPE_LABELS } from '../../theme/tokens';
 import type { Facility, InfrastructureType } from '../../types';
 
 // Dynamic style generator: uses Mapbox HD tiles when a token is provided, otherwise falls back to Carto/ESRI
@@ -182,56 +176,6 @@ const getMapStyle = (
     ],
   };
 };
-
-const TYPE_COLORS: Record<InfrastructureType, string> = {
-  data_centre: '#38BDF8', // Blue
-  thermal_power: '#EF4444', // Red
-  solar_farm: '#22C55E', // Green
-  wind_farm: '#10B981', // Emerald
-  hydro_power: '#06B6D4', // Cyan
-  substation: '#F59E0B', // Yellow
-  industrial: '#A855F7', // Purple
-};
-
-interface RegionalCluster {
-  id: string;
-  name: string;
-  coordinates: [number, number];
-  facilityIds: string[];
-}
-
-const REGIONAL_CLUSTERS: RegionalCluster[] = [
-  {
-    id: 'cluster-chhattisgarh-coal',
-    name: 'Central Energy & HVDC Terminal Hub',
-    coordinates: [82.8, 22.8],
-    facilityIds: ['thermal-singrauli-01', 'thermal-korba-02', 'substation-raigarh-01', 'substation-champa-02', 'solar-rewa-02'],
-  },
-  {
-    id: 'cluster-gujarat-megapark',
-    name: 'Gujarat Clean Energy & Chip Corridor',
-    coordinates: [71.5, 23.0],
-    facilityIds: ['hydro-sardar-sarovar-02', 'industrial-dholera-01', 'solar-khavda-01'],
-  },
-  {
-    id: 'cluster-thar-clean',
-    name: 'Thar Desert Renewable Complex',
-    coordinates: [71.4, 27.2],
-    facilityIds: ['solar-bhadla-01', 'wind-jaisalmer-02'],
-  },
-  {
-    id: 'cluster-tamilnadu-corridor',
-    name: 'Tamil Nadu Coastal Power & DC Corridor',
-    coordinates: [79.0, 11.0],
-    facilityIds: ['dc-chennai-05', 'thermal-ennore-03', 'wind-muppandal-01'],
-  },
-  {
-    id: 'cluster-bengaluru-tech',
-    name: 'Karnataka High-Tech & Solar Basin',
-    coordinates: [77.5, 13.6],
-    facilityIds: ['dc-bangalore-03', 'solar-pavagada-03'],
-  },
-];
 
 const setupEnvironmentalLayers = (
   map: maplibregl.Map,
@@ -400,7 +344,7 @@ export const MainMap: React.FC = () => {
   const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null);
   const markersRef = useRef<{ [key: string]: maplibregl.Marker }>({});
   const prevStyleRef = useRef<string>('dark');
-  const [clusterMode, setClusterMode] = useState<'auto' | 'expanded'>('auto');
+  const [mapError, setMapError] = useState<string | null>(null);
 
   const mapboxToken =
     localStorage.getItem('ECOSITE_MAPBOX_TOKEN') ||
@@ -416,6 +360,9 @@ export const MainMap: React.FC = () => {
     activeLayers,
     layerOpacities,
     wmLayers,
+    facilities,
+    facilitiesStatus,
+    cityId,
     mapStyle,
     setMapStyle,
     viewport,
@@ -453,8 +400,22 @@ export const MainMap: React.FC = () => {
 
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
 
+    const loadTimer = window.setTimeout(() => {
+      if (!map.loaded()) {
+        setMapError(
+          'Basemap tiles are slow to respond — the network may be offline or the basemap provider unreachable.'
+        );
+      }
+    }, 10000);
+
     map.on('error', (e) => {
       console.warn('MapLibre event error:', e);
+      const message = String(
+        (e as unknown as { error?: { message?: string } }).error?.message ?? ''
+      );
+      if (/401|403|unauthorized|forbidden|token|style/i.test(message)) {
+        setMapError(message || 'The basemap style failed to load.');
+      }
     });
 
     map.on('moveend', () => {
@@ -473,6 +434,8 @@ export const MainMap: React.FC = () => {
     resizeObserver.observe(mapContainerRef.current);
 
     const onMapLoaded = () => {
+      window.clearTimeout(loadTimer);
+      setMapError(null);
       map.resize();
       setupEnvironmentalLayers(map, activeLayers, layerOpacities);
       setMapInstance(map);
@@ -487,7 +450,7 @@ export const MainMap: React.FC = () => {
               const rect = mapContainerRef.current?.getBoundingClientRect();
               setHoveredEnvZone({
                 name: props.name,
-                status: props.status || 'Active Hazard Tier',
+                status: props.status || 'Demo overlay',
                 description: props.description || '',
                 x: (rect?.left || 0) + e.point.x,
                 y: (rect?.top || 0) + e.point.y,
@@ -516,6 +479,7 @@ export const MainMap: React.FC = () => {
     setMapInstance(map);
 
     return () => {
+      window.clearTimeout(loadTimer);
       resizeObserver.disconnect();
       Object.values(markersRef.current).forEach((marker) => marker.remove());
       markersRef.current = {};
@@ -589,59 +553,66 @@ export const MainMap: React.FC = () => {
     }
   }, [mapInstance, viewport.longitude, viewport.latitude, viewport.zoom]);
 
-  // Filter facilities based on active layers and filters
-  const filteredFacilities = DEMO_FACILITIES.filter((f) => {
-    // 1. Check GIS layer visibility from LeftSidebar if toggled off
-    const typeLayerMap: Record<string, string> = {
-      data_centre: 'layer-data-centres',
-      thermal_power: 'layer-thermal-power',
-      hydro_power: 'layer-hydro-power',
-      solar_farm: 'layer-solar-farms',
-      wind_farm: 'layer-wind-farms',
-      substation: 'layer-substations',
-      industrial: 'layer-industrial',
-    };
-    const layerId = typeLayerMap[f.type];
-    if (layerId && activeLayers && activeLayers[layerId] === false) {
-      return false;
-    }
+  // Facilities are city-scoped and mode-scoped by the store loader; this memo
+  // applies only the view filters (layer toggles, type, risk, search).
+  const filteredFacilities = useMemo(
+    () =>
+      facilities.filter((f) => {
+        // 1. Check GIS layer visibility from LeftSidebar if toggled off
+        const typeLayerMap: Record<string, string> = {
+          data_centre: 'layer-data-centres',
+          thermal_power: 'layer-thermal-power',
+          hydro_power: 'layer-hydro-power',
+          solar_farm: 'layer-solar-farms',
+          wind_farm: 'layer-wind-farms',
+          substation: 'layer-substations',
+          industrial: 'layer-industrial',
+        };
+        const layerId = typeLayerMap[f.type];
+        if (layerId && activeLayers && activeLayers[layerId] === false) {
+          return false;
+        }
 
-    // 2. World Monitor Tactical Layers matching logic
-    const matchesWmLayer =
-      wmLayers.hotspots ||
-      (wmLayers.conflicts && f.riskLevel === 'critical') ||
-      (wmLayers.bases && f.type === 'data_centre') ||
-      (wmLayers.nuclear && f.type === 'thermal_power') ||
-      (wmLayers.military && f.type === 'substation') ||
-      (wmLayers.weather && f.indicators.airPollution >= 55) ||
-      (wmLayers.canadaAlerts && f.indicators.heatExposure >= 65) ||
-      (wmLayers.outages && f.indicators.gridPressure >= 70) ||
-      (wmLayers.natural && f.indicators.floodHazard >= 60) ||
-      (wmLayers.waterways && f.type === 'hydro_power') ||
-      (wmLayers.economic && (f.type === 'solar_farm' || f.type === 'wind_farm')) ||
-      (wmLayers.sanctions && (f.indicators.biodiversityConstraint >= 60 || f.type === 'industrial'));
+        // 2. World Monitor Tactical Layers matching logic
+        const matchesWmLayer =
+          wmLayers.hotspots ||
+          (wmLayers.conflicts && f.riskLevel === 'critical') ||
+          (wmLayers.bases && f.type === 'data_centre') ||
+          (wmLayers.nuclear && f.type === 'thermal_power') ||
+          (wmLayers.military && f.type === 'substation') ||
+          (wmLayers.weather && f.indicators.airPollution >= 55) ||
+          (wmLayers.canadaAlerts && f.indicators.heatExposure >= 65) ||
+          (wmLayers.outages && f.indicators.gridPressure >= 70) ||
+          (wmLayers.natural && f.indicators.floodHazard >= 60) ||
+          (wmLayers.waterways && f.type === 'hydro_power') ||
+          (wmLayers.economic && (f.type === 'solar_farm' || f.type === 'wind_farm')) ||
+          (wmLayers.sanctions && (f.indicators.biodiversityConstraint >= 60 || f.type === 'industrial'));
 
-    if (!matchesWmLayer) return false;
+        if (!matchesWmLayer) return false;
 
-    // 3. Type filter
-    if (typeFilter !== 'all' && f.type !== typeFilter) return false;
+        // 3. Type filter
+        if (typeFilter !== 'all' && f.type !== typeFilter) return false;
 
-    // 4. Risk filter
-    if (riskFilter !== 'all' && f.riskLevel !== riskFilter) return false;
+        // 4. Risk filter
+        if (riskFilter !== 'all' && f.riskLevel !== riskFilter) return false;
 
-    // 5. Search query
-    if (searchQuery.trim().length > 0) {
-      const q = searchQuery.toLowerCase().trim();
-      const match =
-        f.name.toLowerCase().includes(q) ||
-        f.state.toLowerCase().includes(q) ||
-        f.district.toLowerCase().includes(q) ||
-        f.operator?.toLowerCase().includes(q);
-      if (!match) return false;
-    }
+        // 5. Search query
+        if (searchQuery.trim().length > 0) {
+          const q = searchQuery.toLowerCase().trim();
+          const match =
+            f.name.toLowerCase().includes(q) ||
+            f.state.toLowerCase().includes(q) ||
+            f.district.toLowerCase().includes(q) ||
+            f.operator?.toLowerCase().includes(q);
+          if (!match) return false;
+        }
 
-    return true;
-  });
+        return true;
+      }),
+    [facilities, activeLayers, wmLayers, typeFilter, riskFilter, searchQuery]
+  );
+
+  const city = getPilotCity(cityId);
 
   // Keep the hover card anchored to the marker's projected screen position.
   useEffect(() => {
@@ -670,249 +641,190 @@ export const MainMap: React.FC = () => {
     };
   }, [mapInstance, hoveredFacility]);
 
-  // Render facility markers and high-altitude clusters with robust lifecycle synchronization
+  // Render facility markers, diffed by facility id so pins never jump between
+  // renders. MapLibre's stylesheet positions each marker element absolutely and
+  // its per-frame transform keeps the pin anchored to its exact coordinate at
+  // every zoom level — the element must never override `position` or set its
+  // own `transform`, or pins drift away from their real location.
   useEffect(() => {
     if (!mapInstance) return;
 
-    const renderMarkers = () => {
-      // Clean up previous markers
-      Object.values(markersRef.current).forEach((marker) => marker.remove());
-      markersRef.current = {};
+    const buildFacilityElement = (facility: Facility, isSelected: boolean) => {
+      const color = FACILITY_TYPE_COLORS[facility.type] || '#39f58b';
+      const isCritical = facility.riskLevel === 'critical';
+      const size = isSelected ? 34 : 26;
 
-      const currentZoom = mapInstance.getZoom();
-      const shouldCluster = clusterMode === 'auto' && currentZoom < 5.8;
+      const el = document.createElement('div');
+      el.className = 'facility-marker-pin';
+      el.dataset.id = facility.id;
+      el.style.width = `${size}px`;
+      el.style.height = `${size}px`;
+      el.style.cursor = 'pointer';
+      el.style.userSelect = 'none';
+      el.style.zIndex = isSelected ? '100' : isCritical ? '40' : '20';
+      el.setAttribute('role', 'button');
+      el.setAttribute('tabindex', '0');
+      el.setAttribute('aria-label', `Open facility dossier for ${facility.name}`);
 
-      const clusteredFacilityIds = new Set<string>();
-
-      if (shouldCluster) {
-        REGIONAL_CLUSTERS.forEach((cluster) => {
-          const matchingFacilities = filteredFacilities.filter((f) =>
-            cluster.facilityIds.includes(f.id)
-          );
-
-          if (matchingFacilities.length >= 2) {
-            matchingFacilities.forEach((f) => clusteredFacilityIds.add(f.id));
-
-            // Create Cluster Marker Node
-            const el = document.createElement('div');
-            el.className = 'facility-cluster-node group cursor-pointer select-none';
-            el.style.width = '42px';
-            el.style.height = '42px';
-            el.style.position = 'relative';
-            el.style.display = 'flex';
-            el.style.alignItems = 'center';
-            el.style.justifyContent = 'center';
-            el.style.zIndex = '35';
-
-            const hasCritical = matchingFacilities.some((f) => f.riskLevel === 'critical');
-
-            el.innerHTML = `
-              <div class="relative w-full h-full flex items-center justify-center">
-                ${
-                  hasCritical
-                    ? `<div class="absolute -inset-2 rounded-full animate-ping opacity-60 bg-rose-500 pointer-events-none"></div>`
-                    : `<div class="absolute -inset-1 rounded-full animate-pulse opacity-40 bg-sky-400 pointer-events-none"></div>`
-                }
-                <div class="w-full h-full rounded-full bg-[#0B1220] border-2 border-sky-400 flex flex-col items-center justify-center shadow-2xl transition-transform duration-200 group-hover:scale-115">
-                  <span class="font-black text-xs font-mono text-sky-300 leading-none">${matchingFacilities.length}</span>
-                  <span class="text-[7px] font-bold text-slate-400 uppercase tracking-tighter leading-none mt-0.5">SITES</span>
-                </div>
-                <div class="cluster-tooltip opacity-0 group-hover:opacity-100 transition-opacity duration-150 absolute top-full left-1/2 -translate-x-1/2 mt-1.5 px-2.5 py-1 rounded bg-[#0B1220]/95 border border-[#1E293B] text-[10px] text-slate-100 font-semibold whitespace-nowrap shadow-2xl pointer-events-none z-50">
-                  <div class="font-bold text-sky-400">${cluster.name}</div>
-                  <div class="text-[9px] text-slate-400">${matchingFacilities.length} facilities • Click to zoom & expand</div>
-                </div>
-              </div>
-            `;
-
-            el.addEventListener('click', (e) => {
-              e.stopPropagation();
-              mapInstance.flyTo({
-                center: cluster.coordinates,
-                zoom: 7.2,
-                duration: 800,
-              });
-            });
-
-            const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
-              .setLngLat(cluster.coordinates)
-              .addTo(mapInstance);
-
-            markersRef.current[cluster.id] = marker;
+      el.innerHTML = `
+        <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+          ${
+            isCritical || isSelected
+              ? `<div style="position: absolute; inset: -6px; border-radius: 9999px; background-color: ${
+                  isCritical ? '#ff5d68' : color
+                }; opacity: 0.3; pointer-events: none;"></div>`
+              : ''
           }
-        });
+          <div class="marker-core" style="width: 100%; height: 100%; border-radius: 9999px; background-color: ${color}; border: 2.5px solid #0b0d0c; display: flex; align-items: center; justify-content: center; color: #0b0d0c; box-shadow: 0 4px 14px rgba(0,0,0,0.85); transition: transform 0.15s ease;">
+            ${getFacilityIconSvg(facility.type)}
+          </div>
+          ${
+            isSelected
+              ? `<div style="position: absolute; top: -3px; right: -3px; width: 14px; height: 14px; border-radius: 9999px; background-color: #e7f1e8; color: #0b0d0c; border: 1.5px solid #0b0d0c; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 900;">✓</div>`
+              : isCritical
+              ? `<div style="position: absolute; top: -3px; right: -3px; width: 13px; height: 13px; border-radius: 9999px; background-color: #ff5d68; color: #0b0d0c; border: 1.5px solid #0b0d0c; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 800;">!</div>`
+              : ''
+          }
+          <div class="facility-name-tag" style="position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); background-color: rgba(17, 21, 20, 0.95); border: 1px solid #29362f; border-radius: 4px; padding: 2px 6px; font-size: 12px; font-weight: 500; color: #e7f1e8; white-space: nowrap; pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.6); opacity: 0; transition: opacity 0.15s ease; z-index: 1000;">
+            ${facility.name}
+          </div>
+        </div>
+      `;
+
+      const selectFacility = () => {
+        setHoveredFacility(null);
+        setTooltipPos(null);
+        setSelectedFacilityId(facility.id);
+      };
+
+      el.addEventListener('mouseenter', () => {
+        const core = el.querySelector('.marker-core') as HTMLElement | null;
+        if (core) core.style.transform = 'scale(1.25)';
+        const tag = el.querySelector('.facility-name-tag') as HTMLElement | null;
+        if (tag) tag.style.opacity = '1';
+        setHoveredFacility(facility);
+      });
+
+      el.addEventListener('mouseleave', () => {
+        const core = el.querySelector('.marker-core') as HTMLElement | null;
+        if (core) core.style.transform = 'scale(1)';
+        const tag = el.querySelector('.facility-name-tag') as HTMLElement | null;
+        if (tag) tag.style.opacity = '0';
+        setHoveredFacility(null);
+        setTooltipPos(null);
+      });
+
+      el.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+      });
+
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectFacility();
+      });
+
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          selectFacility();
+        }
+      });
+
+      return el;
+    };
+
+    const desired = new Map(filteredFacilities.map((facility) => [facility.id, facility]));
+
+    // Drop markers whose facility is no longer visible.
+    Object.entries(markersRef.current).forEach(([id, marker]) => {
+      if (!desired.has(id)) {
+        marker.remove();
+        delete markersRef.current[id];
+      }
+    });
+
+    desired.forEach((facility, id) => {
+      const isSelected = facility.id === selectedFacilityId;
+      const existing = markersRef.current[id];
+
+      if (existing && existing.getElement().dataset.selected === String(isSelected)) {
+        // Same pin state — just re-assert the exact coordinate.
+        existing.setLngLat(facility.coordinates);
+        return;
+      }
+      if (existing) {
+        existing.remove();
+        delete markersRef.current[id];
       }
 
-      // Render individual markers for unclustered facilities
-      filteredFacilities.forEach((facility) => {
-        if (clusteredFacilityIds.has(facility.id)) return;
+      const el = buildFacilityElement(facility, isSelected);
+      el.dataset.selected = String(isSelected);
 
-        const isSelected = facility.id === selectedFacilityId;
-        const color = TYPE_COLORS[facility.type] || '#38BDF8';
-        const isCritical = facility.riskLevel === 'critical';
-        const size = isSelected ? 34 : 26;
+      markersRef.current[id] = new maplibregl.Marker({ element: el, anchor: 'center' })
+        .setLngLat(facility.coordinates)
+        .addTo(mapInstance);
+    });
 
-        const el = document.createElement('div');
-        el.className = 'facility-marker-pin';
-        el.setAttribute('data-id', facility.id);
-        el.style.width = `${size}px`;
-        el.style.height = `${size}px`;
-        el.style.position = 'relative';
-        el.style.cursor = 'pointer';
-        el.style.userSelect = 'none';
-        el.style.zIndex = isSelected ? '100' : isCritical ? '40' : '20';
-        el.setAttribute('role', 'button');
-        el.setAttribute('tabindex', '0');
-        el.setAttribute('aria-label', `Open facility dossier for ${facility.name}`);
-
-        const iconSvg = getFacilityIconSvg(facility.type);
-
-        el.innerHTML = `
-          <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-            ${
-              isCritical || isSelected
-                ? `<div style="position: absolute; inset: -6px; border-radius: 9999px; background-color: ${
-                    isCritical ? '#EF4444' : color
-                  }; opacity: 0.55; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; pointer-events: none;"></div>`
-                : ''
-            }
-            <div class="marker-core" style="width: 100%; height: 100%; border-radius: 9999px; background-color: ${color}; border: 2.5px solid #080D16; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 14px rgba(0,0,0,0.85), 0 0 10px ${color}80; transition: transform 0.15s ease;">
-              ${iconSvg}
-            </div>
-            ${
-              isSelected
-                ? `<div style="position: absolute; top: -3px; right: -3px; width: 14px; height: 14px; border-radius: 9999px; background-color: #FFFFFF; color: #080D16; border: 1.5px solid #080D16; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 900; box-shadow: 0 2px 4px rgba(0,0,0,0.5);">✓</div>`
-                : isCritical
-                ? `<div style="position: absolute; top: -3px; right: -3px; width: 13px; height: 13px; border-radius: 9999px; background-color: #EF4444; color: #FFFFFF; border: 1.5px solid #080D16; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 800; box-shadow: 0 2px 4px rgba(0,0,0,0.5);">!</div>`
-                : ''
-            }
-            <div class="facility-name-tag" style="position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); background-color: rgba(11, 18, 32, 0.95); border: 1px solid #1E293B; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: 600; color: #F1F5F9; white-space: nowrap; pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.6); opacity: 0; transition: opacity 0.15s ease; z-index: 1000;">
-              ${facility.name}
-            </div>
-          </div>
-        `;
-
-        const selectFacility = () => {
-          setHoveredFacility(null);
-          setTooltipPos(null);
-          setSelectedFacilityId(facility.id);
-        };
-
-        el.addEventListener('mouseenter', () => {
-          const core = el.querySelector('.marker-core') as HTMLElement | null;
-          if (core) core.style.transform = 'scale(1.25)';
-          const tag = el.querySelector('.facility-name-tag') as HTMLElement | null;
-          if (tag) tag.style.opacity = '1';
-          setHoveredFacility(facility);
-        });
-
-        el.addEventListener('mouseleave', () => {
-          const core = el.querySelector('.marker-core') as HTMLElement | null;
-          if (core) core.style.transform = 'scale(1)';
-          const tag = el.querySelector('.facility-name-tag') as HTMLElement | null;
-          if (tag) tag.style.opacity = '0';
-          setHoveredFacility(null);
-          setTooltipPos(null);
-        });
-
-        el.addEventListener('pointerdown', (e) => {
-          e.stopPropagation();
-        });
-
-        el.addEventListener('click', (e) => {
-          e.stopPropagation();
-          selectFacility();
-        });
-
-        el.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            selectFacility();
-          }
-        });
-
-        const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
-          .setLngLat(facility.coordinates)
-          .addTo(mapInstance);
-
-        markersRef.current[facility.id] = marker;
-      });
-    };
-
-    renderMarkers();
-
-    mapInstance.on('style.load', renderMarkers);
-    mapInstance.on('zoomend', renderMarkers);
-
-    return () => {
-      mapInstance.off('style.load', renderMarkers);
-      mapInstance.off('zoomend', renderMarkers);
-      Object.values(markersRef.current).forEach((marker) => marker.remove());
-      markersRef.current = {};
-    };
-  }, [mapInstance, filteredFacilities, selectedFacilityId, setSelectedFacilityId, clusterMode]);
+    // Teardown of all markers happens in the map-initialisation effect cleanup.
+  }, [mapInstance, filteredFacilities, selectedFacilityId, setSelectedFacilityId]);
 
   return (
-    <div className="relative w-full h-full min-h-[300px] overflow-hidden bg-[#060A10]">
+    <div className="relative w-full h-full min-h-[300px] overflow-hidden bg-eco-bg">
       {/* Map Container - absolute inset-0 guarantees it fills the full container dimensions */}
       <div
         ref={mapContainerRef}
         className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"
       />
 
-      {/* Clean Top-Left Floating Controls */}
+      {/* Top-left floating controls */}
       <div className="absolute top-3.5 left-3.5 z-20 flex items-center gap-2 select-none">
         <button
           type="button"
           onClick={toggleLeftSidebar}
-          className="flex items-center gap-2 px-3 py-1.5 bg-[#0F172A]/90 hover:bg-[#1E293B] border border-[#1E293B] text-slate-200 rounded-lg shadow-lg backdrop-blur-md text-xs font-medium transition-colors cursor-pointer"
+          className="flex items-center gap-2 px-3 py-1.5 bg-eco-surface/90 hover:bg-eco-surface-secondary border border-eco-border text-eco-text rounded-lg shadow-lg backdrop-blur-md text-xs font-medium transition-colors cursor-pointer"
         >
-          <Layers className="w-3.5 h-3.5 text-sky-400" />
-          <span>Layers & Filters</span>
+          <Layers className="w-3.5 h-3.5 text-eco-primary" />
+          <span>Layers &amp; filters</span>
         </button>
 
-        {/* Clustering Mode Toggle */}
-        <button
-          type="button"
-          onClick={() => setClusterMode(clusterMode === 'auto' ? 'expanded' : 'auto')}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#0F172A]/90 hover:bg-[#1E293B] border border-[#1E293B] text-slate-200 rounded-lg shadow-lg backdrop-blur-md text-xs font-mono transition-colors cursor-pointer"
-          title="Toggle High-Altitude Regional Clustering (Zoom < 5.8)"
-        >
-          <Grid className="w-3.5 h-3.5 text-emerald-400" />
-          <span>{clusterMode === 'auto' ? 'Cluster: Auto' : 'Cluster: Off'}</span>
-        </button>
-
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[#0F172A]/80 border border-[#1E293B] text-slate-300 rounded-lg shadow-lg backdrop-blur-md text-xs">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-semibold text-slate-100">{filteredFacilities.length} Facilities</span>
-          {mapboxToken ? (
-            <span className="text-[10px] text-sky-400 bg-sky-950/80 px-1.5 py-0.2 rounded border border-sky-800/80 font-mono">
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-eco-surface/80 border border-eco-border text-eco-muted rounded-lg shadow-lg backdrop-blur-md text-xs">
+          <span className="w-2 h-2 rounded-full bg-eco-primary" />
+          <span className="font-semibold text-eco-text">
+            {facilitiesStatus === 'loading'
+              ? 'Loading facilities…'
+              : facilitiesStatus === 'error'
+              ? 'Facilities unavailable'
+              : `${filteredFacilities.length} ${
+                  filteredFacilities.length === 1 ? 'facility' : 'facilities'
+                } · ${city.name}`}
+          </span>
+          {mapboxToken && (
+            <span className="text-micro text-eco-primary bg-eco-primary/10 px-1.5 py-0.5 rounded border border-eco-primary/30 font-mono uppercase tracking-wide">
               Mapbox HD
             </span>
-          ) : (
-            <span className="text-slate-500">Active</span>
           )}
         </div>
       </div>
 
-      {/* Floating Map Controls (Top-Right) */}
+      {/* Floating map controls (top-right) */}
       <div className="absolute top-3.5 right-3.5 flex flex-col gap-1.5 z-20 select-none">
-        {/* Style Selector */}
+        {/* Basemap selector */}
         <div className="relative">
           <button
             type="button"
             onClick={() => setStyleMenuOpen(!styleMenuOpen)}
-            className="w-8 h-8 rounded-lg bg-[#0F172A]/90 border border-[#1E293B] text-slate-200 flex items-center justify-center hover:bg-[#1E293B] shadow-lg backdrop-blur-md transition-colors"
-            title="Switch Map Basemap Style"
+            className="w-8 h-8 rounded-lg bg-eco-surface/90 border border-eco-border text-eco-text flex items-center justify-center hover:bg-eco-surface-secondary shadow-lg backdrop-blur-md transition-colors"
+            title="Switch basemap"
           >
-            <Layers className="w-4 h-4 text-sky-400" />
+            <Layers className="w-4 h-4 text-eco-primary" />
           </button>
 
           {styleMenuOpen && (
-            <div className="absolute right-0 top-10 w-44 bg-[#0F172A] border border-[#1E293B] rounded-lg shadow-2xl p-1.5 space-y-1 text-xs">
-              <div className="px-2 py-1 text-[10px] text-slate-400 border-b border-[#1E293B] flex items-center justify-between font-mono">
-                <span>BASEMAP ENGINE</span>
+            <div className="absolute right-0 top-10 w-44 bg-eco-surface border border-eco-border rounded-lg shadow-2xl p-1.5 space-y-1 text-xs">
+              <div className="px-2 py-1 text-micro text-eco-muted border-b border-eco-border flex items-center justify-between font-mono uppercase tracking-wide">
+                <span>Basemap</span>
                 {mapboxToken && (
-                  <span className="text-sky-400 flex items-center gap-0.5">
+                  <span className="text-eco-primary flex items-center gap-0.5">
                     <Sparkles className="w-2.5 h-2.5" />
                     <span>Mapbox</span>
                   </span>
@@ -925,11 +837,13 @@ export const MainMap: React.FC = () => {
                   setStyleMenuOpen(false);
                 }}
                 className={`w-full text-left px-2 py-1.5 rounded flex items-center justify-between ${
-                  mapStyle === 'dark' ? 'bg-[#15202E] text-sky-400 font-bold' : 'text-slate-300 hover:bg-[#15202E]/60'
+                  mapStyle === 'dark'
+                    ? 'bg-eco-surface-secondary text-eco-primary font-semibold'
+                    : 'text-eco-text hover:bg-eco-surface-secondary/60'
                 }`}
               >
                 <span>{mapboxToken ? 'Mapbox Dark v11' : 'Dark Matter'}</span>
-                {mapStyle === 'dark' && <span className="text-[10px]">●</span>}
+                {mapStyle === 'dark' && <span className="text-micro">●</span>}
               </button>
               <button
                 type="button"
@@ -938,11 +852,13 @@ export const MainMap: React.FC = () => {
                   setStyleMenuOpen(false);
                 }}
                 className={`w-full text-left px-2 py-1.5 rounded flex items-center justify-between ${
-                  mapStyle === 'satellite' ? 'bg-[#15202E] text-sky-400 font-bold' : 'text-slate-300 hover:bg-[#15202E]/60'
+                  mapStyle === 'satellite'
+                    ? 'bg-eco-surface-secondary text-eco-primary font-semibold'
+                    : 'text-eco-text hover:bg-eco-surface-secondary/60'
                 }`}
               >
                 <span>{mapboxToken ? 'Mapbox Satellite' : 'ESRI Satellite'}</span>
-                {mapStyle === 'satellite' && <span className="text-[10px]">●</span>}
+                {mapStyle === 'satellite' && <span className="text-micro">●</span>}
               </button>
               <button
                 type="button"
@@ -951,154 +867,168 @@ export const MainMap: React.FC = () => {
                   setStyleMenuOpen(false);
                 }}
                 className={`w-full text-left px-2 py-1.5 rounded flex items-center justify-between ${
-                  mapStyle === 'streets' ? 'bg-[#15202E] text-sky-400 font-bold' : 'text-slate-300 hover:bg-[#15202E]/60'
+                  mapStyle === 'streets'
+                    ? 'bg-eco-surface-secondary text-eco-primary font-semibold'
+                    : 'text-eco-text hover:bg-eco-surface-secondary/60'
                 }`}
               >
                 <span>{mapboxToken ? 'Mapbox Light v11' : 'Positron Light'}</span>
-                {mapStyle === 'streets' && <span className="text-[10px]">●</span>}
+                {mapStyle === 'streets' && <span className="text-micro">●</span>}
               </button>
             </div>
           )}
         </div>
 
-        {/* Zoom In */}
+        {/* Zoom in */}
         <button
           type="button"
           onClick={() => mapInstance?.zoomIn()}
-          className="w-8 h-8 rounded-lg bg-[#0F172A]/90 border border-[#1E293B] text-slate-200 flex items-center justify-center hover:bg-[#1E293B] shadow-lg backdrop-blur-md transition-colors cursor-pointer"
-          title="Zoom In"
+          className="w-8 h-8 rounded-lg bg-eco-surface/90 border border-eco-border text-eco-text flex items-center justify-center hover:bg-eco-surface-secondary shadow-lg backdrop-blur-md transition-colors cursor-pointer"
+          title="Zoom in"
         >
           <ZoomIn className="w-4 h-4" />
         </button>
 
-        {/* Zoom Out */}
+        {/* Zoom out */}
         <button
           type="button"
           onClick={() => mapInstance?.zoomOut()}
-          className="w-8 h-8 rounded-lg bg-[#0F172A]/90 border border-[#1E293B] text-slate-200 flex items-center justify-center hover:bg-[#1E293B] shadow-lg backdrop-blur-md transition-colors cursor-pointer"
-          title="Zoom Out"
+          className="w-8 h-8 rounded-lg bg-eco-surface/90 border border-eco-border text-eco-text flex items-center justify-center hover:bg-eco-surface-secondary shadow-lg backdrop-blur-md transition-colors cursor-pointer"
+          title="Zoom out"
         >
           <ZoomOut className="w-4 h-4" />
         </button>
 
-        {/* Fit to India */}
+        {/* Recenter on the selected city */}
         <button
           type="button"
-          onClick={() => {
-            fitToIndia();
-            mapInstance?.flyTo({ center: [78.9629, 22.5937], zoom: 4.5, duration: 1000 });
-          }}
-          className="w-8 h-8 rounded-lg bg-[#0F172A]/90 border border-[#1E293B] text-slate-200 flex items-center justify-center hover:bg-[#1E293B] shadow-lg backdrop-blur-md transition-colors cursor-pointer"
-          title="Fit View to India"
+          onClick={() => fitToIndia()}
+          className="w-8 h-8 rounded-lg bg-eco-surface/90 border border-eco-border text-eco-text flex items-center justify-center hover:bg-eco-surface-secondary shadow-lg backdrop-blur-md transition-colors cursor-pointer"
+          title={`Recenter on ${city.name}`}
         >
-          <Compass className="w-4 h-4 text-emerald-400" />
+          <Compass className="w-4 h-4 text-eco-primary" />
         </button>
       </div>
 
-      {/* Floating Tactical Map Legend */}
-      <div className="absolute bottom-4 left-4 z-20 hidden md:flex items-center gap-3 px-3 py-2 bg-[#0F172A]/90 border border-[#1E293B] rounded-lg shadow-2xl backdrop-blur-md text-[11px] text-slate-300 select-none">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
-          Legend:
+      {/* Basemap failure notice */}
+      {mapError && (
+        <div className="absolute top-3.5 right-14 z-30 max-w-sm flex items-start gap-2 bg-eco-surface/95 border border-eco-critical/50 text-eco-text rounded-lg shadow-2xl backdrop-blur-md px-3 py-2 text-xs">
+          <div className="flex-1 min-w-0">
+            <span className="font-semibold text-eco-critical">Basemap issue. </span>
+            <span className="text-eco-muted">{mapError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setMapError(null);
+              if (!mapInstance) return;
+              mapInstance.setStyle(getMapStyle(mapStyle, mapboxToken));
+              mapInstance.once('style.load', () => {
+                setupEnvironmentalLayers(mapInstance, activeLayers, layerOpacities);
+              });
+            }}
+            className="shrink-0 text-eco-primary hover:underline"
+          >
+            Retry
+          </button>
+          <button
+            type="button"
+            onClick={() => setMapError(null)}
+            aria-label="Dismiss basemap notice"
+            className="shrink-0 text-eco-muted hover:text-eco-text"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Facility type legend */}
+      <div className="absolute bottom-4 left-4 z-20 hidden lg:flex flex-wrap items-center gap-x-3 gap-y-1 max-w-[75%] px-3 py-2 bg-eco-surface/90 border border-eco-border rounded-lg shadow-2xl backdrop-blur-md text-xs text-eco-text select-none">
+        <span className="text-micro uppercase tracking-wider text-eco-muted font-mono">
+          Legend
         </span>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#38BDF8] border border-black shadow" />
-          <span>Data Centre</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444] border border-black shadow" />
-          <span>Thermal Power</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#22C55E] border border-black shadow" />
-          <span>Solar / Wind</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#06B6D4] border border-black shadow" />
-          <span>Hydro</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B] border border-black shadow" />
-          <span>Substation</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#A855F7] border border-black shadow" />
-          <span>Industrial</span>
-        </div>
+        {(Object.keys(FACILITY_TYPE_COLORS) as InfrastructureType[]).map((type) => (
+          <div key={type} className="flex items-center gap-1.5">
+            <span
+              className="w-2.5 h-2.5 rounded-full border border-eco-bg shadow"
+              style={{ backgroundColor: FACILITY_TYPE_COLORS[type] }}
+            />
+            <span>{FACILITY_TYPE_LABELS[type]}</span>
+          </div>
+        ))}
       </div>
 
-      {/* Hover Tooltip */}
+      {/* Hover tooltip */}
       {hoveredFacility && tooltipPos && (
         <div
-          className="fixed z-50 pointer-events-none bg-[#0F172A]/95 border border-[#1E293B] text-slate-100 rounded-lg p-3 shadow-2xl backdrop-blur-md text-xs font-sans w-64 -translate-x-1/2 -translate-y-full mb-3"
+          className="fixed z-50 pointer-events-none bg-eco-surface/95 border border-eco-border text-eco-text rounded-lg p-3 shadow-2xl backdrop-blur-md text-xs w-64 -translate-x-1/2 -translate-y-full mb-3"
           style={{
             left: `${tooltipPos.x}px`,
             top: `${tooltipPos.y - 10}px`,
           }}
         >
-          <div className="flex items-center justify-between border-b border-[#1E293B] pb-1.5 mb-2">
-            <span className="font-semibold text-slate-100 truncate text-xs">{hoveredFacility.name}</span>
+          <div className="flex items-center justify-between gap-2 border-b border-eco-border pb-1.5 mb-2">
+            <span className="font-semibold text-eco-text truncate text-xs">{hoveredFacility.name}</span>
             <span
-              className="text-[10px] uppercase px-1.5 py-0.2 rounded font-semibold"
+              className="text-micro uppercase px-1.5 py-0.5 rounded font-mono shrink-0"
               style={{
-                backgroundColor: `${TYPE_COLORS[hoveredFacility.type]}20`,
-                color: TYPE_COLORS[hoveredFacility.type],
+                backgroundColor: `${FACILITY_TYPE_COLORS[hoveredFacility.type]}20`,
+                color: FACILITY_TYPE_COLORS[hoveredFacility.type],
               }}
             >
-              {hoveredFacility.type.replace('_', ' ')}
+              {FACILITY_TYPE_LABELS[hoveredFacility.type]}
             </span>
           </div>
-          <div className="space-y-1 text-xs text-slate-300">
-            <div className="flex justify-between">
-              <span className="text-slate-400">Location:</span>
-              <span>{hoveredFacility.district}, {hoveredFacility.state}</span>
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between gap-2">
+              <span className="text-eco-muted">Location</span>
+              <span className="text-eco-text truncate">
+                {hoveredFacility.district}, {hoveredFacility.state}
+              </span>
             </div>
             {hoveredFacility.capacityMw && (
               <div className="flex justify-between">
-                <span className="text-slate-400">Capacity:</span>
-                <span className="text-emerald-400 font-mono font-semibold">{hoveredFacility.capacityMw.toLocaleString()} MW</span>
-              </div>
-            )}
-            <div className="flex justify-between items-center pt-1.5 border-t border-[#1E293B]">
-              <span className="text-slate-400">Risk Score:</span>
-              <div className="flex items-center gap-1 font-bold font-mono">
-                <span
-                  className={
-                    hoveredFacility.overallRiskScore >= 80
-                      ? 'text-rose-400'
-                      : hoveredFacility.overallRiskScore >= 65
-                      ? 'text-amber-400'
-                      : hoveredFacility.overallRiskScore >= 45
-                      ? 'text-sky-400'
-                      : 'text-emerald-400'
-                  }
-                >
-                  {hoveredFacility.overallRiskScore}/100
+                <span className="text-eco-muted">Capacity</span>
+                <span className="text-eco-primary font-mono font-semibold">
+                  {hoveredFacility.capacityMw.toLocaleString()} MW
                 </span>
               </div>
+            )}
+            <div className="flex justify-between items-center pt-1.5 border-t border-eco-border">
+              <span className="text-eco-muted">Risk score</span>
+              <span
+                className="font-mono font-semibold"
+                style={{ color: scoreColor(hoveredFacility.overallRiskScore) }}
+              >
+                {hoveredFacility.overallRiskScore}/100
+              </span>
             </div>
           </div>
-          <div className="text-[10px] text-slate-400 pt-1.5 text-center">
-            Click marker to inspect facility dossier
+          <div className="text-micro text-eco-muted pt-1.5 text-center">
+            Click marker to open facility dossier
           </div>
         </div>
       )}
 
-      {/* Environmental Hazard Zone Hover Tooltip */}
+      {/* Environmental overlay hover tooltip */}
       {hoveredEnvZone && (
         <div
-          className="fixed z-50 pointer-events-none bg-[#0F172A]/95 border border-sky-500/60 text-slate-100 rounded-lg p-3 shadow-2xl backdrop-blur-md text-xs font-sans max-w-xs -translate-x-1/2 -translate-y-full mb-3"
+          className="fixed z-50 pointer-events-none bg-eco-surface/95 border border-eco-border text-eco-text rounded-lg p-3 shadow-2xl backdrop-blur-md text-xs max-w-xs -translate-x-1/2 -translate-y-full mb-3"
           style={{
             left: `${hoveredEnvZone.x}px`,
             top: `${hoveredEnvZone.y - 12}px`,
           }}
         >
-          <div className="flex items-center justify-between border-b border-[#1E293B] pb-1 mb-1.5">
-            <span className="font-bold text-sky-300 text-xs">{hoveredEnvZone.name}</span>
-            <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-sky-950 text-sky-400 border border-sky-800">
+          <div className="flex items-center justify-between gap-2 border-b border-eco-border pb-1 mb-1.5">
+            <span className="font-semibold text-eco-text text-xs">{hoveredEnvZone.name}</span>
+            <span className="text-micro uppercase font-mono px-1.5 py-0.5 rounded bg-eco-warning/10 text-eco-warning border border-eco-warning/30 shrink-0">
               {hoveredEnvZone.status}
             </span>
           </div>
-          <p className="text-[11px] text-slate-300 leading-relaxed font-sans">{hoveredEnvZone.description}</p>
+          <p className="text-meta text-eco-muted leading-relaxed">{hoveredEnvZone.description}</p>
+          <p className="text-micro text-eco-muted/80 pt-1.5">
+            Demo environmental overlay — not live monitoring data.
+          </p>
         </div>
       )}
     </div>

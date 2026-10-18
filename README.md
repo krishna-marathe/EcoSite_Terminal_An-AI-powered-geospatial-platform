@@ -2,7 +2,7 @@
 
 > **Intelligent Infrastructure. Sustainable India.**
 >
-> Designed with the tactical situational awareness aesthetic of **[World Monitor](https://www.worldmonitor.app/)**, featuring real-time OSINT alert wires, multi-parameter tactical layer ribbons, Bloomberg-style telemetry cards, and slide-over intelligence dossiers.
+> A dark terminal-style workspace for screening environmental risk at infrastructure sites in the **Pune and Mumbai pilot cities**. Synthetic demo data is the default; an optional FastAPI backend serves API mode.
 
 ---
 
@@ -16,7 +16,7 @@ The application is built across six specialized intelligence modules:
   - Multi-horizon time range selectors: `[1H]`, `[24H]`, `[7D]`, `[30D]`, `[ALL]`
   - View mode switchers: `[SPLIT (Map + Signals)]`, `[MAP ONLY]`, `[GRID ONLY]`
   - Audio alert sound status toggle `[AUDIO: ON/OFF]`
-  - Module navigation bar (`MONITOR`, `RISK ANALYTICS`, `ML FORECAST`, `SITE EVALUATION`, `AI MITIGATION`, `REPORTS`)
+  - Module navigation bar (`Dashboard`, `Risk analysis`, `Forecast`, `Site analysis`, `Mitigation`, `Reports`)
 - **Tactical Layer Ribbon Dock** (Synchronized with URL `layers=...` parameter):
   - `[🔥 Hotspots]` — Cumulative stress clusters >75
   - `[💧 Aquifers]` — CGWB Over-Exploited & Critical groundwater blocks
@@ -48,13 +48,13 @@ The application is built across six specialized intelligence modules:
 - **Pre-Feasibility Disclaimer**: Explicit notification distinguishing pre-feasibility screening from statutory MoEFCC Environmental Impact Assessments (EIA).
 
 ### 📈 Module 03: ML Environmental Forecasting (`/forecast`)
-- **Predictive Trajectories**: Historical actuals combined with machine-learning forecasts through 2027.
+- **Predictive Trajectories**: Stored historical series combined with synthetic model projections and an uncertainty band.
 - **95% Confidence Uncertainty Envelopes**: Shaded bounds representing model uncertainty.
 - **Environmental Metrics**: Electricity demand growth (MW), groundwater table depletion (m bgl), ambient PM2.5 air quality (µg/m³), summer surface temperature anomaly (°C), and compound environmental stress index.
 - **FastAPI Integration Inspector**: Interactive toggle showing exact HTTP request and response JSON payloads matching backend specification (`POST /api/v1/forecasts`).
 
 ### 📍 Module 04: Proposed Site Evaluation (`/site-analysis`)
-- **Interactive Proposal Engine**: Test proposed greenfield or brownfield coordinates across India.
+- **Interactive Proposal Engine**: Test proposed greenfield or brownfield coordinates within the selected pilot city's bounds.
 - **Quick Preset Corridors**: Dholera SIR Gujarat, Navi Mumbai MIDC, Oragadam Tamil Nadu, Noida Expressway UP, and Kurnool AP.
 - **Proximity Calculation Engine**: Distance to 400kV substations, statutory 10km Eco-Sensitive Zones (ESZ), CGWB aquifer classification, and 5km population buffers.
 - **Candidate Alternative Comparison**: Multi-site comparison matrix ranking candidate sites side-by-side with clear criteria.
@@ -65,7 +65,7 @@ The application is built across six specialized intelligence modules:
 - **Gemini AI Strategy Generator**: Interactive prompt input to synthesize tailored mitigation strategies based on site-specific constraints (e.g. ZLD mandates, target PUE, CAPEX budgets).
 
 ### 📑 Module 06: Reports & Data Explorer (`/reports`)
-- **Pan-India Infrastructure Register**: Searchable and filterable table of all facilities.
+- **Facility Register**: Searchable and filterable table of the selected city's facilities.
 - **Working CSV Data Export**:
   - `Export Facilities CSV`
   - `Export Provenance Catalog CSV`
@@ -108,21 +108,29 @@ EcoSite/
         │   └── providers.tsx
         ├── components/
         │   ├── layout/
-        │   │   ├── TopNavbar.tsx
+        │   │   ├── AppLayout.tsx
         │   │   ├── LeftSidebar.tsx
-        │   │   ├── StatusBar.tsx
-        │   │   └── AppLayout.tsx
+        │   │   ├── PlanningBar.tsx
+        │   │   └── StatusBar.tsx
         │   ├── map/
         │   │   └── MainMap.tsx
-        │   ├── facilities/
-        │   │   ├── FacilityDetailPanel.tsx
-        │   │   └── DashboardStatsBar.tsx
+        │   ├── site-analysis/
+        │   │   └── SiteMapPicker.tsx
+        │   ├── worldmonitor/
+        │   │   ├── EcoWorkspace.tsx
+        │   │   ├── SlideOverDeepDive.tsx
+        │   │   ├── ScenarioEngine.tsx
+        │   │   └── … dashboard panels
         │   └── ui/
         │       ├── Badge.tsx
         │       ├── Button.tsx
         │       ├── Card.tsx
-        │       ├── Tabs.tsx
-        │       └── DataConfidenceTag.tsx
+        │       ├── DataConfidenceTag.tsx
+        │       ├── DataTable.tsx
+        │       ├── Field.tsx
+        │       ├── MetricTile.tsx
+        │       ├── PageHeader.tsx
+        │       └── StateViews.tsx
         ├── pages/
         │   ├── Dashboard.tsx
         │   ├── RiskAnalysis.tsx
@@ -142,9 +150,11 @@ EcoSite/
         ├── types/
         │   └── index.ts
         ├── data/
+        │   ├── pilotCities.ts
         │   └── demo/
-        │       ├── facilities.ts
         │       ├── layers.ts
+        │       ├── wmLayers.ts
+        │       ├── environmentalOverlays.ts
         │       ├── forecasts.ts
         │       ├── mitigations.ts
         │       └── provenance.ts
@@ -162,6 +172,7 @@ EcoSite/
 ### Prerequisites
 - Node.js (v18 or higher recommended)
 - npm (v9 or higher)
+- Python 3.10+ (only required for the optional FastAPI backend)
 
 ### Installation
 Run from the root directory:
@@ -179,6 +190,38 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
+The dev server proxies `/api` to `http://localhost:8000` (see `frontend/vite.config.ts`), so the frontend connects to the backend automatically when it is running.
+
+### Backend Service (Optional)
+
+The frontend runs fully in demo mode without a backend — when no API is
+reachable, the built-in demo data adapter serves the synthetic datasets
+described in section 5. To run the FastAPI service, see
+[`backend/README.md`](backend/README.md). Quick start from the repository root:
+
+**Windows (PowerShell):**
+
+```powershell
+py -m venv backend\.venv
+backend\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+backend\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000 --app-dir backend
+```
+
+**macOS / Linux:**
+
+```bash
+python3 -m venv backend/.venv
+backend/.venv/bin/python -m pip install -r backend/requirements.txt
+backend/.venv/bin/python -m uvicorn app.main:app --reload --port 8000 --app-dir backend
+```
+
+These forms call the virtual environment's interpreter directly, so they work
+regardless of PowerShell execution policy or which Python is first on `PATH`.
+On Windows, `npm run backend:install` creates `backend\.venv` and installs the
+dependencies, and `npm run backend` starts the service from that environment.
+
+Health check: `http://localhost:8000/health` · OpenAPI docs: `http://localhost:8000/docs`
+
 ### Production Build
 Verify that the production build completes cleanly:
 
@@ -192,7 +235,9 @@ npm run build
 
 EcoSite Terminal frontend is configured to communicate with a Python FastAPI backend service via `VITE_API_BASE_URL`.
 
-When no backend is active, the built-in **Demo Data Adapter** automatically handles requests seamlessly with realistic Indian spatial datasets and explicit `"DEMO DATA"` provenance tags.
+When no backend is active, the built-in **Demo Data Adapter** automatically handles requests seamlessly with synthetic pilot datasets for Pune and Mumbai and explicit `"DEMO DATA"` provenance tags.
+
+Measured locally during QA: 5,000-record ingestion in 0.33 s (≈ 15k records/s); city facility page p50 8.3 ms / p95 14.9 ms; facility detail p50 30.3 ms; SQLite database 6.8 MiB.
 
 Key API endpoints:
 - `GET /api/v1/facilities` — Retrieve facility list with spatial filters

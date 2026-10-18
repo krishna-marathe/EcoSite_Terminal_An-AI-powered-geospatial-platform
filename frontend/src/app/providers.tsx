@@ -1,4 +1,5 @@
 import React from 'react';
+import { useFacilityLoader } from '../hooks/useFacilityLoader';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({
@@ -12,6 +13,7 @@ const queryClient = new QueryClient({
 });
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  useFacilityLoader();
   return (
     <QueryClientProvider client={queryClient}>
       {children}

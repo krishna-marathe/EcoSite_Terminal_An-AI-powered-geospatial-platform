@@ -1,11 +1,29 @@
 import React from 'react';
 
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+type ButtonSize = 'xs' | 'sm' | 'md' | 'lg';
+
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   icon?: React.ReactNode;
   loading?: boolean;
 }
+
+const variantStyles: Record<ButtonVariant, string> = {
+  primary: 'bg-eco-primary text-eco-bg font-semibold hover:bg-eco-secondary active:bg-eco-primary/90',
+  secondary: 'bg-eco-surface-secondary text-eco-text border border-eco-border hover:border-eco-primary/40',
+  outline: 'bg-transparent text-eco-text border border-eco-border hover:bg-eco-surface-secondary',
+  ghost: 'bg-transparent text-eco-muted hover:text-eco-text hover:bg-eco-surface-secondary',
+  danger: 'bg-eco-critical/15 text-eco-critical border border-eco-critical/40 hover:bg-eco-critical/25',
+};
+
+const sizeStyles: Record<ButtonSize, string> = {
+  xs: 'text-meta px-2 py-1 gap-1',
+  sm: 'text-meta px-2.5 py-1.5 gap-1.5',
+  md: 'text-body px-3.5 py-2 gap-2',
+  lg: 'text-body px-4 py-2.5 gap-2',
+};
 
 export const Button: React.FC<ButtonProps> = ({
   children,
@@ -17,37 +35,14 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles =
-    'inline-flex items-center justify-center font-medium rounded-sm transition-all focus:outline-none focus:ring-1 focus:ring-sky-500 disabled:opacity-50 disabled:cursor-not-allowed select-none';
-
-  const variantStyles = {
-    primary:
-      'bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-semibold shadow-sm hover:shadow-emerald-500/20 active:bg-emerald-700',
-    secondary:
-      'bg-[#172131] hover:bg-[#1E2C42] text-slate-200 border border-[#263447] active:bg-[#111827]',
-    outline:
-      'bg-transparent hover:bg-slate-800/60 text-slate-200 border border-[#263447] hover:border-slate-500',
-    ghost:
-      'bg-transparent hover:bg-slate-800/50 text-slate-300 hover:text-slate-100',
-    danger:
-      'bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/60',
-  };
-
-  const sizeStyles = {
-    xs: 'text-xs px-2 py-1 gap-1',
-    sm: 'text-xs px-2.5 py-1.5 gap-1.5',
-    md: 'text-sm px-3.5 py-2 gap-2',
-    lg: 'text-base px-4 py-2.5 gap-2',
-  };
-
   return (
     <button
-      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={`inline-flex select-none items-center justify-center rounded-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
       disabled={disabled || loading}
       {...props}
     >
       {loading ? (
-        <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
       ) : (
         icon && <span className="shrink-0">{icon}</span>
       )}
@@ -55,3 +50,28 @@ export const Button: React.FC<ButtonProps> = ({
     </button>
   );
 };
+
+export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Accessible name — rendered as aria-label and title. */
+  label: string;
+  icon: React.ReactNode;
+  size?: 'sm' | 'md';
+}
+
+export const IconButton: React.FC<IconButtonProps> = ({
+  label,
+  icon,
+  size = 'md',
+  className = '',
+  ...props
+}) => (
+  <button
+    type="button"
+    aria-label={label}
+    title={label}
+    className={`inline-flex shrink-0 items-center justify-center rounded-sm border border-transparent text-eco-muted transition-colors hover:border-eco-border hover:bg-eco-surface-secondary hover:text-eco-text disabled:cursor-not-allowed disabled:opacity-50 ${size === 'sm' ? 'h-7 w-7' : 'h-8 w-8'} ${className}`}
+    {...props}
+  >
+    {icon}
+  </button>
+);

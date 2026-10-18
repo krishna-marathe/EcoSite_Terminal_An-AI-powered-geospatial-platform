@@ -1,61 +1,45 @@
-import { DEMO_FACILITIES } from '../data/demo/facilities';
-import type { Facility, InfrastructureType, RiskLevel } from '../types';
+import { PILOT_FACILITIES, isInCity } from '../data/pilotCities';
+import type { CityId, DataMode, Facility, InfrastructureType, RiskLevel } from '../types';
 import { apiClient } from './api';
 
 export interface FacilityFilters {
+  cityId?: CityId;
   search?: string;
   type?: InfrastructureType | 'all';
   riskLevel?: RiskLevel | 'all';
   state?: string;
 }
 
-export const getFacilities = async (filters?: FacilityFilters): Promise<Facility[]> => {
-  try {
-    const params = new URLSearchParams();
-    if (filters?.type && filters.type !== 'all') params.append('type', filters.type);
-    if (filters?.riskLevel && filters.riskLevel !== 'all') params.append('risk', filters.riskLevel);
-    if (filters?.state) params.append('state', filters.state);
-    if (filters?.search) params.append('q', filters.search);
+export const filterFacilities = (records: Facility[], filters?: FacilityFilters) => records.filter((f) => {
+  if (filters?.cityId && (f.cityId !== filters.cityId || !isInCity(f.coordinates, filters.cityId))) return false;
+  const query = filters?.search?.trim().toLowerCase();
+  if (query && ![f.name, f.state, f.district, f.operator || ''].some((value) => value.toLowerCase().includes(query))) return false;
+  if (filters?.type && filters.type !== 'all' && f.type !== filters.type) return false;
+  if (filters?.riskLevel && filters.riskLevel !== 'all' && f.riskLevel !== filters.riskLevel) return false;
+  return !filters?.state || f.state.toLowerCase() === filters.state.toLowerCase();
+});
 
-    const response = await apiClient.get<Facility[]>('/facilities', { params });
-    return response.data;
-  } catch {
-    // Demo adapter fallback
-    let results = [...DEMO_FACILITIES];
-
-    if (filters?.search) {
-      const q = filters.search.toLowerCase().trim();
-      results = results.filter(
-        (f) =>
-          f.name.toLowerCase().includes(q) ||
-          f.state.toLowerCase().includes(q) ||
-          f.district.toLowerCase().includes(q) ||
-          f.operator?.toLowerCase().includes(q)
-      );
+export const getFacilities = async (filters?: FacilityFilters, mode: DataMode = 'demo'): Promise<Facility[]> => {
+  if (mode === 'demo') return filterFacilities(PILOT_FACILITIES, filters);
+  const records: Facility[] = [];
+  const pageSize = 100;
+  for (let page = 1; ; page++) {
+    const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
+    if (filters?.cityId) params.set('city', filters.cityId);
+    // Apply remaining filters after fetching for consistent operator search in both modes.
+    const { data } = await apiClient.get<Facility[]>('/facilities', { params });
+    if (!Array.isArray(data) || data.some((record) => !record?.id || !Array.isArray(record.coordinates) || !record.indicators || !record.provenance)) {
+      throw new Error('The facility API returned an invalid response. Check the backend connection.');
     }
-
-    if (filters?.type && filters.type !== 'all') {
-      results = results.filter((f) => f.type === filters.type);
-    }
-
-    if (filters?.riskLevel && filters.riskLevel !== 'all') {
-      results = results.filter((f) => f.riskLevel === filters.riskLevel);
-    }
-
-    if (filters?.state) {
-      results = results.filter((f) => f.state.toLowerCase() === filters.state?.toLowerCase());
-    }
-
-    return results;
+    records.push(...data);
+    if (data.length < pageSize) break;
+    if (page >= 1000) throw new Error('Facility result limit reached. Narrow the planning area before loading this dataset.');
   }
+  return filterFacilities(records, filters);
 };
 
-export const getFacilityById = async (id: string): Promise<Facility | null> => {
-  try {
-    const response = await apiClient.get<Facility>(`/facilities/${id}`);
-    return response.data;
-  } catch {
-    const found = DEMO_FACILITIES.find((f) => f.id === id);
-    return found || null;
-  }
+export const getFacilityById = async (id: string, mode: DataMode = 'demo'): Promise<Facility | null> => {
+  if (mode === 'demo') return PILOT_FACILITIES.find((facility) => facility.id === id) || null;
+  const { data } = await apiClient.get<Facility>(`/facilities/${encodeURIComponent(id)}`);
+  return data;
 };

@@ -1,301 +1,214 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import {
-  Sparkles,
-  Clock,
-  UserCheck,
-  ShieldCheck,
-  Download,
-  Filter,
-} from 'lucide-react';
-import { DEMO_FACILITIES } from '../data/demo/facilities';
-import {
-  generateAIMitigationPlan,
-  getMitigationRecommendations,
-  type MitigationPlanRequest,
-} from '../services/mitigation';
-import { Card } from '../components/ui/Card';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { ClipboardList, Sparkles } from 'lucide-react';
+import { useDashboardStore } from '../stores/dashboardStore';
+import { getMitigationRecommendations, generateAIMitigationPlan } from '../services/mitigation';
+import type { CityId, Facility, MitigationRecommendation } from '../types';
+import { Badge, DataModeBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import type { Facility, MitigationRecommendation } from '../types';
+import { Card } from '../components/ui/Card';
+import { Field, Select, Textarea } from '../components/ui/Field';
+import { PageHeader, PageShell } from '../components/ui/PageHeader';
+import { EmptyState, ErrorState, InlineAlert, LoadingSkeleton } from '../components/ui/StateViews';
+import { DATA_STATUS_LABELS } from '../theme/tokens';
 
-export const Mitigation: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
+const PAGE_PURPOSE =
+  'Illustrative intervention catalogue per facility, with optional AI advice that is never presented as verified.';
 
-  const facilityIdParam = searchParams.get('facility');
+/** Labeled definition line for catalogue evidence fields (label above the value). */
+const LabeledLine = ({ label, value }: { label: string; value: string }) => (
+  <div className="space-y-0.5">
+    <p className="text-meta text-eco-muted">{label}</p>
+    <p className="text-meta text-eco-text">{value}</p>
+  </div>
+);
 
-  const [selectedFacility, setSelectedFacility] = useState<Facility>(
-    DEMO_FACILITIES.find((f) => f.id === facilityIdParam) || DEMO_FACILITIES[0]
+const priorityTone = (priority: MitigationRecommendation['priority']) => {
+  if (priority === 'High') return 'critical' as const;
+  if (priority === 'Medium') return 'warning' as const;
+  return 'secondary' as const;
+};
+
+export function Mitigation() {
+  const { cityId, dataMode, facilities, facilitiesStatus, facilitiesError, setDataMode } = useDashboardStore();
+  const [params, setParams] = useSearchParams();
+  const facility = facilities.find(f => f.id === params.get('facility')) ?? facilities[0];
+
+  const header = (
+    <PageHeader
+      eyebrow="Mitigation"
+      title="Mitigation catalogue and optional AI advice"
+      purpose={PAGE_PURPOSE}
+      meta={
+        facility ? (
+          <>
+            <DataModeBadge mode={dataMode} />
+            <span className="text-meta text-eco-muted">
+              Facility input status: {DATA_STATUS_LABELS[facility.provenance.dataStatus]} ·{' '}
+              {facility.provenance.sourceOrganization}
+            </span>
+          </>
+        ) : null
+      }
+    />
   );
 
-  const [recommendations, setRecommendations] = useState<MitigationRecommendation[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [customConstraints, setCustomConstraints] = useState('');
-  const [generating, setGenerating] = useState(false);
-
-  // Load recommendations when selected facility changes
-  useEffect(() => {
-    getMitigationRecommendations(selectedFacility.type).then((recs) => {
-      setRecommendations(recs);
-    });
-  }, [selectedFacility]);
-
-  // Handle facility dropdown selection
-  const handleFacilitySelect = (id: string) => {
-    const found = DEMO_FACILITIES.find((f) => f.id === id);
-    if (found) {
-      setSelectedFacility(found);
-      setSearchParams({ facility: found.id });
-    }
-  };
-
-  // Generate tailored AI mitigation strategy using Gemini endpoint simulation
-  const handleGenerateAIStrategy = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setGenerating(true);
-
-    const req: MitigationPlanRequest = {
-      facility_id: selectedFacility.id,
-      facility_type: selectedFacility.type,
-      constraints: customConstraints,
-    };
-
-    try {
-      const res = await generateAIMitigationPlan(req, selectedFacility);
-      setRecommendations(res);
-    } finally {
-      setGenerating(false);
-    }
-  };
-
-  const categories = [
-    'all',
-    'Water Conservation',
-    'Renewable Energy',
-    'Energy Efficiency',
-    'Waste & Emissions',
-    'Ecology & Community',
-  ];
-
-  const filteredRecs = recommendations.filter((r) => {
-    if (selectedCategory === 'all') return true;
-    return r.category === selectedCategory;
-  });
+  if (!facility) {
+    return (
+      <PageShell>
+        {header}
+        <Card title="Facility mitigation plan">
+          {facilitiesStatus === 'loading' ? (
+            <LoadingSkeleton rows={4} />
+          ) : facilitiesStatus === 'error' ? (
+            <ErrorState
+              title="Facility data could not be loaded"
+              cause={facilitiesError ?? 'The facility request failed before any records were returned.'}
+              onDemo={() => setDataMode('demo')}
+            />
+          ) : (
+            <EmptyState
+              title="No facilities available in this city and data mode."
+              body="Switch city or data mode to open a mitigation plan."
+            />
+          )}
+        </Card>
+      </PageShell>
+    );
+  }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#080D16] overflow-y-auto p-4 md:p-6 space-y-6 select-none font-sans">
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#263447]">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs uppercase font-mono tracking-wider text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-800">
-              Module 05
-            </span>
-            <div className="flex items-center gap-3">
-              <h1 className="text-lg md:text-xl font-bold text-slate-100 font-mono tracking-tight flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-amber-400" />
-                <span>AI-Assisted Environmental Mitigation Planner</span>
-              </h1>
-              <span className="text-[10px] text-emerald-400 bg-emerald-950/80 border border-emerald-800/80 px-2 py-0.5 rounded font-medium flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Gemini 3.7 Flash Connected</span>
-              </span>
-            </div>
-          </div>
-          <p className="text-xs text-slate-400 mt-1 max-w-3xl">
-            Structured sustainability and environmental engineering intervention roadmaps derived from site-specific vulnerability indicators and statutory compliance norms.
-          </p>
-        </div>
+    <PageShell>
+      {header}
 
-        {/* Facility Selector */}
-        <div className="flex items-center gap-3 shrink-0">
-          <label className="text-xs text-slate-400 font-mono">Select Facility:</label>
-          <select
-            value={selectedFacility.id}
-            onChange={(e) => handleFacilitySelect(e.target.value)}
-            className="bg-[#111827] border border-[#263447] text-slate-100 rounded-sm px-3 py-1.5 text-xs font-mono focus:outline-none focus:border-sky-500 max-w-xs"
+      <div className="flex flex-wrap items-end gap-3">
+        <Field label="Facility" htmlFor="mitigation-facility" className="w-full max-w-md">
+          <Select
+            id="mitigation-facility"
+            value={facility.id}
+            onChange={event => setParams({ facility: event.target.value })}
           >
-            {DEMO_FACILITIES.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name} ({f.state} - {f.type.replace('_', ' ')})
+            {facilities.map(item => (
+              <option key={item.id} value={item.id}>
+                {item.name}
               </option>
             ))}
-          </select>
-        </div>
+          </Select>
+        </Field>
       </div>
 
-      {/* Facility Vulnerabilities Summary Banner */}
-      <div className="bg-[#111827] border border-[#263447] rounded-sm p-4 space-y-3">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-[#263447]/60 pb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-bold text-slate-200">
-              Identified Environmental Vulnerabilities: {selectedFacility.name}
-            </span>
-            <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 rounded bg-[#172131] text-sky-400 border border-[#263447]">
-              {selectedFacility.type.replace('_', ' ')}
-            </span>
-          </div>
-          <span className="text-xs font-mono text-slate-400">
-            Compound Risk: <strong className="text-amber-400">{selectedFacility.overallRiskScore}/100</strong>
-          </span>
-        </div>
+      <FacilityMitigation key={`${cityId}-${dataMode}-${facility.id}`} cityId={cityId} facility={facility} />
+    </PageShell>
+  );
+}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 text-xs font-mono">
-          {selectedFacility.keyRiskFactors.map((factor, i) => (
-            <div key={i} className="p-2 bg-[#172131]/60 rounded border border-[#263447] text-slate-300 leading-relaxed text-[11px] flex items-start gap-1.5">
-              <span className="text-amber-400 mt-0.5">•</span>
-              <span>{factor}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+function FacilityMitigation({ cityId, facility }: { cityId: CityId; facility: Facility }) {
+  const [recommendations, setRecommendations] = useState<MitigationRecommendation[]>([]);
+  const [constraints, setConstraints] = useState('');
+  const [source, setSource] = useState<'catalog' | 'ai'>('catalog');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [catalogSettled, setCatalogSettled] = useState(false);
+  const active = useRef(true);
+  const storageKey = `ecosite-mitigation-${cityId}-${facility.id}`;
 
-      {/* Gemini AI Custom Constraints Generator */}
+  useEffect(() => {
+    active.current = true;
+    getMitigationRecommendations(facility.type).then(items => {
+      if (active.current) {
+        setRecommendations(items);
+        setCatalogSettled(true);
+        try { localStorage.setItem(storageKey, JSON.stringify({ recommendations: items, source: 'catalog', constraints: '', generatedAt: new Date().toISOString() })); } catch { setError('Plan could not be saved in this browser.'); }
+      }
+    });
+    return () => { active.current = false; };
+  }, [facility.type, storageKey]);
+
+  const generate = async (event: FormEvent) => {
+    event.preventDefault(); setBusy(true); setError('');
+    try {
+      const items = await generateAIMitigationPlan({ facility_id: facility.id, facility_type: facility.type, constraints }, facility);
+      if (!active.current) return;
+      setRecommendations(items); setSource('ai');
+      try { localStorage.setItem(storageKey, JSON.stringify({ recommendations: items, source: 'ai', constraints, generatedAt: new Date().toISOString() })); } catch { setError('AI advice received, but could not be saved in this browser.'); }
+    } catch (e) { if (active.current) setError(e instanceof Error ? e.message : 'AI request failed.'); }
+    finally { if (active.current) setBusy(false); }
+  };
+
+  return (
+    <>
+      {error && <InlineAlert tone="critical">{error}</InlineAlert>}
+
       <Card
-        title="Gemini AI Engineering Intervention Assistant"
-        subtitle="Prompt the AI with site constraints (e.g. CAPEX budget, water recycling mandates, target PUE)"
-        icon={<Sparkles className="w-4 h-4 text-amber-400" />}
+        title={source === 'catalog' ? 'Illustrative intervention catalogue' : 'AI-generated advice — unverified'}
+        subtitle={facility.name}
+        icon={<ClipboardList className="h-4 w-4" />}
+        status={`${recommendations.length} actions`}
+        statusTone={source === 'ai' ? 'warning' : 'neutral'}
+        footer="Recommendations require engineering and regulatory verification; benefits are unverified."
       >
-        <form onSubmit={handleGenerateAIStrategy} className="space-y-3 font-mono text-xs">
-          <div className="flex flex-col sm:flex-row gap-2">
-            <input
-              type="text"
-              placeholder="e.g. Implement zero-liquid discharge, transition to tertiary treated municipal water, target PUE < 1.30 within ₹12 Cr..."
-              value={customConstraints}
-              onChange={(e) => setCustomConstraints(e.target.value)}
-              className="flex-1 bg-[#172131] border border-[#263447] rounded-sm px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 font-sans"
-            />
-            <Button
-              type="submit"
-              variant="primary"
-              size="sm"
-              loading={generating}
-              icon={<Sparkles className="w-4 h-4 text-slate-950" />}
-              className="shrink-0 font-mono"
-            >
-              Generate Live Gemini Plan
-            </Button>
-          </div>
-          <div className="flex items-center justify-between text-[10px] text-slate-400">
-            <span className="flex items-center gap-1 text-emerald-400">
-              <Sparkles className="w-3 h-3" />
-              <span>Live inference via Google Gemini 3.7 Flash</span>
-            </span>
-            <span className="font-mono">Model: gemini-3.7-flash</span>
-          </div>
-        </form>
+        {source === 'ai' && (
+          <InlineAlert tone="warning" className="mb-3">
+            Generated by an AI model from the constraints below; no site inspection or engineering
+            review has validated these actions.
+          </InlineAlert>
+        )}
+
+        {!catalogSettled && source === 'catalog' ? (
+          <LoadingSkeleton rows={3} />
+        ) : recommendations.length === 0 ? (
+          <EmptyState title="No catalogue actions match this facility type." />
+        ) : (
+          <ul className="space-y-3">
+            {recommendations.map((item, index) => (
+              <li
+                key={`${item.id}-${index}`}
+                className="space-y-2 rounded-sm border border-eco-border bg-eco-surface-secondary/50 p-3"
+              >
+                <h4 className="text-body font-medium text-eco-text">{item.title}</h4>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary">{item.category}</Badge>
+                  <Badge variant={priorityTone(item.priority)}>{item.priority} priority</Badge>
+                  <Badge variant="outline">{item.timeframe}</Badge>
+                </div>
+                <div className="space-y-2">
+                  <LabeledLine label="Expected benefit" value={item.expectedBenefit} />
+                  <LabeledLine label="Evidence" value={item.supportingEvidence} />
+                  <LabeledLine label="Verification" value={item.verificationRequirements} />
+                  <LabeledLine label="Owner" value={item.responsibleStakeholder} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
 
-      {/* Category Tabs */}
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-xs text-slate-400 font-mono flex items-center gap-1 mr-2">
-          <Filter className="w-3.5 h-3.5 text-sky-400" />
-          <span>Filter Action Domain:</span>
-        </span>
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            onClick={() => setSelectedCategory(cat)}
-            className={`px-3 py-1 rounded-sm text-xs font-mono capitalize transition-colors ${
-              selectedCategory === cat
-                ? 'bg-[#1E2C42] text-sky-400 border border-sky-500 font-bold'
-                : 'bg-[#111827] text-slate-400 border border-[#263447] hover:text-slate-200'
-            }`}
+      <Card
+        title="Optional AI advice"
+        subtitle="Request a site-specific plan using your configured Google Gemini key"
+        icon={<Sparkles className="h-4 w-4" />}
+      >
+        <form onSubmit={generate} className="space-y-3">
+          <Field
+            label="Optional constraints"
+            htmlFor="mitigation-constraints"
+            hint="Land availability, budget ceiling, water reuse targets or other planning limits."
           >
-            {cat === 'all' ? 'All Intervention Domains' : cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Actionable Recommendations List */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-mono text-slate-400">
-            Displaying {filteredRecs.length} Actionable Engineering Interventions
-          </span>
-          <Button
-            variant="outline"
-            size="xs"
-            icon={<Download className="w-3.5 h-3.5 text-slate-400" />}
-            onClick={() => navigate(`/reports?facility=${selectedFacility.id}`)}
-          >
-            Export Action Plan to CSV
+            <Textarea
+              id="mitigation-constraints"
+              value={constraints}
+              onChange={event => setConstraints(event.target.value)}
+            />
+          </Field>
+          <p className="text-meta text-eco-muted">
+            Optional AI requests send this facility's indicators and constraints to Google using your
+            configured key and model.
+          </p>
+          <Button type="submit" variant="primary" size="md" loading={busy}>
+            {busy ? 'Requesting AI advice…' : 'Request optional AI advice'}
           </Button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {filteredRecs.map((rec) => (
-            <div
-              key={rec.id}
-              className="bg-[#111827] border border-[#263447] rounded-sm p-4 space-y-3 hover:border-slate-600 transition-colors flex flex-col justify-between"
-            >
-              <div className="space-y-2">
-                {/* Header Badges */}
-                <div className="flex items-start justify-between gap-2 border-b border-[#263447]/60 pb-2">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 rounded bg-sky-950 text-sky-400 border border-sky-800">
-                        {rec.category}
-                      </span>
-                      <span
-                        className={`text-[10px] font-mono uppercase px-1.5 py-0.2 rounded font-bold ${
-                          rec.priority === 'High'
-                            ? 'bg-rose-950 text-rose-400 border border-rose-800'
-                            : rec.priority === 'Medium'
-                            ? 'bg-amber-950 text-amber-400 border border-amber-800'
-                            : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                        }`}
-                      >
-                        {rec.priority} Priority
-                      </span>
-                    </div>
-                    <h3 className="text-sm font-bold text-slate-100">{rec.title}</h3>
-                  </div>
-                </div>
-
-                {/* Expected Environmental Benefit */}
-                <div className="p-2.5 bg-[#172131]/60 rounded border border-[#263447] space-y-1">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-semibold block">
-                    Quantifiable Environmental Benefit
-                  </span>
-                  <p className="text-xs text-slate-200 leading-relaxed font-sans">
-                    {rec.expectedBenefit}
-                  </p>
-                </div>
-
-                {/* Implementation Attributes */}
-                <div className="grid grid-cols-2 gap-2 text-[11px] font-mono text-slate-400 pt-1">
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-sky-400" />
-                    <span>Timeframe: <strong className="text-slate-200">{rec.timeframe}</strong></span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <UserCheck className="w-3.5 h-3.5 text-purple-400" />
-                    <span className="truncate">Lead: <strong className="text-slate-200">{rec.responsibleStakeholder}</strong></span>
-                  </div>
-                </div>
-
-                {/* Supporting Scientific Evidence */}
-                <div className="space-y-1 text-xs">
-                  <span className="text-[10px] font-mono text-slate-500 uppercase block">
-                    Statutory & Technical Benchmark Reference
-                  </span>
-                  <p className="text-[11px] text-slate-400 font-mono">
-                    {rec.supportingEvidence}
-                  </p>
-                </div>
-              </div>
-
-              {/* Site-Specific Verification Requirements */}
-              <div className="pt-2 border-t border-[#263447]/60 text-[11px] text-slate-400 font-mono flex items-start gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <span>Verification: {rec.verificationRequirements}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+        </form>
+      </Card>
+    </>
   );
-};
+}

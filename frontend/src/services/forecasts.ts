@@ -1,34 +1,23 @@
-import { DEMO_FORECASTS } from '../data/demo/forecasts';
-import type { ForecastResponse } from '../types';
+import { getPilotCity } from '../data/pilotCities';
+import type { CityId, DataMode, ForecastResponse } from '../types';
 import { apiClient } from './api';
-
-export interface ForecastRequest {
-  location_id: string;
-  metric: string;
-  horizon_months: number;
-}
-
-export const getForecast = async (req: ForecastRequest): Promise<ForecastResponse> => {
-  try {
-    const response = await apiClient.post<ForecastResponse>('/forecasts', req);
-    return response.data;
-  } catch {
-    // Demo fallback adapter
-    const lookupKey = `${req.location_id}-${req.metric}`;
-    if (DEMO_FORECASTS[lookupKey]) {
-      const forecast = { ...DEMO_FORECASTS[lookupKey] };
-      // Filter by horizon if needed
-      forecast.horizonMonths = req.horizon_months;
-      return forecast;
-    }
-
-    // Generic fallback if specific key not pre-seeded
-    const baseKey = Object.keys(DEMO_FORECASTS)[0];
-    const fallback = { ...DEMO_FORECASTS[baseKey] };
-    fallback.metric = req.metric;
-    fallback.locationId = req.location_id;
-    fallback.horizonMonths = req.horizon_months;
-    fallback.locationName = req.location_id.toUpperCase();
-    return fallback;
-  }
+export interface ForecastRequest { location_id: string; metric: string; horizon_months: number }
+export const FORECAST_METRICS = {
+  electricity_demand: { label: 'Electricity demand', unit: 'MW', base: 800, step: 12 },
+  air_quality: { label: 'Ambient PM2.5', unit: 'µg/m³', base: 40, step: 0.3 },
+  groundwater: { label: 'Groundwater depth', unit: 'm below ground', base: 12, step: 0.1 },
+  temperature: { label: 'Temperature', unit: '°C', base: 30, step: 0.04 },
+  environmental_risk: { label: 'Environmental stress', unit: 'index 0–100', base: 50, step: 0.2 },
+};
+export const getForecast = async (req: ForecastRequest, mode: DataMode = 'demo'): Promise<ForecastResponse> => {
+  if (!['pune', 'mumbai'].includes(req.location_id) || !(req.metric in FORECAST_METRICS)) throw new Error('Forecast unavailable for this city or metric.');
+  if (!Number.isInteger(req.horizon_months) || req.horizon_months < 1 || req.horizon_months > 60) throw new Error('Forecast horizon must be 1–60 months.');
+  if (mode === 'api') return (await apiClient.post<ForecastResponse>('/forecasts', req)).data;
+  const metric = FORECAST_METRICS[req.metric as keyof typeof FORECAST_METRICS];
+  const now = new Date();
+  const forecast = Array.from({ length: req.horizon_months }, (_, i) => {
+    const prediction = Number((metric.base * (req.location_id === 'mumbai' ? 1.1 : 1) + i * metric.step).toFixed(2));
+    return { date: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + i, 1)).toISOString().slice(0, 10), prediction, lower_bound: Number((prediction * 0.9).toFixed(2)), upper_bound: Number((prediction * 1.1).toFixed(2)) };
+  });
+  return { metric: req.metric, locationId: req.location_id, locationName: getPilotCity(req.location_id as CityId).name, unit: metric.unit, model: 'Illustrative linear baseline', modelVersion: 'pilot-demo-v1', horizonMonths: req.horizon_months, dataStatus: 'synthetic', forecast, methodologyNotes: 'Synthetic demonstration only. The ±10% envelope is illustrative, not a calibrated confidence interval. No predictive model has been validated.' };
 };

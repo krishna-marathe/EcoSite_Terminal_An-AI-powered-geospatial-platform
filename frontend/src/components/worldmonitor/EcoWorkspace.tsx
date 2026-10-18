@@ -1,13 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Activity,
+  ArrowRight,
   BarChart3,
   ChevronDown,
-  Droplets,
-  ExternalLink,
   Flame,
-  GripVertical,
+  FlaskConical,
   Leaf,
   LineChart,
   Radio,
@@ -15,31 +13,34 @@ import {
   ShieldAlert,
   SlidersHorizontal,
   Sparkles,
-  Thermometer,
   X,
-  Zap,
-  FlaskConical,
 } from 'lucide-react';
 import { ActiveHotspotsPanel } from './ActiveHotspotsPanel';
 import { LiveSignalsWirePanel } from './LiveSignalsWirePanel';
 import { MacroTelemetryPanel } from './MacroTelemetryPanel';
-import { MainMap } from '../map/MainMap';
-import type { WorldMonitorLayerKey } from '../../types';
-import { useDashboardStore } from '../../stores/dashboardStore';
+import { PolicyNewsPanel } from './PolicyNewsPanel';
 import { ScenarioEngine } from './ScenarioEngine';
 import { DataQualityBanner } from './DataQualityBanner';
-import { PolicyNewsPanel } from './PolicyNewsPanel';
+import { MainMap } from '../map/MainMap';
+import { Card } from '../ui/Card';
+import { IconButton } from '../ui/Button';
+import { DataModeBadge } from '../ui/Badge';
+import { useDashboardStore } from '../../stores/dashboardStore';
+import { getPilotCity } from '../../data/pilotCities';
+import { RISK_LEVEL_LABELS, riskColor, scoreColor } from '../../theme/tokens';
+import type { RiskLevel, WorldMonitorLayerKey } from '../../types';
 
 type PanelId = 'hotspots' | 'signals' | 'telemetry' | 'risk' | 'forecast' | 'mitigation' | 'news';
 
-interface PanelDefinition {
-  id: PanelId;
-  title: string;
-  status: string;
-  icon: React.ReactNode;
-  accent: string;
-  content: React.ReactNode;
-}
+const PANEL_META: Record<PanelId, { title: string; icon: React.ReactNode }> = {
+  hotspots: { title: 'Environmental hotspots', icon: <Flame className="h-3.5 w-3.5" /> },
+  signals: { title: 'Facility signals', icon: <Radio className="h-3.5 w-3.5" /> },
+  telemetry: { title: 'Macro telemetry', icon: <BarChart3 className="h-3.5 w-3.5" /> },
+  risk: { title: 'Risk posture', icon: <ShieldAlert className="h-3.5 w-3.5" /> },
+  forecast: { title: 'Environmental forecasts', icon: <LineChart className="h-3.5 w-3.5" /> },
+  mitigation: { title: 'Mitigation actions', icon: <Sparkles className="h-3.5 w-3.5" /> },
+  news: { title: 'Policy & environmental news', icon: <Radio className="h-3.5 w-3.5" /> },
+};
 
 const WORKSPACES: {
   id: string;
@@ -51,7 +52,7 @@ const WORKSPACES: {
   {
     id: 'command',
     label: 'Command Center',
-    description: 'All-India environmental situation picture',
+    description: 'City environmental situation picture',
     layers: ['hotspots', 'weather', 'outages', 'natural', 'waterways', 'economic'],
     panels: ['hotspots', 'signals', 'telemetry', 'risk', 'news'],
   },
@@ -85,131 +86,225 @@ const WORKSPACES: {
   },
 ];
 
-const PANEL_META: Record<PanelId, Omit<PanelDefinition, 'content'>> = {
-  hotspots: {
-    id: 'hotspots',
-    title: 'ENVIRONMENTAL HOTSPOTS',
-    status: 'DEMO · RISK SORTED',
-    icon: <Flame className="h-3.5 w-3.5" />,
-    accent: 'text-rose-400',
-  },
-  signals: {
-    id: 'signals',
-    title: 'FACILITY SIGNALS',
-    status: 'DEMO · 4 ALERTS',
-    icon: <Radio className="h-3.5 w-3.5" />,
-    accent: 'text-sky-400',
-  },
-  telemetry: {
-    id: 'telemetry',
-    title: 'MACRO TELEMETRY',
-    status: 'SYNTHETIC · 7D',
-    icon: <BarChart3 className="h-3.5 w-3.5" />,
-    accent: 'text-emerald-400',
-  },
-  risk: {
-    id: 'risk',
-    title: 'RISK POSTURE',
-    status: 'SCREENING · 20 ASSETS',
-    icon: <ShieldAlert className="h-3.5 w-3.5" />,
-    accent: 'text-amber-400',
-  },
-  forecast: {
-    id: 'forecast',
-    title: 'ENVIRONMENTAL FORECASTS',
-    status: 'SYNTHETIC · MODEL V1',
-    icon: <LineChart className="h-3.5 w-3.5" />,
-    accent: 'text-violet-400',
-  },
-  mitigation: {
-    id: 'mitigation',
-    title: 'MITIGATION ACTIONS',
-    status: 'AI-ASSISTED · REVIEW',
-    icon: <Sparkles className="h-3.5 w-3.5" />,
-    accent: 'text-cyan-400',
-  },
-  news: {
-    id: 'news',
-    title: 'POLICY & ENVIRONMENTAL NEWS',
-    status: 'INTERNET · RSS',
-    icon: <Radio className="h-3.5 w-3.5" />,
-    accent: 'text-emerald-300',
-  },
-};
-
+/** Derived screening summary — no hardcoded posture numbers. */
 const RiskPosture: React.FC = () => {
   const navigate = useNavigate();
-  const items = [
-    ['Water stress', 'High', 'bg-amber-400', '74%'],
-    ['Grid pressure', 'Elevated', 'bg-sky-400', '62%'],
-    ['Air quality', 'Critical', 'bg-rose-400', '58%'],
-    ['Heat exposure', 'Elevated', 'bg-orange-400', '51%'],
-  ];
+  const { facilities, facilitiesStatus } = useDashboardStore();
+
+  if (facilitiesStatus === 'loading') {
+    return <div className="p-3 text-meta text-eco-muted">Loading screening posture…</div>;
+  }
+
+  if (facilitiesStatus === 'error' || facilities.length === 0) {
+    return (
+      <div className="space-y-2 p-3">
+        <p className="text-meta leading-relaxed text-eco-muted">
+          {facilitiesStatus === 'error'
+            ? 'Screening data unavailable — the backend may be unreachable.'
+            : 'No facility records available for this city in this mode.'}
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate('/risk-analysis')}
+          className="flex items-center gap-1 text-meta text-eco-primary hover:underline"
+        >
+          Open risk analysis <ArrowRight className="h-3 w-3" />
+        </button>
+      </div>
+    );
+  }
+
+  const scored = facilities.filter((facility) => facility.overallRiskScore !== null);
+  const meanScore =
+    scored.length > 0
+      ? Math.round(scored.reduce((sum, facility) => sum + facility.overallRiskScore, 0) / scored.length)
+      : null;
+
+  const distribution = (['critical', 'high', 'moderate', 'low'] as RiskLevel[]).map((level) => ({
+    level,
+    count: facilities.filter((facility) => facility.riskLevel === level).length,
+  }));
 
   return (
-    <div className="space-y-2.5 p-3">
-      <div className="flex items-end justify-between border-b border-[#263447] pb-2">
-        <div>
-          <div className="text-2xl font-semibold tracking-tight text-slate-100">68<span className="text-sm text-slate-500">/100</span></div>
-          <div className="text-[10px] uppercase tracking-widest text-slate-500">Weighted screening posture</div>
+    <div className="space-y-3 p-3">
+      <div className="border-b border-eco-border pb-2">
+        <div className="font-mono text-body font-semibold">
+          {meanScore !== null ? (
+            <>
+              <span style={{ color: scoreColor(meanScore) }}>{meanScore}</span>
+              <span className="text-meta text-eco-muted">/100</span>
+            </>
+          ) : (
+            <span className="text-eco-muted">Unavailable</span>
+          )}
         </div>
-        <span className="rounded border border-amber-500/40 bg-amber-950/50 px-1.5 py-0.5 text-[10px] text-amber-300">ELEVATED</span>
+        <div className="text-micro uppercase tracking-widest text-eco-muted">
+          Mean screening score · {scored.length} scored {scored.length === 1 ? 'record' : 'records'}
+        </div>
       </div>
-      {items.map(([label, status, color, value]) => (
-        <div key={label} className="space-y-1">
-          <div className="flex justify-between text-[10px]">
-            <span className="text-slate-300">{label}</span>
-            <span className="text-slate-500">{status} · {value}</span>
-          </div>
-          <div className="h-1 overflow-hidden rounded-full bg-[#172131]"><div className={`h-full ${color}`} style={{ width: value }} /></div>
-        </div>
-      ))}
-      <button type="button" onClick={() => navigate('/risk-analysis')} className="mt-1 flex items-center gap-1 text-[10px] text-sky-400 hover:text-sky-300">
-        Open explainable risk analysis <ExternalLink className="h-3 w-3" />
+
+      <div className="space-y-1.5">
+        {distribution.map(({ level, count }) => {
+          const share = Math.round((count / facilities.length) * 100);
+          return (
+            <div key={level} className="space-y-1">
+              <div className="flex justify-between text-meta">
+                <span className="text-eco-text">{RISK_LEVEL_LABELS[level]}</span>
+                <span className="font-mono text-eco-muted">
+                  {count} · {share}%
+                </span>
+              </div>
+              <div className="h-1 overflow-hidden rounded-full bg-eco-surface-secondary">
+                <div
+                  className="h-full"
+                  style={{ width: `${share}%`, backgroundColor: riskColor(level) }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => navigate('/risk-analysis')}
+        className="flex items-center gap-1 text-meta text-eco-primary hover:underline"
+      >
+        Open risk analysis <ArrowRight className="h-3 w-3" />
       </button>
     </div>
   );
 };
 
+/** Preview of the stored demand series — projections themselves live on the Forecast page. */
 const ForecastSummary: React.FC = () => {
   const navigate = useNavigate();
+  const { facilities, selectedFacility } = useDashboardStore();
+
+  const facility = selectedFacility ?? facilities[0] ?? null;
+  const trend = facility?.historicalTrends ?? [];
+  const first = trend[0];
+  const last = trend[trend.length - 1];
+  const deltaPct =
+    first && last && first.waterDemandKld > 0
+      ? ((last.waterDemandKld - first.waterDemandKld) / first.waterDemandKld) * 100
+      : null;
+  const maxValue = Math.max(...trend.map((point) => point.waterDemandKld), 1);
+
+  if (!facility || trend.length === 0) {
+    return (
+      <div className="space-y-2 p-3">
+        <p className="text-meta leading-relaxed text-eco-muted">
+          No stored demand series for this selection. Open the Forecast page to run projections.
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate('/forecast')}
+          className="flex items-center gap-1 text-meta text-eco-primary hover:underline"
+        >
+          Open forecasts <ArrowRight className="h-3 w-3" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3 p-3">
-      <div className="rounded border border-violet-500/20 bg-violet-950/15 p-2.5">
-        <div className="flex items-center justify-between text-[10px] text-slate-400"><span>Groundwater stress · Maharashtra</span><span className="text-violet-300">12 MONTHS</span></div>
-        <div className="mt-2 flex items-end gap-2"><span className="text-xl font-semibold text-slate-100">+8.4%</span><span className="text-[10px] text-rose-400">projected stress</span></div>
-        <div className="mt-2 flex h-9 items-end gap-1">{[32, 38, 41, 47, 54, 61, 70, 78].map((h, i) => <span key={i} className={`flex-1 rounded-t ${i > 4 ? 'bg-violet-400/70' : 'bg-slate-600'}`} style={{ height: `${h}%` }} />)}</div>
+      <div className="rounded-md border border-eco-border bg-eco-surface-secondary p-2.5">
+        <div className="flex items-center justify-between gap-2 text-micro text-eco-muted">
+          <span className="truncate">Water demand · {facility.name}</span>
+          <span className="shrink-0 font-mono">
+            {first.year}–{last.year}
+          </span>
+        </div>
+        <div className="mt-2 flex items-end gap-2">
+          <span
+            className={`font-mono text-body font-semibold ${
+              deltaPct !== null && deltaPct > 0 ? 'text-eco-warning' : 'text-eco-primary'
+            }`}
+          >
+            {deltaPct !== null ? `${deltaPct > 0 ? '+' : ''}${deltaPct.toFixed(1)}%` : '—'}
+          </span>
+          <span className="pb-0.5 text-micro text-eco-muted">change across stored series</span>
+        </div>
+        <div className="mt-2 flex h-9 items-end gap-1">
+          {trend.map((point, index) => (
+            <span
+              key={point.year ?? index}
+              className="flex-1 rounded-t bg-eco-primary/45"
+              style={{ height: `${Math.max(8, Math.round((point.waterDemandKld / maxValue) * 100))}%` }}
+              title={`${point.year}: ${point.waterDemandKld.toLocaleString()} kLD`}
+            />
+          ))}
+        </div>
       </div>
-      <div className="flex items-center justify-between text-[10px] text-slate-500"><span>Illustrative forecast · demo-v1</span><button type="button" onClick={() => navigate('/forecast')} className="text-sky-400 hover:text-sky-300">Open forecasts →</button></div>
+      <div className="flex items-center justify-between gap-2 text-micro text-eco-muted">
+        <span>Stored series — projections live on the Forecast page.</span>
+        <button
+          type="button"
+          onClick={() => navigate('/forecast')}
+          className="shrink-0 text-eco-primary hover:underline"
+        >
+          Open forecasts
+        </button>
+      </div>
     </div>
   );
 };
 
+/** Honest pointer to the mitigation planner — recommendations are generated there, not here. */
 const MitigationSummary: React.FC = () => {
   const navigate = useNavigate();
+  const { selectedFacility } = useDashboardStore();
+
   return (
     <div className="space-y-2 p-3">
-      {[['Reclaimed-water feasibility', 'HIGH', Droplets], ['Dual-feed and BESS study', 'HIGH', Zap], ['Cool-roof and green buffer', 'MODERATE', Thermometer]].map(([label, priority, Icon]) => (
-        <div key={label as string} className="flex items-center gap-2 rounded border border-[#263447] bg-[#111827]/70 p-2">
-          <Icon className="h-3.5 w-3.5 text-cyan-400" />
-          <div className="min-w-0 flex-1"><div className="truncate text-[11px] text-slate-200">{label as string}</div><div className="text-[9px] uppercase tracking-wider text-slate-500">Structured recommendation</div></div>
-          <span className="text-[9px] text-amber-300">{priority as string}</span>
-        </div>
-      ))}
-      <button type="button" onClick={() => navigate('/mitigation')} className="flex items-center gap-1 pt-1 text-[10px] text-sky-400 hover:text-sky-300">Open mitigation planner <ExternalLink className="h-3 w-3" /></button>
+      <p className="text-meta leading-relaxed text-eco-muted">
+        {selectedFacility
+          ? `Recommendations for ${selectedFacility.name} are generated from its risk drivers and the active scenario on the Mitigation page.`
+          : 'Recommendations are generated per facility from its risk drivers and the active scenario on the Mitigation page.'}
+      </p>
+      <button
+        type="button"
+        onClick={() => navigate('/mitigation')}
+        className="flex items-center gap-1 text-meta text-eco-primary hover:underline"
+      >
+        Open mitigation planner <ArrowRight className="h-3 w-3" />
+      </button>
     </div>
   );
 };
 
 export const EcoWorkspace: React.FC = () => {
-  const { setAllWmLayers, setWmLayer } = useDashboardStore();
+  const { setAllWmLayers, setWmLayer, facilities, facilitiesStatus, dataMode, cityId } =
+    useDashboardStore();
   const [workspaceId, setWorkspaceId] = useState('command');
   const [closedPanels, setClosedPanels] = useState<PanelId[]>([]);
   const [isMissionOpen, setIsMissionOpen] = useState(false);
   const [isPanelGuideOpen, setIsPanelGuideOpen] = useState(false);
   const [isScenarioOpen, setIsScenarioOpen] = useState(false);
 
+  const city = getPilotCity(cityId);
   const workspace = WORKSPACES.find((item) => item.id === workspaceId) || WORKSPACES[0];
+
+  const panelStatuses: Record<PanelId, string> = useMemo(() => {
+    const recordCount =
+      facilitiesStatus === 'loading'
+        ? 'Loading'
+        : facilitiesStatus === 'error'
+          ? 'Unavailable'
+          : `${facilities.length} records`;
+    return {
+      hotspots: `${recordCount} · risk-sorted`,
+      signals: dataMode === 'api' ? 'Backend feed' : 'No provider in demo',
+      telemetry: `${city.name} snapshot`,
+      risk: `${recordCount} screened`,
+      forecast: 'Stored series · projections on page',
+      mitigation: 'Per-facility recommendations',
+      news: '',
+    };
+  }, [facilitiesStatus, facilities.length, dataMode, city.name]);
+
   const panels = useMemo(() => {
     const content: Record<PanelId, React.ReactNode> = {
       hotspots: <ActiveHotspotsPanel />,
@@ -220,8 +315,10 @@ export const EcoWorkspace: React.FC = () => {
       mitigation: <MitigationSummary />,
       news: <PolicyNewsPanel />,
     };
-    return workspace.panels.filter((id) => !closedPanels.includes(id)).map((id) => ({ ...PANEL_META[id], content: content[id] }));
-  }, [closedPanels, workspace.panels]);
+    return workspace.panels
+      .filter((id) => !closedPanels.includes(id))
+      .map((id) => ({ id, ...PANEL_META[id], status: panelStatuses[id], content: content[id] }));
+  }, [closedPanels, workspace.panels, panelStatuses]);
 
   const applyWorkspace = (id: string) => {
     const next = WORKSPACES.find((item) => item.id === id) || WORKSPACES[0];
@@ -233,41 +330,155 @@ export const EcoWorkspace: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden border-t border-[#1E293B] bg-[#080D1A]">
-      <div className="flex h-10 shrink-0 items-center justify-between border-b border-[#1E293B] bg-[#0B1220] px-3 text-xs">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden border-t border-eco-border bg-eco-bg">
+      {/* Workspace toolbar */}
+      <div className="relative flex h-10 shrink-0 items-center justify-between border-b border-eco-border bg-eco-surface px-3 text-meta">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setIsMissionOpen((value) => !value)} className={`flex items-center gap-2 rounded border px-2.5 py-1 font-medium transition-colors ${isMissionOpen ? 'border-emerald-500/50 bg-emerald-950/40 text-emerald-300' : 'border-[#263447] bg-[#111827] text-slate-300 hover:text-white'}`}>
-            <Leaf className="h-3.5 w-3.5 text-emerald-400" />
-            <span>MISSION</span><span className="text-slate-500">{workspace.label}</span><ChevronDown className="h-3 w-3" />
+          <button
+            type="button"
+            onClick={() => setIsMissionOpen((value) => !value)}
+            aria-expanded={isMissionOpen}
+            className={`flex items-center gap-2 rounded-sm border px-2.5 py-1 font-medium transition-colors ${
+              isMissionOpen
+                ? 'border-eco-primary/50 bg-eco-primary/10 text-eco-primary'
+                : 'border-eco-border bg-eco-surface-secondary text-eco-text hover:border-eco-primary/40'
+            }`}
+          >
+            <Leaf className="h-3.5 w-3.5 text-eco-primary" />
+            <span>Workspace</span>
+            <span className="text-eco-muted">{workspace.label}</span>
+            <ChevronDown className="h-3 w-3" />
           </button>
-          <span className="hidden text-[10px] text-slate-500 md:inline">{workspace.description}</span>
+          <span className="hidden text-micro text-eco-muted md:inline">{workspace.description}</span>
         </div>
-        <div className="flex items-center gap-2 text-[10px] text-slate-500"><button type="button" onClick={() => setIsScenarioOpen((value) => !value)} className="flex items-center gap-1 rounded border border-[#294033] px-2 py-1 text-emerald-300 hover:bg-[#182a20]"><FlaskConical className="h-3 w-3" /> SCENARIO</button><span className="hidden sm:flex items-center gap-1"><Activity className="h-3 w-3 text-emerald-400" /> DEMO WORKSPACE</span><span className="hidden sm:inline">·</span><span className="hidden sm:inline">{panels.length} panels active</span></div>
-      </div>
+        <div className="flex items-center gap-2 text-micro text-eco-muted">
+          <button
+            type="button"
+            onClick={() => setIsScenarioOpen((value) => !value)}
+            aria-pressed={isScenarioOpen}
+            className="flex items-center gap-1 rounded-sm border border-eco-border px-2 py-1 text-eco-primary hover:bg-eco-surface-secondary"
+          >
+            <FlaskConical className="h-3 w-3" /> Scenario
+          </button>
+          <DataModeBadge mode={dataMode} />
+          <span className="hidden sm:inline">{panels.length} panels active</span>
+        </div>
 
-      {isMissionOpen && (
-        <div className="absolute z-40 mt-10 w-72 rounded-b border border-[#263447] bg-[#0B1220] p-2 shadow-2xl">
-          <div className="mb-2 flex items-center justify-between border-b border-[#263447] px-1 pb-2"><span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Choose workspace</span><button type="button" onClick={() => setIsMissionOpen(false)}><X className="h-3.5 w-3.5 text-slate-500" /></button></div>
-          <div className="space-y-1">{WORKSPACES.map((item) => <button key={item.id} type="button" onClick={() => applyWorkspace(item.id)} className={`w-full rounded px-2.5 py-2 text-left transition-colors ${workspace.id === item.id ? 'bg-[#1E293B] text-emerald-300' : 'text-slate-300 hover:bg-[#172131]'}`}><div className="text-xs font-medium">{item.label}</div><div className="mt-0.5 text-[10px] text-slate-500">{item.description}</div></button>)}</div>
-          <button type="button" onClick={() => applyWorkspace('command')} className="mt-2 flex w-full items-center justify-center gap-1 border-t border-[#263447] pt-2 text-[10px] text-slate-500 hover:text-slate-300"><RotateCcw className="h-3 w-3" /> Reset workspace</button>
-        </div>
-      )}
+        {isMissionOpen && (
+          <div className="absolute left-3 top-11 z-40 w-72 rounded-md border border-eco-border bg-eco-surface p-2 shadow-2xl">
+            <div className="mb-2 flex items-center justify-between border-b border-eco-border px-1 pb-2">
+              <span className="text-micro font-semibold uppercase tracking-widest text-eco-muted">
+                Choose workspace
+              </span>
+              <IconButton
+                size="sm"
+                label="Close workspace menu"
+                icon={<X className="h-3.5 w-3.5" />}
+                onClick={() => setIsMissionOpen(false)}
+              />
+            </div>
+            <div className="space-y-1">
+              {WORKSPACES.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => applyWorkspace(item.id)}
+                  className={`w-full rounded-sm px-2.5 py-2 text-left transition-colors ${
+                    workspace.id === item.id
+                      ? 'bg-eco-surface-secondary text-eco-primary'
+                      : 'text-eco-text hover:bg-eco-surface-secondary'
+                  }`}
+                >
+                  <div className="text-meta font-medium">{item.label}</div>
+                  <div className="mt-0.5 text-micro text-eco-muted">{item.description}</div>
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => applyWorkspace('command')}
+              className="mt-2 flex w-full items-center justify-center gap-1 border-t border-eco-border pt-2 text-micro text-eco-muted hover:text-eco-text"
+            >
+              <RotateCcw className="h-3 w-3" /> Reset workspace
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {isScenarioOpen && <ScenarioEngine onClose={() => setIsScenarioOpen(false)} />}
-        <div className="flex min-h-0 flex-[1.05] flex-col border-b border-[#263447] bg-[#070C14]">
-          <div className="flex h-8 shrink-0 items-center justify-between border-b border-[#1E293B] px-3 text-[10px] uppercase tracking-widest text-slate-500"><span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" /> India environmental situation</span><span>Map · layers · selection</span></div>
-          <div className="relative flex-1 overflow-hidden p-2"><div className="h-full overflow-hidden rounded border border-[#1E293B]"><MainMap /></div><div aria-hidden="true" className="pointer-events-none absolute inset-2 z-[2] opacity-[0.06]" style={{ backgroundImage: 'linear-gradient(rgba(126,174,137,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(126,174,137,.5) 1px, transparent 1px)', backgroundSize: '48px 48px', maskImage: 'linear-gradient(to bottom, black, transparent 85%)' }} /><div aria-hidden="true" className="pointer-events-none absolute inset-2 z-[2] rounded bg-[radial-gradient(circle_at_center,transparent_45%,rgba(36,64,43,.20)_100%)]" /></div>
-          <DataQualityBanner />
-        </div>
-        <div className="flex min-h-0 flex-[0.95] flex-col bg-[#080D16]">
-          <div className="flex h-8 shrink-0 items-center justify-between border-b border-[#1E293B] px-3"><span className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-slate-400"><SlidersHorizontal className="h-3 w-3 text-sky-400" /> Intelligence panels</span><button type="button" onClick={() => setIsPanelGuideOpen((value) => !value)} className="text-[10px] text-slate-500 hover:text-slate-300">{isPanelGuideOpen ? 'Hide guide' : 'Panel guide'}</button></div>
-          {isPanelGuideOpen && <div className="border-b border-[#263447] bg-[#0B1220] px-3 py-2 text-[10px] text-slate-500">Panels are designed to be source-aware. Close cards that are not relevant to the current mission; each card links to the detailed EcoSite Terminal view.</div>}
-          <div className="grid min-h-0 flex-1 grid-cols-1 gap-2 overflow-y-auto p-2 md:grid-cols-2 xl:grid-cols-4">
-            {panels.map((panel) => <section key={panel.id} className="flex min-h-[150px] min-w-0 flex-col overflow-hidden rounded border border-[#263447] bg-[#0F172A] shadow-lg"><div className="flex h-8 shrink-0 items-center justify-between border-b border-[#263447] bg-[#111827] px-2.5"><div className={`flex min-w-0 items-center gap-1.5 ${panel.accent}`}><GripVertical className="h-3 w-3 cursor-grab text-slate-600" />{panel.icon}<span className="truncate text-[10px] font-semibold tracking-wide">{panel.title}</span></div><div className="flex items-center gap-1"><span className="hidden text-[9px] text-slate-600 xl:inline">{panel.status}</span><button type="button" onClick={() => setClosedPanels((current) => [...current, panel.id])} className="rounded p-0.5 text-slate-600 hover:bg-[#1E293B] hover:text-slate-300" title={`Close ${panel.title}`}><X className="h-3 w-3" /></button></div></div><div className="min-h-0 flex-1 overflow-y-auto">{panel.content}</div></section>)}
-            {panels.length < 4 && <button type="button" onClick={() => setClosedPanels([])} className="flex min-h-[150px] flex-col items-center justify-center rounded border border-dashed border-[#263447] text-slate-600 hover:border-sky-500/50 hover:text-sky-400"><span className="text-2xl">+</span><span className="text-[10px] uppercase tracking-widest">Restore panels</span></button>}
+
+        {/* Map surface */}
+        <section className="flex min-h-0 flex-[1.05] flex-col border-b border-eco-border bg-eco-bg">
+          <div className="flex h-8 shrink-0 items-center justify-between border-b border-eco-border px-3 text-micro uppercase tracking-widest text-eco-muted">
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-eco-primary" />
+              {city.name} environmental map
+            </span>
+            <span>Map · layers · selection</span>
           </div>
-        </div>
+          <div className="relative flex-1 overflow-hidden p-2">
+            <div className="h-full overflow-hidden rounded-md border border-eco-border">
+              <MainMap />
+            </div>
+          </div>
+          <DataQualityBanner />
+        </section>
+
+        {/* Intelligence panels */}
+        <section className="flex min-h-0 flex-[0.95] flex-col bg-eco-bg">
+          <div className="flex h-8 shrink-0 items-center justify-between border-b border-eco-border px-3">
+            <span className="flex items-center gap-1.5 text-micro uppercase tracking-widest text-eco-muted">
+              <SlidersHorizontal className="h-3 w-3 text-eco-primary" /> Intelligence panels
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsPanelGuideOpen((value) => !value)}
+              aria-expanded={isPanelGuideOpen}
+              className="text-micro text-eco-muted hover:text-eco-text"
+            >
+              {isPanelGuideOpen ? 'Hide guide' : 'Panel guide'}
+            </button>
+          </div>
+          {isPanelGuideOpen && (
+            <div className="border-b border-eco-border bg-eco-surface px-3 py-2 text-micro text-eco-muted">
+              Panels are source-aware: synthetic demo records are labelled as such. Close panels that are not
+              relevant to the current workspace; each panel links to its detailed view.
+            </div>
+          )}
+          <div className="grid min-h-0 flex-1 grid-cols-1 gap-2 overflow-y-auto p-2 md:grid-cols-2 xl:grid-cols-4">
+            {panels.map((panel) => (
+              <Card
+                key={panel.id}
+                title={panel.title}
+                status={panel.status}
+                icon={panel.icon}
+                className="min-h-[150px] min-w-0"
+                bodyClassName="p-0"
+                actions={
+                  <IconButton
+                    size="sm"
+                    label={`Close ${panel.title}`}
+                    icon={<X className="h-3.5 w-3.5" />}
+                    onClick={() => setClosedPanels((current) => [...current, panel.id])}
+                  />
+                }
+              >
+                {panel.content}
+              </Card>
+            ))}
+            {panels.length < 4 && (
+              <button
+                type="button"
+                onClick={() => setClosedPanels([])}
+                className="flex min-h-[150px] flex-col items-center justify-center rounded-md border border-dashed border-eco-border text-eco-muted transition-colors hover:border-eco-primary/50 hover:text-eco-primary"
+              >
+                <span className="text-xl">+</span>
+                <span className="text-micro uppercase tracking-widest">Restore panels</span>
+              </button>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   );

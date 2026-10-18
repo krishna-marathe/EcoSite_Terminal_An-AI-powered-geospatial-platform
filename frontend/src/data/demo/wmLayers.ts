@@ -18,7 +18,7 @@ export const WM_LAYER_CATALOG: WorldMonitorLayerDef[] = [
     label: 'Critical Hotspots',
     shortLabel: 'Hotspots',
     iconName: 'Flame',
-    color: '#EF4444', // Red
+    color: '#ff5d68', // Red
     count: 7,
     unit: 'Clusters >75 Risk',
     description: 'High-risk cumulative industrial stress zones requiring urgent statutory intervention.',
@@ -29,7 +29,7 @@ export const WM_LAYER_CATALOG: WorldMonitorLayerDef[] = [
     label: 'Aquifer Depletion Zones',
     shortLabel: 'Aquifers',
     iconName: 'Droplets',
-    color: '#38BDF8', // Sky blue
+    color: '#56b8f0', // Sky blue
     count: 14,
     unit: 'Over-Exploited Blocks',
     description: 'CGWB designated over-exploited and critical groundwater blocks with withdrawal curbs.',
@@ -40,7 +40,7 @@ export const WM_LAYER_CATALOG: WorldMonitorLayerDef[] = [
     label: 'Data Centres & Cloud Nodes',
     shortLabel: 'Data Centres',
     iconName: 'Server',
-    color: '#0EA5E9', // Deep Sky
+    color: '#56b8f0', // Deep Sky
     count: 5,
     unit: '560 MW IT Load',
     description: 'Hyperscale digital infrastructure clusters and internet subsea cable landing stations.',
@@ -51,7 +51,7 @@ export const WM_LAYER_CATALOG: WorldMonitorLayerDef[] = [
     label: 'Thermal & Super Thermal Units',
     shortLabel: 'Thermal Power',
     iconName: 'Zap',
-    color: '#F43F5E', // Rose
+    color: '#ff5d68', // Rose
     count: 3,
     unit: '4,000 MW Installed',
     description: 'Coal and gas fired thermal generation complexes with stack emissions and cooling loops.',
@@ -62,7 +62,7 @@ export const WM_LAYER_CATALOG: WorldMonitorLayerDef[] = [
     label: '765/400kV HVDC Substations',
     shortLabel: 'Grid Hubs',
     iconName: 'Radio',
-    color: '#F59E0B', // Amber
+    color: '#ffad24', // Amber
     count: 2,
     unit: '9,000 MW Transmission',
     description: 'National transmission backbone switching yards and high-voltage DC converter hubs.',
@@ -73,7 +73,7 @@ export const WM_LAYER_CATALOG: WorldMonitorLayerDef[] = [
     label: 'Ambient Air Quality (PM2.5)',
     shortLabel: 'Air Quality',
     iconName: 'Wind',
-    color: '#FB923C', // Orange
+    color: '#ffad24', // Orange
     count: 18,
     unit: 'CAAQMS Stations',
     description: 'Continuous ambient air quality monitoring stations and satellite PM2.5 smoke plumes.',
@@ -84,7 +84,7 @@ export const WM_LAYER_CATALOG: WorldMonitorLayerDef[] = [
     label: 'Extreme Heat & Thermal LST',
     shortLabel: 'Heat Anomaly',
     iconName: 'Sun',
-    color: '#DC2626', // Crimson
+    color: '#ff5d68', // Crimson
     count: 9,
     unit: 'Thermal Anomaly Areas',
     description: 'MODIS & Sentinel-3 Land Surface Temperature anomalies exceeding 42°C threshold.',
@@ -95,7 +95,7 @@ export const WM_LAYER_CATALOG: WorldMonitorLayerDef[] = [
     label: 'Substation Load & Margin',
     shortLabel: 'Grid Pressure',
     iconName: 'Activity',
-    color: '#EAB308', // Yellow
+    color: '#ffad24', // Yellow
     count: 6,
     unit: '>80% Substation Load',
     description: 'Regional transmission substations operating near peak thermal contingency limits.',
@@ -106,7 +106,7 @@ export const WM_LAYER_CATALOG: WorldMonitorLayerDef[] = [
     label: 'Flood & Inundation Hazard',
     shortLabel: 'Flood Zones',
     iconName: 'Waves',
-    color: '#0284C7', // Ocean Blue
+    color: '#56b8f0', // Ocean Blue
     count: 11,
     unit: '100-Year Flood Contours',
     description: 'Riverine flood plains, high tidal ingress zones, and coastal storm surge buffers.',
@@ -117,7 +117,7 @@ export const WM_LAYER_CATALOG: WorldMonitorLayerDef[] = [
     label: 'Surface Water & Reservoirs',
     shortLabel: 'Waterways',
     iconName: 'ShieldAlert',
-    color: '#06B6D4', // Cyan
+    color: '#71e6a0', // Cyan
     count: 2,
     unit: 'Dam Basins Monitored',
     description: 'Major hydrological reservoir storage levels and downstream river discharge accounts.',
@@ -128,7 +128,7 @@ export const WM_LAYER_CATALOG: WorldMonitorLayerDef[] = [
     label: 'Solar & Wind Megaparks',
     shortLabel: 'Renewables',
     iconName: 'Compass',
-    color: '#22C55E', // Green
+    color: '#39f58b', // Green
     count: 5,
     unit: '12,700 MW Clean Power',
     description: 'Ultra-mega solar complexes and wind energy corridors with high green yield.',
@@ -139,7 +139,7 @@ export const WM_LAYER_CATALOG: WorldMonitorLayerDef[] = [
     label: 'Statutory ESZ & Wildlife Buffers',
     shortLabel: 'Eco-Buffers',
     iconName: 'TreePine',
-    color: '#A855F7', // Purple
+    color: '#9d8df1', // Purple
     count: 8,
     unit: '10km Statutory Buffers',
     description: 'Protected areas, national parks, and wildlife corridors requiring statutory NBWL clearances.',

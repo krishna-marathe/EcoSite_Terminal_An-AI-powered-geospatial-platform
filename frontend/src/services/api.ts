@@ -14,8 +14,7 @@ export const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Graceful fallback logging for demo mode
-    console.warn(`[EcoSite Terminal API] Backend endpoint unavailable (${error.config?.url || 'unknown'}), activating demo fallback adapter.`);
+    console.warn(`[EcoSite API] Request failed (${error.config?.url || 'unknown'}).`);
     return Promise.reject(error);
   }
 );

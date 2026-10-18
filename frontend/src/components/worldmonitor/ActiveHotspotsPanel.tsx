@@ -1,112 +1,119 @@
 import React from 'react';
-import { Flame, ArrowUpRight } from 'lucide-react';
-import { DEMO_FACILITIES } from '../../data/demo/facilities';
 import { useDashboardStore } from '../../stores/dashboardStore';
 import { hotspotScore } from '../../utils/environmentalIntelligence';
+import { FACILITY_TYPE_LABELS, scoreColor } from '../../theme/tokens';
+import { RiskBadge, SourceTag } from '../ui/Badge';
+import { EmptyState, ErrorState, LoadingSkeleton } from '../ui/StateViews';
+import type { RiskLevel } from '../../types';
+
+const scoreLevel = (score: number): RiskLevel =>
+  score >= 80 ? 'critical' : score >= 65 ? 'high' : score >= 45 ? 'moderate' : 'low';
 
 export const ActiveHotspotsPanel: React.FC = () => {
-  const { selectedFacilityId, setSelectedFacilityId, scenario } = useDashboardStore();
+  const {
+    selectedFacilityId,
+    setSelectedFacilityId,
+    scenario,
+    facilities,
+    facilitiesStatus,
+    facilitiesError,
+    setDataMode,
+  } = useDashboardStore();
 
   // Sort facilities by overall risk score descending
-  const sortedHotspots = [...DEMO_FACILITIES].sort((a, b) => hotspotScore(b, scenario) - hotspotScore(a, scenario));
+  const sortedHotspots = [...facilities].sort((a, b) => hotspotScore(b, scenario) - hotspotScore(a, scenario));
+
+  if (facilitiesStatus === 'loading') {
+    return (
+      <div className="flex h-full flex-col p-3">
+        <LoadingSkeleton rows={5} />
+      </div>
+    );
+  }
+
+  if (facilitiesStatus === 'error') {
+    return (
+      <div className="flex h-full flex-col">
+        <ErrorState
+          title="Facility data unavailable"
+          cause={facilitiesError ?? undefined}
+          onDemo={() => setDataMode('demo')}
+        />
+      </div>
+    );
+  }
+
+  if (facilities.length === 0) {
+    return (
+      <div className="flex h-full flex-col">
+        <EmptyState
+          title="No facilities in this city"
+          body="Evaluate a site or switch data mode."
+          action={{ label: 'Evaluate a site', to: '/site-analysis' }}
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-[#0F172A]/90 border border-[#1E293B] rounded-lg flex flex-col h-full overflow-hidden text-xs font-sans select-none shadow-sm">
-      {/* Panel Header */}
-      <div className="h-10 px-3.5 bg-[#111A2E] border-b border-[#1E293B] flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2">
-          <Flame className="w-4 h-4 text-rose-400" />
-          <span className="font-semibold text-slate-100 text-xs">
-            Environmental Hotspots
-          </span>
-          <span className="text-[10px] text-rose-400 bg-rose-950/70 border border-rose-800/60 px-1.5 py-0.2 rounded font-medium">
-            Top Stress
-          </span>
-        </div>
-        <span className="text-[11px] text-slate-400">Sorted by Risk Score</span>
-      </div>
-
-      {/* Hotspots List */}
-      <div className="flex-1 overflow-y-auto divide-y divide-[#1E293B]/60 p-1">
-        {sortedHotspots.slice(0, 10).map((facility, index) => {
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
+        {sortedHotspots.slice(0, 10).map((facility) => {
           const isSelected = facility.id === selectedFacilityId;
           const score = hotspotScore(facility, scenario);
 
           return (
-            <div
+            <button
               key={facility.id}
+              type="button"
               onClick={() => setSelectedFacilityId(facility.id)}
-              className={`p-3 rounded-md hover:bg-[#15233D] cursor-pointer transition-all space-y-2 ${
-                isSelected ? 'bg-[#15233D] border-l-2 border-sky-400 shadow-sm' : ''
+              aria-pressed={isSelected}
+              className={`block w-full space-y-2 rounded-sm border-l-2 p-3 text-left transition-colors ${
+                isSelected
+                  ? 'border-eco-primary bg-eco-primary/10'
+                  : 'border-transparent hover:bg-eco-surface-secondary'
               }`}
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-start gap-2.5">
-                  <span className="text-xs text-slate-500 font-mono font-bold w-4 shrink-0 mt-0.5">
-                    #{index + 1}
+              <span className="flex items-start justify-between gap-2">
+                <span className="min-w-0">
+                  <span className="block truncate text-body font-medium text-eco-text">{facility.name}</span>
+                  <span className="mt-0.5 block truncate text-meta text-eco-muted">
+                    {facility.district}, {facility.state} · {FACILITY_TYPE_LABELS[facility.type]}
                   </span>
-                  <div>
-                    <h4 className="font-semibold text-slate-100 text-xs leading-snug">
-                      {facility.name}
-                    </h4>
-                    <span className="text-[11px] text-slate-400">
-                      {facility.district}, {facility.state} •{' '}
-                      <span className="capitalize">{facility.type.replace('_', ' ')}</span>
-                    </span>
-                  </div>
-                </div>
+                </span>
+                <span className="flex shrink-0 flex-col items-end gap-0.5">
+                  <RiskBadge level={scoreLevel(score)} score={score} />
+                  <span className="text-meta text-eco-muted">
+                    {scenario ? 'Scenario index' : 'Screening index'}
+                  </span>
+                </span>
+              </span>
 
-                <div className="text-right shrink-0">
-                  <span
-                    className={`font-bold text-sm font-mono block ${
-                      score >= 80
-                        ? 'text-rose-400'
-                        : score >= 65
-                        ? 'text-amber-400'
-                        : score >= 45
-                        ? 'text-sky-400'
-                        : 'text-emerald-400'
-                    }`}
-                  >
-                    {score}/100
-                  </span>
-                  <span className="text-[10px] text-slate-400 flex items-center justify-end gap-0.5">
-                    <ArrowUpRight className="w-2.5 h-2.5 text-rose-400" />
-                    <span>+{(score * 0.04).toFixed(1)}% 7d</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="w-full bg-[#1E293B] h-1.5 rounded-full overflow-hidden">
-                <div
-                  className={`h-full transition-all duration-500 ${
-                    score >= 80
-                      ? 'bg-rose-500'
-                      : score >= 65
-                      ? 'bg-amber-400'
-                      : score >= 45
-                      ? 'bg-sky-400'
-                      : 'bg-emerald-400'
-                  }`}
-                  style={{ width: `${score}%` }}
+              <span aria-hidden="true" className="block h-1.5 overflow-hidden rounded-full bg-eco-surface-secondary">
+                <span
+                  className="block h-full rounded-full"
+                  style={{ width: `${score}%`, backgroundColor: scoreColor(score) }}
                 />
-              </div>
+              </span>
 
-              <div className="flex items-center justify-between text-[10px] text-slate-500">
-                <span>Source: {facility.provenance.sourceOrganization}</span>
-                <span className={facility.provenance.dataStatus === 'synthetic' ? 'text-amber-300' : 'text-emerald-300'}>{facility.provenance.dataStatus} · {facility.provenance.confidenceScore}%</span>
-              </div>
-
-              {/* Indicators preview */}
-              <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
-                <span>Water: {facility.indicators.waterStress}%</span>
-                <span>Grid: {facility.indicators.gridPressure}%</span>
-                <span>Air: {facility.indicators.airPollution} µg/m³</span>
-              </div>
-            </div>
+              <span className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
+                <SourceTag
+                  organization={facility.provenance.sourceOrganization}
+                  status={facility.provenance.dataStatus}
+                />
+                <span className="font-mono text-data tabular-nums text-eco-muted">
+                  Water {facility.indicators.waterStress} · Grid {facility.indicators.gridPressure} · Air{' '}
+                  {facility.indicators.airPollution}
+                </span>
+              </span>
+            </button>
           );
         })}
+        {sortedHotspots.length > 10 && (
+          <p className="px-1 py-1.5 text-meta text-eco-muted">
+            Showing top 10 of {sortedHotspots.length} facilities by screening score.
+          </p>
+        )}
       </div>
     </div>
   );

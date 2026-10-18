@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   X,
   Key,
   CheckCircle2,
-  Sparkles,
   Map,
   Shield,
   ExternalLink,
   Save,
 } from 'lucide-react';
-import { Button } from './Button';
+import { Button, IconButton } from './Button';
+import { Field, Input } from './Field';
+import { InlineAlert } from './StateViews';
 
 interface ApiKeyModalProps {
   isOpen: boolean;
@@ -24,178 +25,192 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
     () => localStorage.getItem('ECOSITE_MAPBOX_TOKEN') || import.meta.env.VITE_MAPBOX_TOKEN || ''
   );
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleClose = useCallback(() => {
+    setSavedSuccess(false);
+    setSaveError('');
+    onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') handleClose();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, handleClose]);
 
   if (!isOpen) return null;
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (geminiKey.trim()) {
-      localStorage.setItem('ECOSITE_GEMINI_API_KEY', geminiKey.trim());
+  /** Only trimmed values are stored: whitespace never counts as a key. */
+  const persistSettings = async () => {
+    const gemini = geminiKey.trim();
+    const mapbox = mapboxToken.trim();
+
+    if (gemini) {
+      localStorage.setItem('ECOSITE_GEMINI_API_KEY', gemini);
     } else {
       localStorage.removeItem('ECOSITE_GEMINI_API_KEY');
     }
 
-    if (mapboxToken.trim()) {
-      localStorage.setItem('ECOSITE_MAPBOX_TOKEN', mapboxToken.trim());
+    if (mapbox) {
+      localStorage.setItem('ECOSITE_MAPBOX_TOKEN', mapbox);
     } else {
       localStorage.removeItem('ECOSITE_MAPBOX_TOKEN');
     }
+  };
 
-    setSavedSuccess(true);
-    setTimeout(() => {
-      setSavedSuccess(false);
-      onClose();
-    }, 1200);
+  const handleSave = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    setSavedSuccess(false);
+    setSaveError('');
+    try {
+      // Success is only reported after the save callback has run to completion.
+      await persistSettings();
+      setSavedSuccess(true);
+    } catch {
+      setSaveError('Settings could not be saved in this browser. Check that local storage is available.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[#0F172A] border border-[#1E293B] rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col font-sans select-none text-slate-100">
-        {/* Header */}
-        <div className="px-5 py-4 bg-[#111A2E] border-b border-[#1E293B] flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-950/80 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
-              <Key className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-sm text-slate-100">
-                API Key Configuration
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="api-key-modal-title"
+        className="flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-lg border border-eco-border bg-eco-surface"
+      >
+        <header className="flex shrink-0 items-center justify-between gap-2 border-b border-eco-border bg-eco-surface-secondary/60 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-eco-border text-eco-primary">
+              <Key className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <h3 id="api-key-modal-title" className="text-h2 font-semibold text-eco-text">
+                Optional API keys
               </h3>
-              <p className="text-[11px] text-slate-400">
-                Manage platform connectivity and optional keys
-              </p>
+              <p className="text-meta text-eco-muted">Manage platform connectivity and optional keys</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1 text-slate-400 hover:text-slate-100 hover:bg-[#1E293B] rounded-md transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+          <IconButton label="Close settings" icon={<X className="h-4 w-4" />} onClick={handleClose} autoFocus />
+        </header>
 
-        {/* Informational Banner: No Key Required by Default */}
-        <div className="p-4 bg-emerald-950/30 border-b border-emerald-900/40 flex items-start gap-3">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-          <div className="text-xs space-y-1">
-            <span className="font-semibold text-emerald-300 block">
-              No API key is required to use EcoSite Terminal
-            </span>
-            <p className="text-slate-300 leading-relaxed text-[11px]">
-              All maps, facilities, ML forecasts, risk screeners, and mitigation plans run out of the box with open-source basemaps and built-in models. Keys are completely optional.
-            </p>
-          </div>
-        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 text-meta">
+          <InlineAlert tone="info" title="No API key is required to use EcoSite Terminal">
+            All maps, facilities, forecasts, risk screening and mitigation catalogues run out of the box
+            with open-source basemaps and built-in models. Keys are completely optional.
+          </InlineAlert>
 
-        {/* Form Body */}
-        <form onSubmit={handleSave} className="p-5 space-y-4 text-xs">
-          {/* Service Status List */}
-          <div className="space-y-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-              Built-in Services (Zero-Config)
-            </span>
-            <div className="grid grid-cols-2 gap-2 text-[11px]">
-              <div className="p-2.5 bg-[#0B111A] border border-[#1E293B] rounded-lg flex items-center gap-2">
-                <Map className="w-4 h-4 text-sky-400 shrink-0" />
-                <div>
-                  <span className="font-medium text-slate-200 block">OpenStreetMap & ESRI</span>
-                  <span className="text-emerald-400 text-[10px]">Active • No key needed</span>
+          <form onSubmit={handleSave} className="space-y-4 pt-4">
+            <section className="space-y-2">
+              <h4 className="text-meta font-medium text-eco-text">Built-in (no key needed)</h4>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="flex items-center gap-2 rounded-sm border border-eco-border bg-eco-surface-secondary p-2.5">
+                  <Map className="h-4 w-4 shrink-0 text-eco-primary" />
+                  <div className="min-w-0">
+                    <p className="truncate text-meta font-medium text-eco-text">OpenStreetMap & ESRI</p>
+                    <p className="text-meta text-eco-primary">Active · no key needed</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 rounded-sm border border-eco-border bg-eco-surface-secondary p-2.5">
+                  <Shield className="h-4 w-4 shrink-0 text-eco-muted" />
+                  <div className="min-w-0">
+                    <p className="truncate text-meta font-medium text-eco-text">ML forecasting engine</p>
+                    <p className="text-meta text-eco-muted">Runs locally</p>
+                  </div>
                 </div>
               </div>
-              <div className="p-2.5 bg-[#0B111A] border border-[#1E293B] rounded-lg flex items-center gap-2">
-                <Shield className="w-4 h-4 text-amber-400 shrink-0" />
-                <div>
-                  <span className="font-medium text-slate-200 block">ML Forecasting Engine</span>
-                  <span className="text-emerald-400 text-[10px]">Active • Local model</span>
-                </div>
-              </div>
-            </div>
-          </div>
+            </section>
 
-          {/* Optional Gemini Key */}
-          <div className="space-y-1.5 pt-2 border-t border-[#1E293B]">
-            <div className="flex items-center justify-between">
-              <label className="font-medium text-slate-200 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>Google Gemini API Key (Optional)</span>
-              </label>
+            <section className="space-y-3 border-t border-eco-border pt-4">
+              <h4 className="text-meta font-medium text-eco-text">Optional keys</h4>
+
+              <Field
+                label="Google Gemini API key (optional)"
+                htmlFor="gemini-api-key"
+                hint="Enables optional generative AI mitigation advice; leave blank to use the built-in catalogue. Stored in this browser only."
+              >
+                <Input
+                  id="gemini-api-key"
+                  type="password"
+                  autoComplete="off"
+                  placeholder="Leave blank to use built-in models"
+                  value={geminiKey}
+                  onChange={(event) => {
+                    setGeminiKey(event.target.value);
+                    setSavedSuccess(false);
+                  }}
+                />
+              </Field>
               <a
                 href="https://aistudio.google.com/app/apikey"
                 target="_blank"
                 rel="noreferrer"
-                className="text-[10px] text-sky-400 hover:underline flex items-center gap-1"
+                className="inline-flex items-center gap-1 text-meta text-eco-primary hover:underline"
               >
-                <span>Get free key</span>
-                <ExternalLink className="w-2.5 h-2.5" />
+                Get a key from Google AI Studio
+                <ExternalLink className="h-3 w-3" />
               </a>
-            </div>
-            <input
-              type="password"
-              placeholder="AIzaSy... or AQ.... (leave blank to use built-in models)"
-              value={geminiKey}
-              onChange={(e) => setGeminiKey(e.target.value)}
-              className="w-full bg-[#0B111A] border border-[#1E293B] rounded-lg px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500/80 font-mono"
-            />
-            <p className="text-[10px] text-slate-400">
-              Enables live generative AI prompt synthesis via Gemini 3.7 Flash for custom sustainability plans.
-            </p>
-          </div>
 
-          {/* Optional Mapbox Token */}
-          <div className="space-y-1.5 pt-2 border-t border-[#1E293B]">
-            <div className="flex items-center justify-between">
-              <label className="font-medium text-slate-200 flex items-center gap-1.5">
-                <Map className="w-3.5 h-3.5 text-sky-400" />
-                <span>Mapbox / MapTiler Token (Optional)</span>
-              </label>
+              <Field
+                label="Mapbox or MapTiler token (optional)"
+                htmlFor="mapbox-token"
+                hint="Only needed for custom Mapbox Studio basemap styles. Stored in this browser only."
+              >
+                <Input
+                  id="mapbox-token"
+                  type="password"
+                  autoComplete="off"
+                  placeholder="pk.ey… (leave blank to use built-in Carto/ESRI)"
+                  value={mapboxToken}
+                  onChange={(event) => {
+                    setMapboxToken(event.target.value);
+                    setSavedSuccess(false);
+                  }}
+                />
+              </Field>
               <a
                 href="https://account.mapbox.com/"
                 target="_blank"
                 rel="noreferrer"
-                className="text-[10px] text-sky-400 hover:underline flex items-center gap-1"
+                className="inline-flex items-center gap-1 text-meta text-eco-primary hover:underline"
               >
-                <span>Mapbox Portal</span>
-                <ExternalLink className="w-2.5 h-2.5" />
+                Open the Mapbox portal
+                <ExternalLink className="h-3 w-3" />
               </a>
-            </div>
-            <input
-              type="password"
-              placeholder="pk.ey... (leave blank to use built-in Carto/ESRI)"
-              value={mapboxToken}
-              onChange={(e) => setMapboxToken(e.target.value)}
-              className="w-full bg-[#0B111A] border border-[#1E293B] rounded-lg px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500/80 font-mono"
-            />
-            <p className="text-[10px] text-slate-400">
-              Only required if you want custom Mapbox Studio basemap styles.
-            </p>
-          </div>
+            </section>
 
-          {/* Footer buttons */}
-          <div className="pt-3 border-t border-[#1E293B] flex items-center justify-between">
-            <div>
-              {savedSuccess && (
-                <span className="text-emerald-400 text-xs flex items-center gap-1 font-medium animate-in fade-in">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Settings saved!</span>
-                </span>
+            <div className="min-h-5 pt-3 text-meta">
+              {saveError && (
+                <p role="alert" className="text-eco-critical">
+                  {saveError}
+                </p>
+              )}
+              {!saveError && savedSuccess && (
+                <p role="status" className="inline-flex items-center gap-1 text-eco-primary">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Settings saved
+                </p>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" type="button" onClick={onClose}>
+
+            <div className="flex items-center justify-end gap-2 border-t border-eco-border pt-3">
+              <Button variant="ghost" size="sm" type="button" onClick={handleClose}>
                 Close
               </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                type="submit"
-                icon={<Save className="w-3.5 h-3.5" />}
-              >
-                Save Settings
+              <Button variant="primary" size="sm" type="submit" loading={saving} icon={<Save className="h-3.5 w-3.5" />}>
+                {saving ? 'Saving…' : 'Save settings'}
               </Button>
             </div>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
