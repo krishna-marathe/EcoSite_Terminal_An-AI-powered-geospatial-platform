@@ -18,9 +18,6 @@ interface ApiKeyModalProps {
 }
 
 export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
-  const [geminiKey, setGeminiKey] = useState(
-    () => localStorage.getItem('ECOSITE_GEMINI_API_KEY') || import.meta.env.VITE_GEMINI_API_KEY || ''
-  );
   const [mapboxToken, setMapboxToken] = useState(
     () => localStorage.getItem('ECOSITE_MAPBOX_TOKEN') || import.meta.env.VITE_MAPBOX_TOKEN || ''
   );
@@ -47,14 +44,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
 
   /** Only trimmed values are stored: whitespace never counts as a key. */
   const persistSettings = async () => {
-    const gemini = geminiKey.trim();
     const mapbox = mapboxToken.trim();
-
-    if (gemini) {
-      localStorage.setItem('ECOSITE_GEMINI_API_KEY', gemini);
-    } else {
-      localStorage.removeItem('ECOSITE_GEMINI_API_KEY');
-    }
 
     if (mapbox) {
       localStorage.setItem('ECOSITE_MAPBOX_TOKEN', mapbox);
@@ -94,9 +84,9 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
             </span>
             <div className="min-w-0">
               <h3 id="api-key-modal-title" className="text-h2 font-semibold text-eco-text">
-                Optional API keys
+                Basemap settings
               </h3>
-              <p className="text-meta text-eco-muted">Manage platform connectivity and optional keys</p>
+              <p className="text-meta text-eco-muted">Manage optional public basemap tokens</p>
             </div>
           </div>
           <IconButton label="Close settings" icon={<X className="h-4 w-4" />} onClick={handleClose} autoFocus />
@@ -130,34 +120,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
             </section>
 
             <section className="space-y-3 border-t border-eco-border pt-4">
-              <h4 className="text-meta font-medium text-eco-text">Optional keys</h4>
-
-              <Field
-                label="Google Gemini API key (optional)"
-                htmlFor="gemini-api-key"
-                hint="Enables optional generative AI mitigation advice; leave blank to use the built-in catalogue. Stored in this browser only."
-              >
-                <Input
-                  id="gemini-api-key"
-                  type="password"
-                  autoComplete="off"
-                  placeholder="Leave blank to use built-in models"
-                  value={geminiKey}
-                  onChange={(event) => {
-                    setGeminiKey(event.target.value);
-                    setSavedSuccess(false);
-                  }}
-                />
-              </Field>
-              <a
-                href="https://aistudio.google.com/app/apikey"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-meta text-eco-primary hover:underline"
-              >
-                Get a key from Google AI Studio
-                <ExternalLink className="h-3 w-3" />
-              </a>
+              <h4 className="text-meta font-medium text-eco-text">Optional public basemap token</h4>
 
               <Field
                 label="Mapbox or MapTiler token (optional)"

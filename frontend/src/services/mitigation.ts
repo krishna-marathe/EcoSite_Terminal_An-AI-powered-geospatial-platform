@@ -1,6 +1,5 @@
 import { DEMO_MITIGATION_CATALOG } from '../data/demo/mitigations';
-import type { Facility, InfrastructureType, MitigationRecommendation } from '../types';
-import { apiClient } from './api';
+import type { InfrastructureType, MitigationRecommendation } from '../types';
 export interface MitigationPlanRequest { facility_id?: string; facility_type?: InfrastructureType; constraints?: string; focus_area?: string }
 export const getMitigationRecommendations = async (facilityType: InfrastructureType | 'all'): Promise<MitigationRecommendation[]> => DEMO_MITIGATION_CATALOG.filter(m => facilityType === 'all' || m.facilityType === facilityType || m.facilityType === 'all').map(m => ({ ...m, expectedBenefit: 'Potential resource or exposure reduction; magnitude requires a site-specific engineering audit.', supportingEvidence: 'Illustrative intervention catalogue, not a verified site-specific recommendation.', verificationRequirements: `Verify suitability, permissions, costs and benefits with qualified specialists. ${m.verificationRequirements}` }));
 export function validateRecommendations(value: unknown): MitigationRecommendation[] {
@@ -13,10 +12,16 @@ export function validateRecommendations(value: unknown): MitigationRecommendatio
   }
   return value as MitigationRecommendation[];
 };
-export const generateAIMitigationPlan = async (req: MitigationPlanRequest, facility?: Facility): Promise<MitigationRecommendation[]> => {
-  if (!facility) throw new Error('Select an available facility first.');
-  const apiKey = localStorage.getItem('ECOSITE_GEMINI_API_KEY') || import.meta.env.VITE_GEMINI_API_KEY || '';
-  if (!apiKey) throw new Error('Configure a Gemini API key to request optional AI advice.');
-  const response = await apiClient.post<{ recommendations: MitigationRecommendation[] }>('/mitigation-plans/gemini', { ...req, api_key: apiKey });
-  return validateRecommendations(response.data.recommendations);
+export const AI_UNAVAILABLE_MESSAGE = 'AI-assisted mitigation is currently unavailable. Standard mitigation recommendations remain accessible.';
+
+export function retireLegacyGeminiCredential(): void {
+  try {
+    localStorage.removeItem('ECOSITE_GEMINI_API_KEY');
+  } catch {
+    console.warn('Legacy AI credential removal was blocked by browser storage permissions.');
+  }
+}
+
+export const generateAIMitigationPlan = async (): Promise<MitigationRecommendation[]> => {
+  throw new Error(AI_UNAVAILABLE_MESSAGE);
 };

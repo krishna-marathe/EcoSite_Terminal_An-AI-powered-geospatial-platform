@@ -405,11 +405,11 @@ export const EcoWorkspace: React.FC = () => {
         )}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto">
         {isScenarioOpen && <ScenarioEngine onClose={() => setIsScenarioOpen(false)} />}
 
         {/* Map surface */}
-        <section className="flex min-h-0 flex-[1.05] flex-col border-b border-eco-border bg-eco-bg">
+        <section className="flex min-h-[400px] flex-[1.05] flex-col border-b border-eco-border bg-eco-bg">
           <div className="flex h-8 shrink-0 items-center justify-between border-b border-eco-border px-3 text-micro uppercase tracking-widest text-eco-muted">
             <span className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-eco-primary" />
@@ -426,7 +426,7 @@ export const EcoWorkspace: React.FC = () => {
         </section>
 
         {/* Intelligence panels */}
-        <section className="flex min-h-0 flex-[0.95] flex-col bg-eco-bg">
+        <section className="flex min-h-64 flex-[0.95] flex-col bg-eco-bg">
           <div className="flex h-8 shrink-0 items-center justify-between border-b border-eco-border px-3">
             <span className="flex items-center gap-1.5 text-micro uppercase tracking-widest text-eco-muted">
               <SlidersHorizontal className="h-3 w-3 text-eco-primary" /> Intelligence panels

@@ -62,7 +62,7 @@ The application is built across six specialized intelligence modules:
 ### ✨ Module 05: AI Mitigation Planner (`/mitigation`)
 - **Structured Sustainability Roadmaps**: Concrete engineering interventions categorized by Water Conservation, Renewable Energy, Energy Efficiency, Waste & Emissions, and Ecology.
 - **Action Attributes**: High/Medium/Low priority, implementation timeframe, responsible stakeholder, quantifiable environmental benefit (e.g. m³ water saved, tCO₂e avoided), and statutory compliance benchmarks.
-- **Gemini AI Strategy Generator**: Interactive prompt input to synthesize tailored mitigation strategies based on site-specific constraints (e.g. ZLD mandates, target PUE, CAPEX budgets).
+- **Standard mitigation catalogue**: Deterministic recommendations remain available. External AI assistance is disabled pending server-side security controls.
 
 ### 📑 Module 06: Reports & Data Explorer (`/reports`)
 - **Facility Register**: Searchable and filterable table of the selected city's facilities.
@@ -170,16 +170,19 @@ EcoSite/
 ## 4. Getting Started
 
 ### Prerequisites
-- Node.js (v18 or higher recommended)
-- npm (v9 or higher)
-- Python 3.10+ (only required for the optional FastAPI backend)
+- Node.js 24.x recommended; baseline checked with Node 24.7.0 and npm 11.5.1.
+- Installed Vite, ESLint and jsdom require a compatible Node version: 20.19+, 22.13+, or 24+. Other versions were not tested.
+- Python 3.11 for the backend baseline; call `backend/.venv` directly, not the separate root `.venv`.
 
 ### Installation
 Run from the root directory:
 
 ```bash
-npm install
+npm --prefix frontend ci
 ```
+
+This installs from the frontend lockfile. The root package is not an npm
+workspace and a root-only install does not install the frontend dependencies.
 
 ### Development Server
 Start the local development server:
@@ -194,33 +197,68 @@ The dev server proxies `/api` to `http://localhost:8000` (see `frontend/vite.con
 
 ### Backend Service (Optional)
 
-The frontend runs fully in demo mode without a backend — when no API is
-reachable, the built-in demo data adapter serves the synthetic datasets
-described in section 5. To run the FastAPI service, see
+The frontend starts in demo mode and uses synthetic fixtures. Selecting API
+mode makes backend requests; a failed request does not automatically switch
+back to demo mode. To run the FastAPI service, see
 [`backend/README.md`](backend/README.md). Quick start from the repository root:
 
 **Windows (PowerShell):**
 
 ```powershell
-py -m venv backend\.venv
-backend\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+py -3.11 -m venv backend\.venv
+backend\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt -r backend\requirements-dev.txt
 backend\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000 --app-dir backend
 ```
 
 **macOS / Linux:**
 
 ```bash
-python3 -m venv backend/.venv
-backend/.venv/bin/python -m pip install -r backend/requirements.txt
+python3.11 -m venv backend/.venv
+backend/.venv/bin/python -m pip install -r backend/requirements.txt -r backend/requirements-dev.txt
 backend/.venv/bin/python -m uvicorn app.main:app --reload --port 8000 --app-dir backend
 ```
 
 These forms call the virtual environment's interpreter directly, so they work
 regardless of PowerShell execution policy or which Python is first on `PATH`.
 On Windows, `npm run backend:install` creates `backend\.venv` and installs the
-dependencies, and `npm run backend` starts the service from that environment.
+runtime dependencies only, using the default Python launcher selection. Prefer
+the explicit Python 3.11 commands above for setup. Do not recreate an existing
+working environment. `npm run backend` starts the service from `backend/.venv`.
+The current editor backend task also uses that environment, but its absolute
+path is machine-specific; use the CLI commands on another checkout.
 
 Health check: `http://localhost:8000/health` · OpenAPI docs: `http://localhost:8000/docs`
+
+### Environment and baseline checks
+
+Use `frontend/.env.example` as the frontend configuration reference. Add only
+needed values to `frontend/.env.local`; do not overwrite an existing file.
+The root `.env.example` is not loaded by the frontend Vite process and currently
+contains a token in the API URL field; do not copy that value.
+
+- `VITE_API_BASE_URL=/api/v1` is the backend URL prefix, not a demo-mode switch.
+- `VITE_MAPBOX_TOKEN` is an optional public basemap token. No token is needed for
+  the default CARTO/ESRI basemaps. `VITE_MAP_STYLE_URL` is not read by the code.
+- Vite variables are browser-visible; do not put private credentials in them.
+- The `/api` proxy applies to Vite development only. Production needs API
+  routing or an explicit backend URL and matching CORS configuration.
+- Backend environment variables are read from the process. See the backend
+  README for optional `--env-file` loading and SQLite path handling.
+
+Run from the repository root:
+
+```powershell
+backend\.venv\Scripts\python.exe -B -m unittest discover -s backend/tests -v
+npm --prefix frontend run lint -- --no-cache
+npm --prefix frontend run test
+npm --prefix frontend run build
+```
+
+On macOS/Linux, replace the Python executable with `backend/.venv/bin/python`.
+Phase 01A on Windows: frontend lint, 33 tests and build passed. Backend discovery
+ran seven tests: one passed and six errored during temporary-database cleanup
+with open SQLite handles. This is not a passing backend baseline; see the
+backend README. No application or test logic was changed during recovery.
 
 ### Production Build
 Verify that the production build completes cleanly:
@@ -235,7 +273,8 @@ npm run build
 
 EcoSite Terminal frontend is configured to communicate with a Python FastAPI backend service via `VITE_API_BASE_URL`.
 
-When no backend is active, the built-in **Demo Data Adapter** automatically handles requests seamlessly with synthetic pilot datasets for Pune and Mumbai and explicit `"DEMO DATA"` provenance tags.
+Demo mode uses synthetic Pune/Mumbai fixtures. API mode is selected explicitly
+and reports backend errors; it does not silently fall back to demo fixtures.
 
 Measured locally during QA: 5,000-record ingestion in 0.33 s (≈ 15k records/s); city facility page p50 8.3 ms / p95 14.9 ms; facility detail p50 30.3 ms; SQLite database 6.8 MiB.
 
@@ -244,4 +283,15 @@ Key API endpoints:
 - `GET /api/v1/facilities/{id}` — Retrieve facility details
 - `POST /api/v1/forecasts` — Generate multi-horizon ML predictions
 - `POST /api/v1/site-assessments` — Evaluate candidate coordinates
-- `POST /api/v1/mitigation-plans` — Generate Gemini-assisted action plans
+- `POST /api/v1/mitigation-plans` — Retrieve deterministic mitigation recommendations
+
+### AI credential security (Phase 01B.2)
+
+External AI assistance is disabled in both the browser and backend. No provider key
+should be entered into browser settings or Vite configuration. On startup, the app
+removes only the legacy `ECOSITE_GEMINI_API_KEY` storage entry without reading it;
+saved candidates, scenarios, plans and public basemap tokens are preserved. If
+browser storage permissions block removal, a generic warning is logged and AI stays
+disabled. Existing saved plans are not overwritten when opening the catalogue.
+Revoke/rotate any previously browser-exposed provider key through the provider.
+See [backend security requirements](backend/README.md#external-ai-security).

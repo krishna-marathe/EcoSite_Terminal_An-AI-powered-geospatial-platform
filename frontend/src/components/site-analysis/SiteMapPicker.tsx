@@ -161,8 +161,8 @@ export const SiteMapPicker: React.FC<SiteMapPickerProps> = ({
     // Teardown aborts in-flight tile requests, which would otherwise surface as
     // false tile failures (e.g. StrictMode remounts).
     let destroyed = false;
-    map.on('error', (e) => {
-      console.warn('SiteMapPicker error:', e);
+    map.on('error', () => {
+      console.warn('SiteMapPicker could not load a map resource.');
       if (!destroyed) setTileError(true);
     });
 

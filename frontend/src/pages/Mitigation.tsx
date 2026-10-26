@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ClipboardList, Sparkles } from 'lucide-react';
 import { useDashboardStore } from '../stores/dashboardStore';
-import { getMitigationRecommendations, generateAIMitigationPlan } from '../services/mitigation';
+import { getMitigationRecommendations, generateAIMitigationPlan, AI_UNAVAILABLE_MESSAGE } from '../services/mitigation';
 import type { CityId, Facility, MitigationRecommendation } from '../types';
 import { Badge, DataModeBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -118,7 +118,7 @@ function FacilityMitigation({ cityId, facility }: { cityId: CityId; facility: Fa
       if (active.current) {
         setRecommendations(items);
         setCatalogSettled(true);
-        try { localStorage.setItem(storageKey, JSON.stringify({ recommendations: items, source: 'catalog', constraints: '', generatedAt: new Date().toISOString() })); } catch { setError('Plan could not be saved in this browser.'); }
+        try { if (localStorage.getItem(storageKey) === null) localStorage.setItem(storageKey, JSON.stringify({ recommendations: items, source: 'catalog', constraints: '', generatedAt: new Date().toISOString() })); } catch { setError('Plan could not be saved in this browser.'); }
       }
     });
     return () => { active.current = false; };
@@ -127,7 +127,7 @@ function FacilityMitigation({ cityId, facility }: { cityId: CityId; facility: Fa
   const generate = async (event: FormEvent) => {
     event.preventDefault(); setBusy(true); setError('');
     try {
-      const items = await generateAIMitigationPlan({ facility_id: facility.id, facility_type: facility.type, constraints }, facility);
+      const items = await generateAIMitigationPlan();
       if (!active.current) return;
       setRecommendations(items); setSource('ai');
       try { localStorage.setItem(storageKey, JSON.stringify({ recommendations: items, source: 'ai', constraints, generatedAt: new Date().toISOString() })); } catch { setError('AI advice received, but could not be saved in this browser.'); }
@@ -185,7 +185,7 @@ function FacilityMitigation({ cityId, facility }: { cityId: CityId; facility: Fa
 
       <Card
         title="Optional AI advice"
-        subtitle="Request a site-specific plan using your configured Google Gemini key"
+        subtitle={AI_UNAVAILABLE_MESSAGE}
         icon={<Sparkles className="h-4 w-4" />}
       >
         <form onSubmit={generate} className="space-y-3">
@@ -201,10 +201,9 @@ function FacilityMitigation({ cityId, facility }: { cityId: CityId; facility: Fa
             />
           </Field>
           <p className="text-meta text-eco-muted">
-            Optional AI requests send this facility's indicators and constraints to Google using your
-            configured key and model.
+            External AI execution is disabled. No provider credentials are accepted in this browser.
           </p>
-          <Button type="submit" variant="primary" size="md" loading={busy}>
+          <Button type="submit" variant="primary" size="md" loading={busy} disabled>
             {busy ? 'Requesting AI advice…' : 'Request optional AI advice'}
           </Button>
         </form>

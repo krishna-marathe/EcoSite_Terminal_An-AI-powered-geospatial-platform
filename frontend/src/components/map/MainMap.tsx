@@ -12,7 +12,7 @@ import {
   PROTECTED_AREAS_GEOJSON,
   TRANSMISSION_GRID_GEOJSON,
 } from '../../data/demo/environmentalOverlays';
-import { FACILITY_TYPE_COLORS, FACILITY_TYPE_LABELS } from '../../theme/tokens';
+import { FACILITY_TYPE_COLORS, FACILITY_TYPE_LABELS, scoreColor } from '../../theme/tokens';
 import type { Facility, InfrastructureType } from '../../types';
 
 // Dynamic style generator: uses Mapbox HD tiles when a token is provided, otherwise falls back to Carto/ESRI
@@ -409,12 +409,12 @@ export const MainMap: React.FC = () => {
     }, 10000);
 
     map.on('error', (e) => {
-      console.warn('MapLibre event error:', e);
+      console.warn('MapLibre could not load a map resource.');
       const message = String(
         (e as unknown as { error?: { message?: string } }).error?.message ?? ''
       );
       if (/401|403|unauthorized|forbidden|token|style/i.test(message)) {
-        setMapError(message || 'The basemap style failed to load.');
+        setMapError('The basemap provider rejected the request. Check the Mapbox token and its URL permissions in settings.');
       }
     });
 
@@ -686,10 +686,11 @@ export const MainMap: React.FC = () => {
               : ''
           }
           <div class="facility-name-tag" style="position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); background-color: rgba(17, 21, 20, 0.95); border: 1px solid #29362f; border-radius: 4px; padding: 2px 6px; font-size: 12px; font-weight: 500; color: #e7f1e8; white-space: nowrap; pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.6); opacity: 0; transition: opacity 0.15s ease; z-index: 1000;">
-            ${facility.name}
           </div>
         </div>
       `;
+
+      el.querySelector('.facility-name-tag')!.textContent = facility.name;
 
       const selectFacility = () => {
         setHoveredFacility(null);

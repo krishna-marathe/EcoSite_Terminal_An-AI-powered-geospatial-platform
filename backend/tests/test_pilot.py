@@ -3,6 +3,7 @@ import os
 import sqlite3
 import tempfile
 import unittest
+from contextlib import closing
 from pathlib import Path
 from unittest.mock import patch
 
@@ -12,20 +13,11 @@ from backend.app import main as api
 
 class PilotTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
-        self.db = patch.object(api, 'DB_PATH', Path(self.temp.name) / 'test.db')
-        self.db.start()
-        self.env = patch.dict(os.environ, {'ECOSITE_INGESTION_KEY': 'test-secret'})
-        self.env.start()
-        self.client = TestClient(api.app)
-        self.client.__enter__()
+        self.temp = self.enterContext(tempfile.TemporaryDirectory())
+        self.enterContext(patch.object(api, 'DB_PATH', Path(self.temp) / 'test.db'))
+        self.enterContext(patch.dict(os.environ, {'ECOSITE_INGESTION_KEY': 'test-secret'}))
+        self.client = self.enterContext(TestClient(api.app))
         self.headers = {'X-Ingestion-Key': 'test-secret'}
-
-    def tearDown(self):
-        self.client.__exit__(None, None, None)
-        self.env.stop()
-        self.db.stop()
-        self.temp.cleanup()
 
     def record(self, identifier='new-facility'):
         record = copy.deepcopy(api.PILOT['facilities'][0])
@@ -34,6 +26,26 @@ class PilotTests(unittest.TestCase):
 
     def ingest(self, records, headers=None):
         return self.client.post('/api/v1/ingestion/facilities', json={'sourceOrganization': 'Test source', 'records': records}, headers=headers or {})
+
+    def test_database_can_be_deleted_immediately_after_operations(self):
+        facility = api.Facility.model_validate(self.record())
+        api.upsert_facility(facility)
+        self.assertEqual(self.client.get('/api/v1/facilities/' + facility.id).status_code, 200)
+        self.assertEqual(self.client.get('/health').status_code, 200)
+        api.DB_PATH.unlink()
+        self.assertFalse(api.DB_PATH.exists())
+
+    def test_failed_standalone_upsert_closes_its_connection(self):
+        # Force a SQL constraint failure after the owned connection opens.
+        facility = api.Facility.model_validate(self.record()).model_copy(update={'name': None})
+        with closing(api.get_connection()) as connection:
+            with patch.object(api.sqlite3, 'connect', return_value=connection):
+                with self.assertRaises(sqlite3.IntegrityError):
+                    api.upsert_facility(facility)
+            with self.assertRaises(sqlite3.ProgrammingError):
+                connection.execute('SELECT 1')
+            api.DB_PATH.unlink()
+            self.assertFalse(api.DB_PATH.exists())
 
     def test_ingestion_auth_fails_closed(self):
         self.assertEqual(self.ingest([self.record()]).status_code, 401)
@@ -93,7 +105,7 @@ class PilotTests(unittest.TestCase):
         self.assertEqual(result['suitabilityStatus'], 'Insufficient data')
         for key in ('suitabilityScore', 'population5km', 'protectedAreaDistanceKm'):
             self.assertIsNone(result[key])
-        with api.get_connection() as connection:
+        with closing(api.get_connection()) as connection, connection:
             connection.execute("DELETE FROM facilities WHERE type = 'substation'")
         self.assertIsNone(self.client.post('/api/v1/site-assessments', json=request).json()['substationDistanceKm'])
         request['cityId'] = 'mumbai'
