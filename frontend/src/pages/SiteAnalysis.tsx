@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useDashboardStore } from '../stores/dashboardStore';
 import { getPilotCity, isInCity } from '../data/pilotCities';
@@ -84,6 +85,7 @@ function CitySiteAnalysis({ cityId, dataMode }: { cityId: CityId; dataMode: Data
   const presets = cityId === 'pune' ? [{ name: 'Pune central candidate', longitude: 73.86, latitude: 18.52 }, { name: 'Pune western candidate', longitude: 73.74, latitude: 18.59 }] : [{ name: 'Mumbai central candidate', longitude: 72.88, latitude: 19.08 }, { name: 'Navi Mumbai candidate', longitude: 73.02, latitude: 19.12 }];
   return <PageShell>
     <PageHeader
+      actions={<Link to="/projects">Persistent project polygons</Link>}
       eyebrow="Analysis"
       title={`${city.name} candidate site evaluation`}
       purpose="Screen a candidate site against pilot evidence, then save the result for side-by-side comparison."

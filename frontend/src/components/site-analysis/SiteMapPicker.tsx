@@ -8,10 +8,13 @@ import { IconButton } from '../ui/Button';
 import { ErrorState } from '../ui/StateViews';
 import type { Facility } from '../../types';
 
+import type { PolygonGeometry } from '../../services/projects';
+
 interface SiteMapPickerProps {
   latitude: number;
   longitude: number;
   siteName: string;
+  polygon?: PolygonGeometry | null;
   onCoordinatesChange: (coords: { latitude: number; longitude: number; state?: string }) => void;
 }
 
@@ -81,12 +84,15 @@ export const SiteMapPicker: React.FC<SiteMapPickerProps> = ({
   latitude,
   longitude,
   siteName,
+  polygon,
   onCoordinatesChange,
 }) => {
   const onCoordinatesChangeRef = useRef(onCoordinatesChange);
   useLayoutEffect(() => {
     onCoordinatesChangeRef.current = onCoordinatesChange;
   }, [onCoordinatesChange]);
+  const polygonRef = useRef(polygon);
+  useLayoutEffect(() => { polygonRef.current = polygon; }, [polygon]);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const targetMarkerRef = useRef<maplibregl.Marker | null>(null);
@@ -176,7 +182,7 @@ export const SiteMapPicker: React.FC<SiteMapPickerProps> = ({
       if (map.getSource('screening-buffer')) return;
       map.addSource('screening-buffer', {
         type: 'geojson',
-        data: createGeoJsonCircle(coordsRef.current, 15),
+        data: polygonRef.current === undefined ? createGeoJsonCircle(coordsRef.current, 15) : polygonRef.current ? { type: 'Feature', properties: {}, geometry: polygonRef.current } : { type: 'FeatureCollection', features: [] },
       });
       map.addLayer({
         id: 'screening-buffer-fill',
@@ -210,8 +216,8 @@ export const SiteMapPicker: React.FC<SiteMapPickerProps> = ({
 
     // Handle Click anywhere to Pick New Coordinates
     const handleMapClick = (e: maplibregl.MapMouseEvent) => {
-      const clickedLng = parseFloat(e.lngLat.lng.toFixed(4));
-      const clickedLat = parseFloat(e.lngLat.lat.toFixed(4));
+      const clickedLng = polygonRef.current === undefined ? parseFloat(e.lngLat.lng.toFixed(4)) : e.lngLat.lng;
+      const clickedLat = polygonRef.current === undefined ? parseFloat(e.lngLat.lat.toFixed(4)) : e.lngLat.lat;
 
       // Attempt state approximation based on latitude/longitude
       let approxState: string | undefined;
@@ -252,15 +258,21 @@ export const SiteMapPicker: React.FC<SiteMapPickerProps> = ({
 
   // Keep the store-scoped facility list in sync with the pins.
   useEffect(() => {
-    facilitiesRef.current = facilities;
-    if (mapRef.current) syncFacilityMarkers(mapRef.current, facilities, facilityMarkersRef.current);
-  }, [facilities]);
+    facilitiesRef.current = polygon === undefined ? facilities : [];
+    if (mapRef.current) syncFacilityMarkers(mapRef.current, polygon === undefined ? facilities : [], facilityMarkersRef.current);
+  }, [facilities, polygon]);
 
   // Update Target Marker & Screening Buffer when Coordinates Change
   useEffect(() => {
     coordsRef.current = [longitude, latitude];
     if (!mapRef.current) return;
     const map = mapRef.current;
+
+    if (polygon !== undefined) {
+      const source = map.getSource('screening-buffer') as maplibregl.GeoJSONSource | undefined;
+      source?.setData(polygon ? { type: 'Feature', properties: {}, geometry: polygon } : { type: 'FeatureCollection', features: [] });
+      return;
+    }
 
     // Update or create target marker
     if (!targetMarkerRef.current) {
@@ -315,9 +327,9 @@ export const SiteMapPicker: React.FC<SiteMapPickerProps> = ({
         duration: 600,
       });
     }
-  }, [latitude, longitude, siteName]);
+  }, [latitude, longitude, siteName, polygon]);
 
-  const renderedTypes = Array.from(new Set(facilities.map((facility) => facility.type)));
+  const renderedTypes = polygon === undefined ? Array.from(new Set(facilities.map((facility) => facility.type))) : [];
 
   return (
     <div className="relative w-full h-72 sm:h-80 rounded-lg overflow-hidden border border-eco-border bg-eco-bg">
@@ -328,7 +340,7 @@ export const SiteMapPicker: React.FC<SiteMapPickerProps> = ({
       <div className="absolute top-2.5 left-2.5 z-10 max-w-[calc(100%-1.25rem)] select-none">
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-sm border border-eco-border bg-eco-surface/90 backdrop-blur-md shadow-lg text-meta text-eco-text">
           <Target className="w-3.5 h-3.5 shrink-0 text-eco-primary" />
-          <span>Click anywhere on map to pin coordinates</span>
+          <span>{polygon === undefined ? 'Click anywhere on map to pin coordinates' : 'Click map to add polygon vertices; edit coordinates below'}</span>
         </div>
       </div>
 
@@ -351,7 +363,7 @@ export const SiteMapPicker: React.FC<SiteMapPickerProps> = ({
       <div className="absolute bottom-2.5 right-2.5 z-10 select-none">
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-sm border border-eco-border bg-eco-surface/90 backdrop-blur-md shadow-lg font-mono text-meta text-eco-text">
           <span className="font-medium text-eco-primary">{formatLatitude(latitude)}, {formatLongitude(longitude)}</span>
-          <span className="hidden border-l border-eco-border pl-2 text-eco-muted sm:inline">15 km buffer</span>
+          {polygon === undefined && <span className="hidden border-l border-eco-border pl-2 text-eco-muted sm:inline">15 km buffer</span>}
         </div>
       </div>
 
@@ -361,7 +373,10 @@ export const SiteMapPicker: React.FC<SiteMapPickerProps> = ({
           label="Recenter on candidate pin"
           icon={<Compass className="w-4 h-4" />}
           onClick={() => {
-            mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 8, duration: 600 });
+            if (polygon && mapRef.current) {
+              const points = polygon.coordinates.flat();
+              mapRef.current.fitBounds([[Math.min(...points.map(p => p[0])), Math.min(...points.map(p => p[1]))], [Math.max(...points.map(p => p[0])), Math.max(...points.map(p => p[1]))]], { padding: 40, maxZoom: 16 });
+            } else mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 8, duration: 600 });
           }}
           className="border-eco-border bg-eco-surface/90 backdrop-blur-md shadow-lg hover:bg-eco-surface-secondary"
         />

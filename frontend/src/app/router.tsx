@@ -5,6 +5,7 @@ import { RiskAnalysis } from '../pages/RiskAnalysis';
 import { Forecast } from '../pages/Forecast';
 import { SiteAnalysis } from '../pages/SiteAnalysis';
 import { Mitigation } from '../pages/Mitigation';
+import { Projects } from '../pages/Projects';
 import { Reports } from '../pages/Reports';
 
 export const router = createBrowserRouter([
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
         path: 'reports',
         element: <Reports />,
       },
+      { path: 'projects', element: <Projects /> },
       {
         path: '*',
         element: <Navigate to="/dashboard" replace />,

@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router-dom';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { SiteAnalysis } from './SiteAnalysis';
@@ -30,7 +31,7 @@ it.each([
   ['Latitude (°)', '18.55'], ['Longitude (°)', '73.82'], ['Project name', 'New candidate'], ['Infrastructure type', 'industrial'],
   ['map', ''], ['preset', ''],
 ])('invalidates pending assessment on %s edit and clears loading immediately', async (label, value) => {
-  const a = pending(); render(<SiteAnalysis />); submit();
+  const a = pending(); render(<MemoryRouter><SiteAnalysis /></MemoryRouter>); submit();
   expect(screen.getByRole('button', { name: 'Evaluating…' })).toBeTruthy();
   if (label === 'map') fireEvent.click(screen.getByText('Pick map point'));
   else if (label === 'preset') fireEvent.click(screen.getByRole('button', { name: 'Pune western candidate' }));
@@ -44,7 +45,7 @@ it.each([
 });
 
 it('keeps B when B succeeds before A, and saves only the current snapshot', async () => {
-  const a = pending(), b = pending(); render(<SiteAnalysis />); submit();
+  const a = pending(), b = pending(); render(<MemoryRouter><SiteAnalysis /></MemoryRouter>); submit();
   fireEvent.change(screen.getByLabelText('Project name', { exact: false }), { target: { value: 'Candidate B' } });
   fireEvent.change(screen.getByLabelText('Infrastructure type'), { target: { value: 'industrial' } });
   submit();
@@ -62,7 +63,7 @@ it('keeps B when B succeeds before A, and saves only the current snapshot', asyn
 });
 
 it('ignores stale failure while B is loading and clears loading only when B finishes', async () => {
-  const a = pending(), b = pending(); render(<SiteAnalysis />); submit();
+  const a = pending(), b = pending(); render(<MemoryRouter><SiteAnalysis /></MemoryRouter>); submit();
   fireEvent.change(screen.getByLabelText('Capacity (MW)'), { target: { value: '120' } }); submit();
   await act(async () => { a.reject(new Error('obsolete failure')); });
   expect(screen.queryByText('obsolete failure')).toBeNull();
@@ -72,7 +73,7 @@ it('ignores stale failure while B is loading and clears loading only when B fini
 });
 
 it('does not replace a newer success with a stale failure', async () => {
-  const a = pending(), b = pending(); render(<SiteAnalysis />); submit(); submit();
+  const a = pending(), b = pending(); render(<MemoryRouter><SiteAnalysis /></MemoryRouter>); submit(); submit();
   expect(assess.mock.calls[0][2]!.aborted).toBe(true);
   await act(async () => { b.resolve(result(1)); a.reject(new Error('obsolete failure')); });
   expect(screen.queryByText('obsolete failure')).toBeNull();
@@ -80,7 +81,7 @@ it('does not replace a newer success with a stale failure', async () => {
 });
 
 it('shows current failure, clears loading and clears the error on edit', async () => {
-  const a = pending(); render(<SiteAnalysis />);
+  const a = pending(); render(<MemoryRouter><SiteAnalysis /></MemoryRouter>);
   expect(screen.getByText('Evaluate coordinates to see available evidence')).toBeTruthy(); submit();
   await act(async () => { a.reject(new Error('Backend unavailable')); });
   expect(screen.getByText('Backend unavailable')).toBeTruthy();
@@ -91,7 +92,7 @@ it('shows current failure, clears loading and clears the error on edit', async (
 });
 
 it.each(['city', 'mode', 'unmount'])('invalidates requests when changing %s', async change => {
-  const a = pending(); const view = render(<SiteAnalysis />); submit();
+  const a = pending(); const view = render(<MemoryRouter><SiteAnalysis /></MemoryRouter>); submit();
   if (change === 'unmount') view.unmount();
   else act(() => { if (change === 'city') useDashboardStore.getState().setCityId('mumbai'); else useDashboardStore.getState().setDataMode('api'); });
   expect(assess.mock.calls[0][2]!.aborted).toBe(true);

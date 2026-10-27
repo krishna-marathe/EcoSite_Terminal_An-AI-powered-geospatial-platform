@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router-dom';
 import { StrictMode } from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
@@ -81,7 +82,7 @@ it('recreates the target marker and leaves one live listener after StrictMode re
 it.each(['demo', 'api'] as const)('%s map clicks preserve edited form values, markers and invalidation', async mode => {
   useDashboardStore.getState().setDataMode(mode);
   useDashboardStore.getState().setFacilities([PILOT_FACILITIES[0]]);
-  const { container } = render(<SiteAnalysis />);
+  const { container } = render(<MemoryRouter><SiteAnalysis /></MemoryRouter>);
   const map = currentMap(); act(() => map.emit('load'));
   for (const [label, value] of [['Capacity (MW)', '250'], ['Water demand (kL/day)', '45'], ['Power demand (MW)', '175'], ['Project name', 'Updated candidate'], ['Infrastructure type', 'industrial']]) {
     fireEvent.change(screen.getByLabelText(label, { exact: false }), { target: { value } });

@@ -109,3 +109,9 @@ environment or secret manager, never Vite or a client payload. Before activation
 implement authentication, authorization, quotas/rate limits, budget controls and
 redacted logging. Configuring a server key alone must not enable a public paid proxy.
 The deterministic `/mitigation-plans` endpoint remains independent and available.
+
+## Local Project MVP (Phase 02A)
+
+Project CRUD now uses explicit SQLAlchemy/Alembic migrations alongside the legacy facilities API.
+Read [setup, migration safety, schema and API contracts](../docs/implementation/phase-02a-project-foundation.md) before starting it.
+Migrations are never automatic. Keep this unauthenticated single-user service on loopback only.

@@ -18,9 +18,13 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .db import DB_PATH
+from .routers.projects import router as projects_router
+from .routers.sites import router as sites_router
+from .routers.phases import router as phases_router
+
 
 ROOT = Path(__file__).resolve().parents[1]
-DB_PATH = Path(os.getenv("ECOSITE_DB_PATH", str(ROOT / "data" / "ecosite.db")))
 API_PREFIX = os.getenv("ECOSITE_API_PREFIX", "/api/v1")
 CORS_ORIGINS = [origin.strip() for origin in os.getenv("ECOSITE_CORS_ORIGINS", "http://localhost:5173").split(",") if origin.strip()]
 
@@ -256,6 +260,10 @@ def weighted_risk(indicators: Indicators, facility_type: InfrastructureType = "i
 
 
 app = FastAPI(title="EcoSite Terminal API", version="0.1.0", description="Environmental infrastructure intelligence API with provenance-aware demo data.")
+app.state.project_origins = {origin for origin in CORS_ORIGINS if urllib.parse.urlsplit(origin).hostname in {"localhost", "127.0.0.1", "::1"}}
+app.include_router(projects_router, prefix=API_PREFIX)
+app.include_router(sites_router, prefix=API_PREFIX)
+app.include_router(phases_router, prefix=API_PREFIX)
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS or ["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 
