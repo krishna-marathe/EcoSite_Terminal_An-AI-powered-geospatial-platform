@@ -1,0 +1,260 @@
+{
+  "version": "2026-10-27",
+  "focus_states": ["Telangana", "Maharashtra", "Karnataka", "Tamil Nadu"],
+  "packs": {
+    "telangana": {
+      "state_name": "Telangana",
+      "capital": "Hyderabad",
+      "primary_data_centre_clusters": [
+        "Financial District / Gachibowli",
+        "Kokapet Neopolis",
+        "Nanakramguda",
+        "Chandanvelly Industrial Park",
+        "Fab City / Raviryal",
+        "Adibatla Aerospace & IT Corridor"
+      ],
+      "governing_policy": {
+        "policy_name": "Telangana Data Centres Policy",
+        "official_reference": "ITE&C Department, Govt of Telangana",
+        "effective_from": "2021-06-15",
+        "status": "Active & Validated",
+        "document_id": "telangana_dc_policy",
+        "official_pdf": "telangana_data_centres_policy.pdf"
+      },
+      "key_authorities": {
+        "nodal_agency": "Information Technology, Electronics & Communications (ITE&C) Department",
+        "land_authority": "Telangana State Industrial Infrastructure Corporation (TSIIC)",
+        "transmission_utility": "Transmission Corporation of Telangana Limited (TSTRANSCO)",
+        "distribution_utilities": ["TSSPDCL (Southern Power Distribution)", "TSNPDCL (Northern Power Distribution)"],
+        "water_authority": "Hyderabad Metropolitan Water Supply and Sewerage Board (HMWSSB) & TSIIC Bulk Water",
+        "environmental_authority": "Telangana State Pollution Control Board (TSPCB)",
+        "single_window_portal": "Telangana State Industrial Project Approval and Self-Certification System (TS-iPass)"
+      },
+      "siting_and_infrastructure_rules": {
+        "eligible_capacity_thresholds": {
+          "data_centre_unit": "Minimum 5 MW IT load or INR 100 Crore capital investment",
+          "data_centre_park": "Minimum 20 MW IT load or 10 acres continuous land parcel",
+          "edge_centre": "1 MW to 5 MW IT load"
+        },
+        "power_connectivity_covenants": {
+          "grid_reliability_tier": "Mandatory dual-HT feeder supply from two independent 220 kV / 132 kV grid substations for Tier-III and Tier-IV uptime compliance",
+          "open_access_renewables": "100% open access permission granted for sourcing solar/wind renewable energy with waiver of wheeling charges for 5 years",
+          "electricity_duty_exemption": "100% electricity duty exemption for 5 years from commercial operations date (COD)",
+          "power_tariff_subsidy": "Tariff rebate of INR 1.00 per unit on electricity consumed for first 3 years"
+        },
+        "water_and_environmental_rules": {
+          "water_allocation": "Assured bulk water supply at industrial tariffs through HMWSSB / TSIIC pipelines; minimum allocation 100 KLD for units up to 10 MW",
+          "recycled_water_mandate": "Zero Liquid Discharge (ZLD) required for campuses > 10 MW; air-cooled chillers or hybrid cooling recommended in non-perennial zones",
+          "groundwater_abstraction": "Strictly restricted in CGWB over-exploited and critical mandals (e.g. Serilingampally, Rajendranagar); groundwater extraction NOC from Central Ground Water Authority / State Ground Water Dept mandatory",
+          "flood_screening": "Buffer distance of at least 100 meters required from Musi river basin and designated lake Full Tank Level (FTL) boundaries"
+        },
+        "land_and_building_rules": {
+          "zoning": "Permitted in Industrial, Special Development (Kokapet), and Commercial zones; automatic land use conversion via TS-iPass",
+          "floor_area_ratio": "No upper FAR restriction in notified IT corridors subject to road width and fire safety clearances; standard FAR 3.0 to 4.0",
+          "height_limits": "Permissible up to 60 meters subject to Airports Authority of India (AAI) NOC",
+          "stamp_duty_rebate": "100% reimbursement of stamp duty and transfer duty paid on purchase/lease of land or built-up space"
+        }
+      },
+      "statutory_clearances_sequence": [
+        "TS-iPass Combined Application Form (CAF) filing (Time-bound 21 days)",
+        "TSIIC Land Allotment & Provisional Agreement",
+        "TSTRANSCO / TSSPDCL Power Feasibility & Sanction Order for requested MW",
+        "TSPCB Consent for Establishment (CFE) under Water & Air Acts",
+        "State Disaster Response and Fire Services Fire Safety Recommendation & NOC",
+        "Gram Panchayat / HMDA / GHMC Building Plan Approval",
+        "Chief Electrical Inspectorate (CEIG) Substation & DG Set Energization Approval",
+        "TSPCB Consent for Operate (CFO) prior to commercial energization"
+      ]
+    },
+    "maharashtra": {
+      "state_name": "Maharashtra",
+      "capital": "Mumbai",
+      "primary_data_centre_clusters": [
+        "Navi Mumbai (Airoli, Mahape, Rabale, Digha, TTC Industrial Area)",
+        "Mumbai (Chandivali, BKC, Kurla, Powai)",
+        "Panvel & Taloja Industrial Areas",
+        "Pune (Hinjawadi Rajiv Gandhi Infotech Park, Talawade, Chakan)",
+        "Nagpur (MIHAN SEZ / Non-SEZ)"
+      ],
+      "governing_policy": {
+        "policy_name": "Maharashtra New IT and ITES Policy 2023",
+        "official_reference": "Government Resolution No. ITP-2021/CR-170/Ind-2, dated 27 June 2023",
+        "effective_from": "2023-06-27",
+        "status": "Active & Validated (5-year validity through June 2028)",
+        "document_id": "maharashtra_it_ites_policy_2023",
+        "official_pdf": "maharashtra_it_ites_policy_2023.pdf"
+      },
+      "key_authorities": {
+        "nodal_agency": "Directorate of Industries, Government of Maharashtra",
+        "land_authority": "Maharashtra Industrial Development Corporation (MIDC) & CIDCO",
+        "transmission_utility": "Maharashtra State Electricity Transmission Company Limited (MSETCL)",
+        "distribution_utilities": ["MSEDCL (Mahavitaran)", "Tata Power (Mumbai/Thane)", "Adani Electricity Mumbai Limited (AEML)"],
+        "water_authority": "MIDC Industrial Water Supply, CIDCO Water Supply, MCGM (Mumbai), PMC / PCMC (Pune)",
+        "environmental_authority": "Maharashtra Pollution Control Board (MPCB)",
+        "single_window_portal": "MAHITI Portal & MAITRI (Maharashtra Industry, Trade and Investment Facilitation Cell)"
+      },
+      "siting_and_infrastructure_rules": {
+        "eligible_capacity_thresholds": {
+          "data_centre_unit": "Minimum 5 MW IT load or INR 100 Crore capital investment",
+          "data_centre_park": "Minimum 20 MW IT load or minimum 5 acres contiguous land",
+          "essential_service_status": "Declared an Essential Service under the Maharashtra Essential Services Maintenance Act (MESMA), ensuring 24x7x365 uninterrupted operations"
+        },
+        "power_connectivity_covenants": {
+          "grid_reliability_tier": "Mandatory dual-HT feeder connection from independent MSETCL / MSEDCL 220 kV or 110 kV receiving stations",
+          "electricity_duty_exemption": "100% electricity duty exemption for 10 years in Zone A (Mumbai/Pune), 15 years in Zone B, and 20 years in Zone C/D",
+          "power_tariff_subsidy": "Tariff subsidy of INR 1.00 per unit for 3 years for new units outside Mumbai metropolitan zone",
+          "green_energy_incentive": "Permission for captive / group-captive renewable power generation and cross-subsidized open access"
+        },
+        "water_and_environmental_rules": {
+          "water_allocation": "Assured industrial pipeline quota by MIDC / CIDCO at notified industrial bulk water tariffs (approx. INR 25–45 per KL depending on zone)",
+          "cooling_water_reuse": "High-efficiency cooling systems with PUE <= 1.35 targeted; treated sewage / effluent reuse mandatory where available in TTC / Hinjawadi",
+          "groundwater_abstraction": "Strictly regulated under Maharashtra Ground Water (Development and Management) Act 2009; abstracting groundwater for cooling in notified over-exploited talukas (e.g. Haveli, Pune) is prohibited",
+          "flood_screening": "Mandatory terrain and drainage assessment; site must be outside the Blue Line (25-year flood mark) and Red Line (100-year flood mark) of local river basins (Mithi in Mumbai, Mula-Mutha in Pune)"
+        },
+        "land_and_building_rules": {
+          "zoning": "Permitted in Industrial, Commercial, and Information Technology zones under Unified Development Control and Promotion Regulations (UDCPR)",
+          "floor_area_ratio": "Additional FSI up to 3.0 in municipal areas and up to 4.0 in MIDC parks without charging premium",
+          "height_and_floor_loading": "Relaxation of floor-to-floor height up to 6.0 meters; structural floor loading capacity >= 1,200 kg/m² for server rooms",
+          "stamp_duty_rebate": "100% stamp duty exemption in Zone B/C/D districts; 75% exemption in Zone A (Mumbai, Thane, Pune)"
+        }
+      },
+      "statutory_clearances_sequence": [
+        "MAITRI / MAHITI Single Window Online Registration",
+        "MIDC / CIDCO Land Allotment and Lease Agreement Execution",
+        "MSETCL Power System Deliverability & Substation Grid Interconnection Approval",
+        "MPCB Consent to Establish (CTE) under Water and Air Pollution Control Acts",
+        "Directorate of Maharashtra Fire Services Fire Safety Recommendation Certificate",
+        "Local Planning Authority (MCGM / NMMC / PMC / PCMC / MIDC SPA) Building Approval",
+        "State Electrical Inspectorate Approval for Transformer, Switchgear and DGs",
+        "MPCB Consent to Operate (CTO) prior to data centre energization"
+      ]
+    },
+    "karnataka": {
+      "state_name": "Karnataka",
+      "capital": "Bengaluru",
+      "primary_data_centre_clusters": [
+        "Whitefield (EPIP Zone)",
+        "Electronic City Phase 1 & 2",
+        "Devanahalli Aerospace & IT Park (Near KIA Airport)",
+        "Peenya Industrial Area",
+        "Bidadi Industrial Area",
+        "Mysuru (Emerging Cluster)"
+      ],
+      "governing_policy": {
+        "policy_name": "Karnataka Data Centre Policy 2022–2027",
+        "official_reference": "Dept of Electronics, IT, BT and S&T, Govt of Karnataka",
+        "effective_from": "2022-05-09",
+        "status": "Active & Validated (5-year validity through May 2027)",
+        "document_id": "karnataka_dc_policy_2022_2027",
+        "official_pdf": "karnataka_data_centre_policy_2022_2027.pdf"
+      },
+      "key_authorities": {
+        "nodal_agency": "Department of Electronics, IT, BT and S&T / Karnataka Digital Economy Mission (KDEM)",
+        "land_authority": "Karnataka Industrial Areas Development Board (KIADB)",
+        "transmission_utility": "Karnataka Power Transmission Corporation Limited (KPTCL)",
+        "distribution_utilities": ["BESCOM (Bengaluru Electricity Supply)", "CHESCOM", "HESCOM", "GESCOM", "MESCOM"],
+        "water_authority": "Bangalore Water Supply and Sewerage Board (BWSSB) & KIADB Bulk Industrial Water",
+        "environmental_authority": "Karnataka State Pollution Control Board (KSPCB)",
+        "single_window_portal": "Karnataka Single Window Clearance Portal (e-Udyami) & KDEM Fast-Track Desk"
+      },
+      "siting_and_infrastructure_rules": {
+        "eligible_capacity_thresholds": {
+          "data_centre_unit": "Minimum 3 MW IT load or minimum capital investment of INR 50 Crore",
+          "data_centre_park": "Minimum 20 MW IT load and minimum area of 5 acres",
+          "target_capacity": "State target of 200+ MW capacity addition by 2027"
+        },
+        "power_connectivity_covenants": {
+          "grid_reliability_tier": "Dedicated 66 kV / 220 kV substation sanction from KPTCL with dual incoming lines from separate supply nodes",
+          "electricity_duty_exemption": "100% electricity duty exemption for a period of 5 years from date of commissioning",
+          "power_tariff_concession": "Power tariff concession of INR 1.00 per unit for 3 years from commercial operation date",
+          "renewable_power_banking": "Banking of renewable energy permitted on an annual basis as per KERC regulations"
+        },
+        "water_and_environmental_rules": {
+          "water_allocation": "KIADB industrial supply or BWSSB bulk allocation; priority access to tertiary treated recycled water (TTRO)",
+          "cooling_guidelines": "Water Usage Effectiveness (WUE) <= 1.5 L/kWh targeted; mandates zero effluent discharge and internal recycling of cooling bleed water",
+          "groundwater_abstraction": "Strictly restricted under Karnataka Ground Water (Regulation and Control of Development and Management) Act 2011; extraction prohibited in Bengaluru Urban critical talukas",
+          "flood_screening": "Mandatory stormwater drain buffer of 30 meters from primary rajakkaluve (stormwater canals) and 50 meters from lake boundaries"
+        },
+        "land_and_building_rules": {
+          "zoning": "Permitted in Hi-Tech / Industrial, Commercial, and IT/BT zones in Master Plan 2031",
+          "floor_area_ratio": "Floor Area Ratio (FAR) up to 4.0 in KIADB industrial layouts without payment of compounding fees",
+          "capital_subsidy": "Capital subsidy of up to 10% on fixed capital investment outside Bengaluru Urban district (capped at INR 10 Crore)",
+          "stamp_duty_rebate": "100% exemption on stamp duty and concessional registration charges of INR 1 per INR 1,000 on land transactions"
+        }
+      },
+      "statutory_clearances_sequence": [
+        "State High Level Clearance Committee (SHLCC) / State Level Single Window (SLSWCC) In-principle Approval",
+        "KIADB Land Allotment and Confirmation Deed",
+        "KPTCL Power Evacuation and Sanction Approval for dedicated HT line",
+        "KSPCB Consent for Establishment (CFE) under Water & Air Acts",
+        "Karnataka State Fire and Emergency Services Fire Clearance Certificate",
+        "BBMP / BDA / KIADB Building Plan Sanction and License",
+        "Department of Electrical Inspectorate Inspection & Energization Certificate",
+        "KSPCB Consent for Operation (CFO) prior to live commercial loads"
+      ]
+    },
+    "tamil_nadu": {
+      "state_name": "Tamil Nadu",
+      "capital": "Chennai",
+      "primary_data_centre_clusters": [
+        "Siruseri SIPCOT IT Park (Old Mahabalipuram Road - OMR)",
+        "Ambattur Industrial Estate",
+        "Taramani (Ascendas IT Park corridor)",
+        "Oragadam Industrial Corridor",
+        "Coimbatore (Emerging Tier-2 Hub)"
+      ],
+      "governing_policy": {
+        "policy_name": "Tamil Nadu Data Centre Policy 2021",
+        "official_reference": "Information Technology Department, Govt of Tamil Nadu",
+        "effective_from": "2021-11-27",
+        "status": "Historical Policy / Active Under Verification (Term ends 31 March 2026; requires state extension check)",
+        "document_id": "tamil_nadu_dc_policy_2021",
+        "official_pdf": "tamil_nadu_data_centre_policy_2021.pdf"
+      },
+      "key_authorities": {
+        "nodal_agency": "Guidance Tamil Nadu (Investment Promotion Agency) & IT Department",
+        "land_authority": "State Industries Promotion Corporation of Tamil Nadu (SIPCOT)",
+        "transmission_utility": "Tamil Nadu Transmission Corporation Limited (TANTRANSCO)",
+        "distribution_utility": "Tamil Nadu Generation and Distribution Corporation Limited (TANGEDCO)",
+        "water_authority": "Chennai Metropolitan Water Supply and Sewerage Board (CMWSSB) & SIPCOT Water",
+        "environmental_authority": "Tamil Nadu Pollution Control Board (TNPCB)",
+        "single_window_portal": "Guidance Tamil Nadu Single Window Portal (Biz Buddy)"
+      },
+      "siting_and_infrastructure_rules": {
+        "eligible_capacity_thresholds": {
+          "data_centre_unit": "Minimum 3 MW IT load or minimum capital investment of INR 500 Crore",
+          "data_centre_park": "Minimum 20 MW IT load with integrated campus infrastructure",
+          "connectivity_focus": "Leverages 5+ direct submarine cable landing stations in Chennai (Bay of Bengal Gateway, SeaMeWe, BBG)"
+        },
+        "power_connectivity_covenants": {
+          "grid_reliability_tier": "Dual HT power supply from two separate 230 kV / 110 kV substations of TANTRANSCO; 100% backup transmission capacity guaranteed",
+          "electricity_duty_exemption": "100% exemption on electricity duty for 5 years on power purchased from TANGEDCO or green energy generators",
+          "green_power_open_access": "Concessional cross-subsidy surcharge and wheeling charges for captive or open access solar and wind power plants in Tamil Nadu",
+          "dual_feeder_support": "Special tariff structure for redundant power lines and standby generation fuel reserves"
+        },
+        "water_and_environmental_rules": {
+          "water_allocation": "Priority allocation of tertiary treated reverse osmosis (TTRO) water from CMWSSB Koyambedu / Kodungaiyur plants (up to 45 MLD available)",
+          "coastal_and_crz_screening": "Strict Coastal Regulation Zone (CRZ) clearance required for any cable landing or cooling water outfall within 500m of the coast",
+          "groundwater_abstraction": "Groundwater extraction heavily prohibited in Chennai metropolitan area and over-exploited coastal aquifers; CMWSSB water agreement mandatory",
+          "flood_screening": "Site must be evaluated against 2015 Chennai flood contour maps; mandatory minimum ground level raising (+1.5m above surrounding road level)"
+        },
+        "land_and_building_rules": {
+          "zoning": "Permitted in Industrial, IT Corridor, and Commercial zones under Tamil Nadu Combined Development and Building Rules (TNCDBR) 2019",
+          "floor_area_ratio": "Higher FSI permitted (up to 3.25 to 4.0 in designated IT expressways) with relaxed boundary setback requirements for technical buildings",
+          "building_heights": "Exemption from standard ceiling height restrictions, permitting server hall clear heights up to 6.5 meters",
+          "stamp_duty_rebate": "100% stamp duty exemption in Category B & C districts; 50% exemption in Category A districts (Chennai, Kanchipuram, Chengalpattu, Tiruvallur)"
+        }
+      },
+      "statutory_clearances_sequence": [
+        "Guidance Tamil Nadu Single Window In-principle Clearance",
+        "SIPCOT / Land Authority Allotment Order and Sale/Lease Deed",
+        "TANTRANSCO / TANGEDCO Grid Feasibility & Dual-feed Sanction",
+        "TNPCB Consent to Establish (CTE) under Water (P&CP) & Air (P&CP) Acts",
+        "Directorate of Fire and Rescue Services Fire Safety NOC",
+        "CMDA (Chennai Metropolitan Development Authority) / DTCP Planning Permission",
+        "Electrical Inspectorate (CEIG) Safety Sanction for High-Tension Substation",
+        "TNPCB Consent to Operate (CTO) prior to data centre commissioning"
+      ]
+    }
+  }
+}

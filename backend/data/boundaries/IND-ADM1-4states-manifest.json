@@ -1,0 +1,25 @@
+{
+  "boundaryID": "IND-ADM1-1811400",
+  "boundaryName": "India focus states (Telangana, Maharashtra, Karnataka, Tamil Nadu)",
+  "boundaryISO": "IND",
+  "boundaryType": "ADM1",
+  "boundaryYearRepresented": "2011",
+  "boundaryCanonical": "State / Union Territory",
+  "boundarySource": "geoBoundaries gbOpen IND ADM1 (DataMeet India community, Election Commission of India)",
+  "boundaryLicense": "Creative Commons Attribution 2.5 India (CC BY 2.5 IN)",
+  "boundarySourceURL": "https://www.geoboundaries.org/api/current/gbOpen/IND/ADM1/",
+  "downloadURL": "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/IND/ADM1/geoBoundaries-IND-ADM1_simplified.geojson",
+  "sourceDataUpdateDate": "2023-01-19",
+  "buildDate": "2023-12-12",
+  "version": "9469f09",
+  "file": "IND-ADM1-4states.geojson",
+  "featureCount": 4,
+  "states": {
+    "IN-MH": "Maharashtra",
+    "IN-TG": "Telangana",
+    "IN-KA": "Karnataka",
+    "IN-TN": "Tamil Nadu"
+  },
+  "sha256": "23f24817e39caf965f33b988b2272899daf40650ebf8b854f36f2dcd192a5cba",
+  "note": "Filtered unchanged from the simplified ADM1 release to the four states in the EcoSite product scope. Screening only; not a legal boundary determination."
+}

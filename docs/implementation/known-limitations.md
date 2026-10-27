@@ -69,3 +69,28 @@ Earlier empty-style probing could select a disposed StrictMode instance. Low-zoo
 marker overlap was reproduced separately; zooming permits selection. Keep the
 historical observations above, but do not treat the resolved style defects as open.
 Native downloads/print remain a separate acceptance gate.
+
+## Data-plane update (2026-10-27)
+
+The P2 statement that "no source-backed environmental geometry exists" now applies to the
+**dashboard**, not the database. Since the Phase 01D assessment:
+
+- A JRC Global Surface Water connector has been live-verified against a Pune polygon and
+  stores five remote-sensing observations. It is `PROCESSING_TESTED` / `CONNECTED` in the
+  development database, but there is no scheduled refresh.
+- A Copernicus STAC connector has been live-verified against the same polygon: 90 Sentinel-2
+  L2A scenes and seven scene-metadata observations. It is `PROCESSING_TESTED` / `CONNECTED`;
+  no pixels or NDVI were processed.
+- An SRTM connector is implemented and fixture-tested, but no live tile has been fetched
+  because `ECOSITE_EARTHDATA_TOKEN` is unavailable. It remains `DISCOVERED`.
+- Candidate polygons are now limited to Telangana, Maharashtra, Karnataka and Tamil Nadu by
+  a pinned ADM1 screening layer. The boundary is screening-only, not a legal determination.
+- No connector writes a score. The Projects page reads stored observations with provenance,
+  but no source is `INTEGRATED` because independent validation (`VALIDATED`) has not been
+  performed. Scope 2 and CUE remain `SOURCE_UNAVAILABLE` until a CEA connector ingests the
+  factor; the bundled reference payload now traces the national factor but is not used in
+  scoring.
+
+See [`docs/data/VERIFICATION.md`](../data/VERIFICATION.md) for the evidence and
+[`docs/implementation/data-integration-plan.md`](data-integration-plan.md) for the next
+steps.

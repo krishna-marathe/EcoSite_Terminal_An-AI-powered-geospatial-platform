@@ -4,6 +4,15 @@ from backend.app.db import DB_PATH, make_engine
 from backend.app.models.projects import Base
 from backend.app.models.phases import ProjectPhase
 from backend.app.models.sites import CandidateSite  # Register candidate metadata.
+from backend.app.data.models import (  # Register the data plane.
+    AuthorityEvidence,
+    DataSource,
+    IngestionRun,
+    MetricResult,
+    Observation,
+    RawSnapshot,
+    ScoreRun,
+)
 
 config = context.config
 

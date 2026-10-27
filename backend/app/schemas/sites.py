@@ -5,12 +5,14 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from ..geometry import validate_polygon
 
+FocusStateCode = Literal["IN-TG", "IN-MH", "IN-KA", "IN-TN"]
+
 
 class SiteCreate(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     name: str = Field(min_length=1, max_length=200)
     geometry: dict
-    state_code: str = Field(pattern=r"^IN-[A-Z]{2}$")
+    state_code: FocusStateCode
     district: str | None = Field(default=None, min_length=1, max_length=100)
 
     @field_validator("geometry")
@@ -25,7 +27,7 @@ class SitePatch(BaseModel):
     expected_revision: int = Field(ge=1, strict=True)
     name: str | None = Field(default=None, min_length=1, max_length=200)
     geometry: dict | None = None
-    state_code: str | None = Field(default=None, pattern=r"^IN-[A-Z]{2}$")
+    state_code: FocusStateCode | None = Field(default=None, pattern=r"^IN-[A-Z]{2}$")
     district: str | None = Field(default=None, min_length=1, max_length=100)
     status: Literal["active", "archived"] | None = None
 

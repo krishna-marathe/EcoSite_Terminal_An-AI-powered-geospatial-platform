@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { ExternalLink, RefreshCw } from 'lucide-react';
-import { apiClient } from '../../services/api';
+import { apiClient, expectArray } from '../../services/api';
 import { DataModeBadge } from '../ui/Badge';
 import { IconButton } from '../ui/Button';
 import { EmptyState, ErrorState, LoadingSkeleton } from '../ui/StateViews';
@@ -9,9 +10,33 @@ interface NewsItem { title: string; url: string; source: string; publishedAt: st
 
 type NewsStatus = 'loading' | 'ready' | 'error';
 
+const isNewsItem = (value: unknown): value is NewsItem => {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Record<string, unknown>;
+  return (
+    typeof item.title === 'string' &&
+    typeof item.url === 'string' &&
+    typeof item.source === 'string' &&
+    typeof item.publishedAt === 'string'
+  );
+};
+
+const newsErrorCause = (error: unknown): string => {
+  if (axios.isAxiosError(error)) {
+    if (!error.response) return 'The EcoSite backend is not reachable. Start it and retry.';
+    const body = error.response.data;
+    if (typeof body === 'string' && /^\s*</.test(body)) {
+      return 'The API URL returned HTML instead of JSON. Another service may be occupying port 8000; start the EcoSite backend on that port and retry.';
+    }
+    return `The news relay returned HTTP ${error.response.status}. Verify backend and outbound feed access.`;
+  }
+  return error instanceof Error ? error.message : 'The RSS relay could not be reached.';
+};
+
 export const PolicyNewsPanel: React.FC = () => {
   const [items, setItems] = useState<NewsItem[]>([]);
   const [status, setStatus] = useState<NewsStatus>('loading');
+  const [errorCause, setErrorCause] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
 
   // Fetch inside the effect; state is only set from async callbacks so no
@@ -19,15 +44,21 @@ export const PolicyNewsPanel: React.FC = () => {
   useEffect(() => {
     let active = true;
     apiClient
-      .get<NewsItem[]>('/news', { params: { q: 'environmental policy climate regulation India', limit: 8 } })
+      .get<unknown>('/news', { params: { q: 'environmental policy climate regulation India', limit: 8 } })
       .then((response) => {
         if (!active) return;
-        setItems(response.data);
+        if (typeof response.data === 'string') {
+          throw new Error(
+            'The API URL returned HTML instead of JSON. Another service may be occupying port 8000; start the EcoSite backend on that port and retry.'
+          );
+        }
+        setItems(expectArray<unknown>(response.data, 'News feed').filter(isNewsItem));
         setStatus('ready');
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         if (!active) return;
         setItems([]);
+        setErrorCause(newsErrorCause(error));
         setStatus('error');
       });
     return () => {
@@ -36,6 +67,7 @@ export const PolicyNewsPanel: React.FC = () => {
   }, [reloadKey]);
 
   const retry = () => {
+    setErrorCause('');
     setStatus('loading');
     setReloadKey((key) => key + 1);
   };
@@ -66,7 +98,7 @@ export const PolicyNewsPanel: React.FC = () => {
         {status === 'error' && (
           <ErrorState
             title="Internet news unavailable"
-            cause="The RSS relay could not be reached. Start the backend and verify outbound feed access."
+            cause={errorCause || 'The RSS relay could not be reached. Start the backend and verify outbound feed access.'}
             onRetry={retry}
           />
         )}

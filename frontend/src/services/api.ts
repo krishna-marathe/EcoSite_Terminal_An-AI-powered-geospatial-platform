@@ -11,6 +11,21 @@ export const apiClient = axios.create({
   },
 });
 
+/**
+ * Reject a successful HTTP response whose body is not a JSON array. A dev
+ * proxy can return index.html with HTTP 200 when another service occupies the
+ * backend port, which otherwise reaches the UI as a string and crashes .map().
+ */
+export function expectArray<T>(data: unknown, label: string): T[] {
+  if (!Array.isArray(data)) {
+    throw new Error(
+      `${label} returned an unexpected response instead of a list. ` +
+        `Check that the EcoSite backend is running at ${API_BASE_URL}.`
+    );
+  }
+  return data as T[];
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {

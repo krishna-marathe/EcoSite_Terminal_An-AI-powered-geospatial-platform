@@ -1,0 +1,4 @@
+# The India screening boundary is pinned by SHA-256 in its manifest.
+# Git must not rewrite its line endings on checkout, or the checksum fails.
+backend/data/boundaries/*.geojson text eol=lf
+backend/data/boundaries/*.json text eol=lf

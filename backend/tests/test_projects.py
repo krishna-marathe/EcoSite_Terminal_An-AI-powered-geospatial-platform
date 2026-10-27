@@ -201,7 +201,22 @@ class MigrationTests(unittest.TestCase):
                 self.assertEqual(connection.scalar(text("PRAGMA foreign_keys")), 1)
                 self.assertEqual(connection.scalar(text("PRAGMA busy_timeout")), 5000)
                 self.assertEqual(connection.scalar(text("SELECT version_num FROM alembic_version")), db.SCHEMA_REVISION)
-                self.assertEqual(set(connection.scalars(text("SELECT name FROM sqlite_master WHERE type='table'"))), {"projects", "candidate_sites", "project_phases", "alembic_version"})
+                self.assertEqual(
+                    set(connection.scalars(text("SELECT name FROM sqlite_master WHERE type='table'"))),
+                    {
+                        "projects",
+                        "candidate_sites",
+                        "project_phases",
+                        "data_sources",
+                        "ingestion_runs",
+                        "raw_snapshots",
+                        "observations",
+                        "authority_evidence",
+                        "score_runs",
+                        "metric_results",
+                        "alembic_version",
+                    },
+                )
         finally:
             engine.dispose()
         self.path.unlink()

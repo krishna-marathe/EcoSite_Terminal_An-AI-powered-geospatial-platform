@@ -8,14 +8,19 @@ from ..geometry import BoundaryUnavailable, BoundaryReviewRequired, measure_poly
 from ..models.projects import utc_timestamp
 from ..models.sites import CandidateSite
 from ..schemas.sites import SiteCreate, SitePatch, SiteRead
+from ..state_scope import StateScopeError, StateScopeUnavailable
 from .projects import find_project, get_session, local_only
 
 router = APIRouter(tags=["Local candidate polygons"], dependencies=[Depends(local_only)])
 
 
-def measurements(geometry):
+def measurements(geometry, state_code):
     try:
-        return measure_polygon(geometry)
+        return measure_polygon(geometry, state_code)
+    except StateScopeUnavailable:
+        raise HTTPException(503, detail={"code": "state_scope_unavailable", "message": "The four-state screening boundary is unavailable; no polygon was saved."}) from None
+    except StateScopeError as error:
+        raise HTTPException(422, detail={"code": "state_scope", "message": str(error)}) from None
     except BoundaryUnavailable:
         raise HTTPException(503, detail={"code": "boundary_unavailable", "message": "Approved India screening boundary is unavailable; no polygon was saved."}) from None
     except BoundaryReviewRequired as error:
@@ -39,7 +44,7 @@ def active_project(session, project_id):
 
 @router.post("/projects/{project_id}/sites", response_model=SiteRead, status_code=201)
 def create_site(project_id: UUID, body: SiteCreate, session: Session = Depends(get_session)):
-    measured = measurements(body.geometry)
+    measured = measurements(body.geometry, body.state_code)
     # Acquire the SQLite write lock before any parent/limit reads.
     session.connection(execution_options={"sqlite_immediate": True})
     active_project(session, project_id)
@@ -68,13 +73,17 @@ def read_site(site_id: UUID, project_id: UUID | None = None, session: Session = 
 @router.patch("/projects/{project_id}/sites/{site_id}", response_model=SiteRead)
 def patch_site(site_id: UUID, body: SitePatch, project_id: UUID | None = None, session: Session = Depends(get_session)):
     changes = body.model_dump(exclude_unset=True, exclude={"expected_revision"})
-    if "geometry" in changes:
-        changes.update(measurements(changes.pop("geometry")))
     session.connection(execution_options={"sqlite_immediate": True})
     site = site_or_404(session, site_id, project_id)
     active_project(session, site.project_id)
     if site.revision != body.expected_revision:
         raise HTTPException(409, detail={"code": "revision_conflict", "message": "Candidate changed. Reload before retrying."})
+    if "geometry" in changes or "state_code" in changes:
+        geometry = changes.get("geometry", site.geometry)
+        state_code = changes.get("state_code", site.state_code)
+        measured = measurements(geometry, state_code)
+        changes.pop("geometry", None)
+        changes.update(measured)
     for key, value in changes.items():
         setattr(site, key, value)
     site.revision += 1

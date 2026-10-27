@@ -1,7 +1,10 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { apiClient } from './api';
-import { parsePolygon, getSites, saveSite, archiveSite, projectError, type CandidateSite } from './projects';
-vi.mock('./api', () => ({ apiClient: { get:vi.fn(), post:vi.fn(), patch:vi.fn(), delete:vi.fn() } }));
+import { parsePolygon, getProjects, getSites, saveSite, archiveSite, projectError, type CandidateSite } from './projects';
+vi.mock('./api', async importOriginal => ({
+  ...(await importOriginal<typeof import('./api')>()),
+  apiClient: { get:vi.fn(), post:vi.fn(), patch:vi.fn(), delete:vi.fn() },
+}));
 const geometry = {type:'Polygon' as const,coordinates:[[[73,18],[74,18],[74,19],[73,18]] as [number,number][]]};
 afterEach(()=>vi.clearAllMocks());
 it('uses project-scoped list/create, individual revisioned update/archive and cancellation',async()=>{
@@ -25,6 +28,11 @@ it('accepts a Polygon/Feature but rejects unsupported CRS, nonfinite and unclose
   expect(parsePolygon(geometry)).toEqual(geometry);
   expect(parsePolygon({type:'Feature',geometry})).toEqual(geometry);
   for(const value of [{type:'MultiPolygon',coordinates:[]},{...geometry,crs:'EPSG:3857'},{type:'Feature',geometry,crs:'EPSG:3857'},{type:'Polygon',coordinates:[[[73,18],[74,18],[74,19]]]},{type:'Polygon',coordinates:[[[NaN,18],[74,18],[74,19],[NaN,18]]]}]) expect(()=>parsePolygon(value)).toThrow();
+});
+it('rejects non-list project payloads instead of letting the list view crash',async()=>{
+  vi.mocked(apiClient.get).mockResolvedValue({data:'<!doctype html><html></html>'} as never);
+  await expect(getProjects()).rejects.toThrow(/unexpected response/i);
+  await expect(getSites('project')).rejects.toThrow(/unexpected response/i);
 });
 it('returns controlled API errors and never replaces rejected saves with demo geometry',async()=>{
   const error={isAxiosError:true,response:{status:409,data:{detail:{code:'candidate_limit',message:'At most three active candidates.'}}}};

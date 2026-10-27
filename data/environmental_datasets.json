@@ -1,0 +1,368 @@
+{
+  "version": "2026-10-27",
+  "focus_states": [
+    "Telangana",
+    "Maharashtra",
+    "Karnataka",
+    "Tamil Nadu"
+  ],
+  "provenance": {
+    "verification_status": "UNVERIFIED_REFERENCE_VALUES",
+    "verified_on": null,
+    "verified_by": null,
+    "source_documents": [
+      "data/official_documents/cea_co2_baseline_v22.xlsx"
+    ],
+    "used_in_scoring": false,
+    "note": "Reference context only. The CEA national grid factors are verified against the bundled CO2 Baseline Database v22.0 workbook (see carbon_factors_cea.provenance). The CGWB, CPCB, terrain and water-tariff values were compiled without a stored source table, page or station code, so they remain unverified. No value in this file is used in any score.",
+    "verified_sections": [
+      "carbon_factors_cea"
+    ]
+  },
+  "groundwater_cgwb": {
+    "source": "Central Ground Water Board (CGWB), Ministry of Jal Shakti",
+    "dataset_name": "Dynamic Ground Water Resource Assessment of India",
+    "assessment_year": "2025",
+    "licence": "Government of India (GODL)",
+    "categories_by_cluster": [
+      {
+        "state": "Telangana",
+        "district": "Hyderabad",
+        "assessment_units": [
+          "Serilingampally",
+          "Khairatabad",
+          "Asifnagar"
+        ],
+        "stage_of_extraction_pct": 118.4,
+        "category": "Over-Exploited",
+        "groundwater_depth_bgl_m": "15.2 - 24.8",
+        "entitlement_note": "Groundwater extraction strictly prohibited for commercial data centres. Must rely 100% on HMWSSB municipal/treated water."
+      },
+      {
+        "state": "Telangana",
+        "district": "Rangareddy",
+        "assessment_units": [
+          "Rajendranagar",
+          "Gandipet",
+          "Shabad (Chandanvelly)"
+        ],
+        "stage_of_extraction_pct": 86.2,
+        "category": "Critical",
+        "groundwater_depth_bgl_m": "12.0 - 18.5",
+        "entitlement_note": "NOC from Central Ground Water Authority required. Artificial recharge mandatory."
+      },
+      {
+        "state": "Maharashtra",
+        "district": "Pune",
+        "assessment_units": [
+          "Haveli (Hinjawadi)",
+          "Mulshi",
+          "Khed (Chakan)",
+          "Shirur"
+        ],
+        "stage_of_extraction_pct": 94.6,
+        "category": "Critical",
+        "groundwater_depth_bgl_m": "8.5 - 16.2",
+        "entitlement_note": "Extraction for industrial cooling prohibited in Haveli taluka under Maharashtra Groundwater Act. MIDC pipeline water mandated."
+      },
+      {
+        "state": "Maharashtra",
+        "district": "Thane / Navi Mumbai",
+        "assessment_units": [
+          "Thane (Airoli / Mahape)",
+          "Turbhe"
+        ],
+        "stage_of_extraction_pct": 68.3,
+        "category": "Safe",
+        "groundwater_depth_bgl_m": "4.2 - 9.1",
+        "entitlement_note": "Aquifer safe but saline intrusion vulnerability near Thane Creek; MIDC Barvi dam supply preferred."
+      },
+      {
+        "state": "Karnataka",
+        "district": "Bengaluru Urban",
+        "assessment_units": [
+          "Bengaluru East (Whitefield)",
+          "Bengaluru South (Electronic City)",
+          "Bengaluru North (Hebbal)"
+        ],
+        "stage_of_extraction_pct": 142.1,
+        "category": "Over-Exploited",
+        "groundwater_depth_bgl_m": "28.0 - 45.0",
+        "entitlement_note": "Severe groundwater depletion. Commercial extraction illegal without special permit. 100% BWSSB / recycled water mandatory."
+      },
+      {
+        "state": "Karnataka",
+        "district": "Bengaluru Rural",
+        "assessment_units": [
+          "Devanahalli",
+          "Doddaballapura"
+        ],
+        "stage_of_extraction_pct": 128.7,
+        "category": "Over-Exploited",
+        "groundwater_depth_bgl_m": "22.5 - 38.0",
+        "entitlement_note": "Over-exploited assessment unit. KIADB surface water pipeline connection required before phase energization."
+      },
+      {
+        "state": "Tamil Nadu",
+        "district": "Chennai",
+        "assessment_units": [
+          "Guindy",
+          "Mylapore",
+          "Tondiarpet"
+        ],
+        "stage_of_extraction_pct": 154.2,
+        "category": "Over-Exploited",
+        "groundwater_depth_bgl_m": "6.0 - 14.0",
+        "entitlement_note": "Metropolitan groundwater abstraction restricted by CMWSSB Act. CMWSSB tertiary treated water (TTRO) mandated."
+      },
+      {
+        "state": "Tamil Nadu",
+        "district": "Chengalpattu",
+        "assessment_units": [
+          "Thiruporur (Siruseri)",
+          "Chengalpattu"
+        ],
+        "stage_of_extraction_pct": 98.4,
+        "category": "Critical",
+        "groundwater_depth_bgl_m": "5.5 - 12.0",
+        "entitlement_note": "Near-coastal aquifer sensitive to saline ingress. SIPCOT piped supply required."
+      }
+    ]
+  },
+  "air_quality_cpcb": {
+    "source": "Central Pollution Control Board (CPCB) / Data.gov.in",
+    "dataset_name": "Continuous Ambient Air Quality Monitoring (CAAQMS)",
+    "licence": "GODL / NDSAP",
+    "national_ambient_air_quality_standards_annual": {
+      "pm25_ug_m3": 40.0,
+      "pm10_ug_m3": 60.0,
+      "no2_ug_m3": 40.0,
+      "so2_ug_m3": 50.0,
+      "co_mg_m3": 2.0,
+      "ozone_ug_m3": 100.0
+    },
+    "cluster_monitoring_stations": [
+      {
+        "state": "Telangana",
+        "city": "Hyderabad",
+        "station_name": "Sanathnagar CAAQMS",
+        "latitude": 17.4589,
+        "longitude": 78.4362,
+        "annual_avg_pm25": 48.2,
+        "annual_avg_pm10": 92.5,
+        "annual_avg_no2": 26.4,
+        "air_quality_category": "Moderate",
+        "filtration_recommendation": "MERV 13 to MERV 14 particulate filtration recommended for fresh-air handling units."
+      },
+      {
+        "state": "Telangana",
+        "city": "Hyderabad",
+        "station_name": "Gachibowli (ICRISAT / HCU)",
+        "latitude": 17.4435,
+        "longitude": 78.3482,
+        "annual_avg_pm25": 38.6,
+        "annual_avg_pm10": 74.1,
+        "annual_avg_no2": 21.8,
+        "air_quality_category": "Satisfactory",
+        "filtration_recommendation": "Standard MERV 11 to 13 filtration suitable for data halls."
+      },
+      {
+        "state": "Maharashtra",
+        "city": "Pune",
+        "station_name": "Shivajinagar / Hinjawadi corridor",
+        "latitude": 18.5314,
+        "longitude": 73.8446,
+        "annual_avg_pm25": 54.3,
+        "annual_avg_pm10": 108.4,
+        "annual_avg_no2": 38.2,
+        "air_quality_category": "Moderate",
+        "filtration_recommendation": "Enhanced pre-filtration required due to winter particulate peaks."
+      },
+      {
+        "state": "Maharashtra",
+        "city": "Navi Mumbai",
+        "station_name": "Airoli / Mahape TTC",
+        "latitude": 19.1557,
+        "longitude": 72.9986,
+        "annual_avg_pm25": 62.1,
+        "annual_avg_pm10": 124.0,
+        "annual_avg_no2": 44.5,
+        "air_quality_category": "Moderate to Poor",
+        "filtration_recommendation": "Chemical gas-phase filtration (G1/G2 corrosion control) recommended due to SO2/NO2 in TTC industrial belt."
+      },
+      {
+        "state": "Karnataka",
+        "city": "Bengaluru",
+        "station_name": "BTM Layout / Electronic City",
+        "latitude": 12.9152,
+        "longitude": 77.6101,
+        "annual_avg_pm25": 36.4,
+        "annual_avg_pm10": 71.8,
+        "annual_avg_no2": 28.5,
+        "air_quality_category": "Satisfactory",
+        "filtration_recommendation": "Standard ASHRAE 52.2 compliant filtration; monitor seasonal dust storms."
+      },
+      {
+        "state": "Karnataka",
+        "city": "Bengaluru",
+        "station_name": "Peenya Industrial Area",
+        "latitude": 13.0285,
+        "longitude": 77.5197,
+        "annual_avg_pm25": 52.0,
+        "annual_avg_pm10": 102.3,
+        "annual_avg_no2": 34.2,
+        "air_quality_category": "Moderate",
+        "filtration_recommendation": "Two-stage particulate filtration with activated carbon scrubbers."
+      },
+      {
+        "state": "Tamil Nadu",
+        "city": "Chennai",
+        "station_name": "Alandur / Guindy",
+        "latitude": 13.0034,
+        "longitude": 80.2012,
+        "annual_avg_pm25": 42.1,
+        "annual_avg_pm10": 84.5,
+        "annual_avg_no2": 22.3,
+        "air_quality_category": "Moderate",
+        "filtration_recommendation": "Airborne sea salt aerosol filtration required; use corrosion-resistant copper tube coatings (ISO 9223 C4/C5 rating)."
+      },
+      {
+        "state": "Tamil Nadu",
+        "city": "Chennai",
+        "station_name": "Velachery / OMR Siruseri",
+        "latitude": 12.9754,
+        "longitude": 80.2206,
+        "annual_avg_pm25": 37.8,
+        "annual_avg_pm10": 76.2,
+        "annual_avg_no2": 19.5,
+        "air_quality_category": "Satisfactory",
+        "filtration_recommendation": "Saline fog mitigation and marine-grade chiller coil coatings required."
+      }
+    ]
+  },
+  "carbon_factors_cea": {
+    "source": "Central Electricity Authority (CEA), Ministry of Power",
+    "dataset_name": "CO2 Baseline Database for the Indian Power Sector",
+    "version": "22.0 (August 2026)",
+    "licence": "Government of India Publication (GODL)",
+    "grid_scope": "Single unified Indian grid. The five regional grids were merged in December 2013, so CEA v22.0 publishes no current regional grid factors.",
+    "fiscal_year": "2025-26",
+    "basis": "Including imports (CEA Results columns Q-AA)",
+    "national_grid_factors": {
+      "weighted_average_tco2_per_mwh": 0.675,
+      "operating_margin_om_tco2_per_mwh": 0.963,
+      "build_margin_bm_tco2_per_mwh": 0.446,
+      "combined_margin_cm_tco2_per_mwh": 0.705
+    },
+    "provenance": {
+      "verification_status": "VERIFIED_AGAINST_BUNDLED_SOURCE",
+      "verified_on": "2026-10-27",
+      "source_document": "data/official_documents/cea_co2_baseline_v22.xlsx",
+      "source_sha256": "f2341efe03d2fce4177a4a7090b8a946a5ac5ae32b41d784882d0226f2eb4860",
+      "worksheet": "Results",
+      "cells": {
+        "weighted_average_tco2_per_mwh": {
+          "cell": "AA14",
+          "raw": 0.6750986831448641
+        },
+        "operating_margin_om_tco2_per_mwh": {
+          "cell": "AA15",
+          "raw": 0.9634183245360463
+        },
+        "build_margin_bm_tco2_per_mwh": {
+          "cell": "AA16",
+          "raw": 0.4459322025184715
+        },
+        "combined_margin_cm_tco2_per_mwh": {
+          "cell": "AA17",
+          "raw": 0.7046752635272588
+        },
+        "net_renewable_generation_gwh": {
+          "cell": "O37",
+          "raw": 310580
+        }
+      },
+      "note": "FY 2025-26, including imports, from the bundled CEA workbook; rounded to three decimals for display. The regional grid factors previously in this file were removed because they are not published in v22.0 and India has had a single grid since December 2013."
+    }
+  },
+  "terrain_and_elevation_srtm": {
+    "source": "NASA SRTMGL1 (30 m Digital Elevation) & Copernicus DEM GLO-30",
+    "cluster_elevations": {
+      "hyderabad_financial_district": {
+        "state": "Telangana",
+        "elevation_m_amsl": "520 - 555",
+        "slope_gradient_pct": "1.5 - 3.8",
+        "flood_inundation_risk": "Low (High Deccan plateau terrain; natural gravity drainage)",
+        "seismic_zone": "Zone II (Low Damage Risk)"
+      },
+      "navi_mumbai_ttc": {
+        "state": "Maharashtra",
+        "elevation_m_amsl": "8 - 25",
+        "slope_gradient_pct": "0.8 - 2.2",
+        "flood_inundation_risk": "Moderate (Tidal creek proximity; requires plinth raising +1.8m above storm high tide)",
+        "seismic_zone": "Zone III (Moderate Damage Risk)"
+      },
+      "pune_hinjawadi": {
+        "state": "Maharashtra",
+        "elevation_m_amsl": "560 - 595",
+        "slope_gradient_pct": "2.0 - 5.5",
+        "flood_inundation_risk": "Low to Moderate (Rolling foothills; check local nallah buffer)",
+        "seismic_zone": "Zone III (Moderate Damage Risk)"
+      },
+      "bengaluru_whitefield": {
+        "state": "Karnataka",
+        "elevation_m_amsl": "890 - 925",
+        "slope_gradient_pct": "1.2 - 3.0",
+        "flood_inundation_risk": "Low (Elevated plateau; primary risk is localized stormwater canal overflow)",
+        "seismic_zone": "Zone II (Low Damage Risk)"
+      },
+      "chennai_siruseri_omr": {
+        "state": "Tamil Nadu",
+        "elevation_m_amsl": "6 - 18",
+        "slope_gradient_pct": "0.5 - 1.5",
+        "flood_inundation_risk": "High (Coastal low relief; requires +1.5m plinth elevation above 2015 flood contour and dual sump pumps)",
+        "seismic_zone": "Zone III (Moderate Damage Risk)"
+      }
+    }
+  },
+  "water_tariffs_and_allocations": {
+    "sources": [
+      "MIDC",
+      "BWSSB",
+      "CMWSSB",
+      "HMWSSB",
+      "TSIIC",
+      "SIPCOT"
+    ],
+    "tariffs_by_state": {
+      "telangana": {
+        "provider": "HMWSSB / TSIIC Bulk Industrial Water",
+        "bulk_industrial_rate_inr_per_kl": 55.0,
+        "treated_recycled_rate_inr_per_kl": 25.0,
+        "minimum_sanction_kld": 100,
+        "reliability": "Continuous dual-pipeline supply in notified IT parks"
+      },
+      "maharashtra": {
+        "provider": "MIDC Industrial Water Supply",
+        "bulk_industrial_rate_inr_per_kl": 38.5,
+        "treated_recycled_rate_inr_per_kl": 18.0,
+        "minimum_sanction_kld": 250,
+        "reliability": "Gravity-fed filtered water with dedicated MIDC storage reservoirs"
+      },
+      "karnataka": {
+        "provider": "BWSSB / KIADB Industrial Water Supply",
+        "bulk_industrial_rate_inr_per_kl": 60.0,
+        "treated_recycled_rate_inr_per_kl": 22.0,
+        "minimum_sanction_kld": 150,
+        "reliability": "Cauvery Stage V bulk allocation; tertiary treated water mandated for cooling"
+      },
+      "tamil_nadu": {
+        "provider": "CMWSSB / SIPCOT Industrial Water",
+        "bulk_industrial_rate_inr_per_kl": 75.0,
+        "treated_recycled_rate_inr_per_kl": 30.0,
+        "minimum_sanction_kld": 200,
+        "reliability": "Koyambedu TTRO 45 MLD plant supply with dual dedicated transmission mains"
+      }
+    }
+  }
+}

@@ -1,1 +1,2 @@
-httpx==0.28.1
+# Runtime dependencies live in requirements.txt. This file is reserved for
+# test-only tooling; the suite currently runs on the standard library unittest.

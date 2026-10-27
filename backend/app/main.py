@@ -19,9 +19,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .db import DB_PATH
+from .data.registry import seed_data_sources
 from .routers.projects import router as projects_router
 from .routers.sites import router as sites_router
 from .routers.phases import router as phases_router
+from .routers.data_sources import router as data_sources_router
+from .routers.environmental import router as environmental_router
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -264,6 +267,8 @@ app.state.project_origins = {origin for origin in CORS_ORIGINS if urllib.parse.u
 app.include_router(projects_router, prefix=API_PREFIX)
 app.include_router(sites_router, prefix=API_PREFIX)
 app.include_router(phases_router, prefix=API_PREFIX)
+app.include_router(data_sources_router, prefix=API_PREFIX)
+app.include_router(environmental_router, prefix=API_PREFIX)
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS or ["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 
@@ -271,6 +276,9 @@ app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS or ["*"], allow_cr
 def startup() -> None:
     ensure_database()
     seed_facilities()
+    with closing(sqlite3.connect(DB_PATH)) as connection, connection:
+        # Safe before the data-plane migration: the seed returns 0 if the table is absent.
+        seed_data_sources(connection)
 
 
 @app.get("/health")

@@ -1,1 +1,7 @@
-// No DOM matchers needed for pure function tests
+import '@testing-library/jest-dom/vitest';
+import { cleanup } from '@testing-library/react';
+import { afterEach } from 'vitest';
+
+// Vitest runs without globals here, so Testing Library cannot register its own
+// auto-cleanup. Do it explicitly or consecutive tests share one DOM.
+afterEach(() => cleanup());

@@ -6,3 +6,6 @@ SQLAlchemy==2.0.44
 alembic==1.17.1
 Shapely==2.1.2
 pyproj==3.7.2
+httpx==0.28.1
+rasterio==1.4.3
+numpy==2.4.6

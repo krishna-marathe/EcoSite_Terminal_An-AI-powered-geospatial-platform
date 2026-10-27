@@ -26,6 +26,11 @@ vi.mock('maplibre-gl', () => ({
   Marker: class { setLngLat() { return this; } addTo() { return this; } remove() {} },
 }));
 vi.mock('../services/projects', async () => ({ ...await vi.importActual('../services/projects'), getProjects: vi.fn(), createProject: vi.fn(), getSites: vi.fn(), saveSite: vi.fn(), archiveSite: vi.fn() }));
+vi.mock('../services/observations', async () => ({
+  ...await vi.importActual('../services/observations'),
+  getSiteObservations: vi.fn(async () => ({ items: [], total: 0 })),
+  runEnvironmentalAnalysis: vi.fn(),
+}));
 const polygon: PolygonGeometry = { type:'Polygon',coordinates:[[[73.85,18.52],[73.86,18.52],[73.86,18.53],[73.85,18.52]]] };
 const saved: CandidateSite = { id:'s1',project_id:'p1',name:'Saved parcel',geometry:polygon,area_ha:58,state_code:'IN-MH',district:'Pune',geometry_hash:'hash',boundary_source:'Test boundary',boundary_sha256:'test',status:'active',revision:2,created_at:'2026-10-27T00:00:00Z',updated_at:'2026-10-27T00:00:00Z' };
 let records: CandidateSite[];

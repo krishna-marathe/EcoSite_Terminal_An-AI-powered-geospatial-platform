@@ -7,6 +7,7 @@ import { SiteAnalysis } from '../pages/SiteAnalysis';
 import { Mitigation } from '../pages/Mitigation';
 import { Projects } from '../pages/Projects';
 import { Reports } from '../pages/Reports';
+import { DataSources } from '../pages/DataSources';
 
 export const router = createBrowserRouter([
   {
@@ -42,6 +43,7 @@ export const router = createBrowserRouter([
         element: <Reports />,
       },
       { path: 'projects', element: <Projects /> },
+      { path: 'data-sources', element: <DataSources /> },
       {
         path: '*',
         element: <Navigate to="/dashboard" replace />,

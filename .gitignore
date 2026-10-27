@@ -4,3 +4,12 @@ frontend/.env
 .aws/
 .codex/
 .pyest_cache/
+
+# Runtime connector snapshots: large and reproducible from the source.
+backend/data/raw/
+
+# Python caches
+__pycache__/
+*.pyc
+.pytest_cache/
+.vscode/

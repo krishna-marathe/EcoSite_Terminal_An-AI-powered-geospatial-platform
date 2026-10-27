@@ -1,4 +1,5 @@
 import { PhaseEditor } from '../components/projects/PhaseEditor';
+import { EnvironmentalObservations } from '../components/projects/EnvironmentalObservations';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -64,7 +65,8 @@ function LoadedProjectSites({ project, onBusy, initialSite, data, selectId, quer
   const [editorVersion, setEditorVersion] = useState(0);
   const choose = (site?: CandidateSite) => { selectId(site?.id); setEditorVersion(n => n + 1); setSelected(site); setName(site?.name || ''); setState(site?.state_code || 'IN-MH'); setDistrict(site?.district || ''); setGeometry(site?.geometry || null); setError(''); setMessage(''); };
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['project-sites', project.id] });
-  return <div className="grid gap-4 lg:grid-cols-2"><Card title="Saved candidate polygons">
+  return <div className="space-y-4">
+    <div className="grid gap-4 lg:grid-cols-2"><Card title="Saved candidate polygons">
     <p>{data.length} / 3 active candidates</p>
     <Button type="button" disabled={busy} onClick={() => choose()}>New candidate</Button>
     {data.map(site => <div key={site.id} className="border p-3"><Button type="button" disabled={busy} onClick={() => choose(site)}>{site.name}</Button><p>{site.area_ha.toFixed(4)} ha · {site.state_code} · revision {site.revision}</p><p>Boundary screening: {site.boundary_source}. State/district are user supplied. Screening only, not official legal boundary verification.</p><p>{site.boundary_screening?.status === "inside_screening_boundary" ? "Inside screening boundary; no legal verification." : "Boundary review required — consult Survey of India."} {site.boundary_screening?.version} {site.boundary_screening?.licence}</p>
@@ -78,5 +80,7 @@ function LoadedProjectSites({ project, onBusy, initialSite, data, selectId, quer
     <Button disabled={busy || !geometry || (!selected && data.length >= 3)}>{busy ? 'Saving…' : 'Save candidate polygon'}</Button>
     {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
     <p>Invalid or out-of-boundary polygons are rejected by the backend. Unsaved drafts are not restored after reload.</p>
-  </form></Card></div>;
+  </form></Card></div>
+  {selected && <EnvironmentalObservations key={selected.id} site={selected} />}
+  </div>;
 }

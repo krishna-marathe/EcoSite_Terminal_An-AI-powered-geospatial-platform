@@ -12,6 +12,8 @@ from shapely.geometry import shape, mapping
 from shapely.geometry.polygon import orient
 from shapely.ops import transform
 
+from .state_scope import state_scope
+
 GEOD = Geod(ellps="WGS84")
 MAX_VERTICES = 2000
 BOUNDARY_DIR = Path(__file__).resolve().parents[1] / "data" / "boundaries"
@@ -97,7 +99,7 @@ def boundary_settings():
     return path, digest, source
 
 
-def measure_polygon(value):
+def measure_polygon(value, state_code=None):
     polygon = validate_polygon(value)
     path, digest, source = boundary_settings()
     boundary = load_boundary(path, digest)
@@ -116,6 +118,8 @@ def measure_polygon(value):
                  "version": data["version"] if data else "custom-unverified",
                  "licence": data["boundaryLicense"] if data else "unspecified",
                  "source_url": data["downloadURL"] if data else None}
+    if state_code is not None:
+        screening["state_scope"] = state_scope(polygon, state_code)
 
     area_ha = abs(GEOD.geometry_area_perimeter(orient(polygon, sign=1.0))[0]) / 10000
     if not math.isfinite(area_ha) or area_ha <= 0:

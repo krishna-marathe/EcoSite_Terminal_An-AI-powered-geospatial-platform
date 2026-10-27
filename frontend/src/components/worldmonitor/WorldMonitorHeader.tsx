@@ -16,6 +16,7 @@ import {
   Map as MapIcon,
   LayoutGrid,
   Key,
+  Database,
 } from 'lucide-react';
 import { useDashboardStore } from '../../stores/dashboardStore';
 import { ApiKeyModal } from '../ui/ApiKeyModal';
@@ -29,6 +30,7 @@ const NAV_MODULES = [
   { to: '/site-analysis', label: 'Site analysis', icon: <MapPin className="h-3.5 w-3.5" /> },
   { to: '/mitigation', label: 'Mitigation', icon: <Sparkles className="h-3.5 w-3.5" /> },
   { to: '/reports', label: 'Reports', icon: <FileSpreadsheet className="h-3.5 w-3.5" /> },
+  { to: '/data-sources', label: 'Data sources', icon: <Database className="h-3.5 w-3.5" /> },
 ];
 
 const VIEW_MODES: Array<{ mode: DashboardViewMode; label: string; icon: React.ReactNode; title: string }> = [

@@ -1,13 +1,30 @@
 import axios from 'axios';
-import { apiClient } from './api';
+import { apiClient, expectArray } from './api';
 
 export interface PolygonGeometry { type: 'Polygon'; coordinates: [number, number][][] }
 export interface Project { id: string; name: string; organization_label: string; archetype: string; stage: string; status: 'active' | 'archived'; revision: number }
 export interface CandidateSite { id: string; project_id: string; name: string; geometry: PolygonGeometry; area_ha: number; state_code: string; district: string | null; geometry_hash: string; boundary_source: string; boundary_sha256: string; boundary_screening?: { status?: string; version?: string; licence?: string; screening_only?: boolean }; status: 'active' | 'archived'; revision: number; created_at: string; updated_at: string }
 export type SiteInput = Pick<CandidateSite, 'name' | 'geometry' | 'state_code' | 'district'>;
-export const getProjects = async (signal?: AbortSignal) => (await apiClient.get<{ items: Project[]; total: number }>('/projects', { signal, params: { page_size: 100 } })).data;
+export interface ProjectPage { items: Project[]; total: number }
+
+export const getProjects = async (signal?: AbortSignal): Promise<ProjectPage> => {
+  const { data } = await apiClient.get<unknown>('/projects', { signal, params: { page_size: 100 } });
+  if (
+    !data ||
+    typeof data !== 'object' ||
+    !Array.isArray((data as { items?: unknown }).items) ||
+    typeof (data as { total?: unknown }).total !== 'number'
+  ) {
+    throw new Error('Project list returned an unexpected response. Check that the EcoSite backend is running.');
+  }
+  return data as ProjectPage;
+};
 export const createProject = async (body: { name: string; organization_label: string; archetype: string }) => (await apiClient.post<Project>('/projects', body)).data;
-export const getSites = async (projectId: string, signal?: AbortSignal) => (await apiClient.get<CandidateSite[]>('/projects/' + projectId + '/sites', { signal })).data;
+export const getSites = async (projectId: string, signal?: AbortSignal) =>
+  expectArray<CandidateSite>(
+    (await apiClient.get<unknown>('/projects/' + projectId + '/sites', { signal })).data,
+    'Candidate sites'
+  );
 export const saveSite = async (projectId: string, body: SiteInput, existing?: CandidateSite) => existing
   ? (await apiClient.patch<CandidateSite>('/sites/' + existing.id, { ...body, expected_revision: existing.revision })).data
   : (await apiClient.post<CandidateSite>('/projects/' + projectId + '/sites', body)).data;
