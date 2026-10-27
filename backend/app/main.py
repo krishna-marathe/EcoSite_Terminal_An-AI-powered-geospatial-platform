@@ -25,6 +25,7 @@ from .routers.sites import router as sites_router
 from .routers.phases import router as phases_router
 from .routers.data_sources import router as data_sources_router
 from .routers.environmental import router as environmental_router
+from .routers.evidence import router as evidence_router
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -269,6 +270,7 @@ app.include_router(sites_router, prefix=API_PREFIX)
 app.include_router(phases_router, prefix=API_PREFIX)
 app.include_router(data_sources_router, prefix=API_PREFIX)
 app.include_router(environmental_router, prefix=API_PREFIX)
+app.include_router(evidence_router, prefix=API_PREFIX)
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS or ["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 
