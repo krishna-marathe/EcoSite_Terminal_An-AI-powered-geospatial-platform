@@ -16,7 +16,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import rasterio
+try:
+    import rasterio
+except ImportError:
+    rasterio = None  # type: ignore[assignment]
 
 from .base import (
     ConnectorUnavailable,
@@ -248,6 +251,10 @@ class SrtmGl1Connector:
         for payload in payloads:
             hgt_name, hgt_content = _extract_hgt(payload.content)
             directory, path = _open_hgt(hgt_name, hgt_content)
+            if rasterio is None:
+                raise ConnectorUnavailable(
+                    "rasterio is required to process NASA SRTM HGT tiles but is not installed."
+                )
             try:
                 with rasterio.open(path) as src:
                     window = read_zonal_window(

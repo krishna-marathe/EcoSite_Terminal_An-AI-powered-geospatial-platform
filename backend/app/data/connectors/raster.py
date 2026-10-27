@@ -9,12 +9,20 @@ import math
 from dataclasses import dataclass
 
 import numpy as np
-import rasterio
 from pyproj import Transformer
-from rasterio.features import geometry_mask
-from rasterio.windows import Window, from_bounds
 from shapely.geometry import MultiPoint, mapping, shape
 from shapely.ops import transform as shapely_transform
+
+try:
+    import rasterio
+    import rasterio.transform
+    from rasterio.features import geometry_mask
+    from rasterio.windows import Window, from_bounds
+except ImportError:
+    rasterio = None  # type: ignore[assignment]
+    geometry_mask = None
+    Window = None
+    from_bounds = None
 
 from .base import ConnectorUnavailable
 
@@ -63,6 +71,8 @@ def read_zonal_window(
     excludes the source's nodata value. The distinction is required so coverage
     is reported against the polygon, not against the buffered window.
     """
+    if rasterio is None or geometry_mask is None or Window is None or from_bounds is None:
+        raise ConnectorUnavailable("rasterio is required for raster zonal analysis but is not installed.")
     polygon = shape(geometry)
     if polygon.is_empty or not polygon.is_valid:
         raise ConnectorUnavailable("Candidate polygon is invalid.")
@@ -100,6 +110,8 @@ def nearest_pixel_distance(
     A selected pixel inside the polygon yields 0 m, which is the honest answer to
     "how far is the nearest mapped water from this site?".
     """
+    if rasterio is None:
+        raise ConnectorUnavailable("rasterio is required for raster distance calculation but is not installed.")
     rows, cols = np.where(pixel_mask)
     if rows.size == 0:
         return None

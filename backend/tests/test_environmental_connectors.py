@@ -10,10 +10,18 @@ from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
-import rasterio
+
+try:
+    import rasterio
+    from rasterio.transform import from_bounds
+    HAS_RASTERIO = True
+except ImportError:
+    rasterio = None
+    from_bounds = None
+    HAS_RASTERIO = False
+
 from alembic import command
 from fastapi.testclient import TestClient
-from rasterio.transform import from_bounds
 from sqlalchemy import func, select
 
 from backend.app import db, main as api
@@ -37,6 +45,8 @@ PUNE = {
 
 
 def geotiff_bytes(values, bounds=(73.80, 18.45, 73.90, 18.60), nodata=255):
+    if not HAS_RASTERIO:
+        raise unittest.SkipTest("rasterio is not installed")
     buffer = io.BytesIO()
     height, width = values.shape
     with rasterio.MemoryFile() as memory:
@@ -101,6 +111,7 @@ def stac_bytes(features, next_link=None):
 
 
 class JrcConnectorTests(unittest.TestCase):
+    @unittest.skipUnless(HAS_RASTERIO, "rasterio is not installed")
     def test_occurrence_overlap_mean_max_and_proximity(self):
         values = np.zeros((200, 200), dtype=np.uint8)
         values[80:120, 80:120] = 100
@@ -119,6 +130,7 @@ class JrcConnectorTests(unittest.TestCase):
         self.assertEqual(by_id["historical_water_valid_pixel_fraction"].evidence_class, "REMOTE_SENSING_DERIVED")
         self.assertEqual(by_id["historical_water_valid_pixel_fraction"].coverage_fraction, 1.0)
 
+    @unittest.skipUnless(HAS_RASTERIO, "rasterio is not installed")
     def test_no_water_keeps_proximity_missing_instead_of_zero(self):
         values = np.zeros((200, 200), dtype=np.uint8)
         records = JrcGswConnector().parse(
@@ -132,6 +144,7 @@ class JrcConnectorTests(unittest.TestCase):
         self.assertEqual(proximity.status, "PARTIAL")
         self.assertIn("No mapped surface-water pixel", proximity.missing_reason)
 
+    @unittest.skipUnless(HAS_RASTERIO, "rasterio is not installed")
     def test_nodata_only_polygon_is_source_unavailable(self):
         values = np.full((200, 200), 255, dtype=np.uint8)
         records = JrcGswConnector().parse(
@@ -159,6 +172,7 @@ class JrcConnectorTests(unittest.TestCase):
 
 
 class SrtmConnectorTests(unittest.TestCase):
+    @unittest.skipUnless(HAS_RASTERIO, "rasterio is not installed")
     def test_terrain_statistics_and_void_fraction(self):
         # The void block sits inside the Pune polygon (rows ~564-588, cols ~1008-1032).
         content = hgt_zip_bytes(void_slice=(np.s_[570:578, 1012:1020]))

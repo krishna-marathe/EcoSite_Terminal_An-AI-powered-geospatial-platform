@@ -13,8 +13,6 @@ import os
 from datetime import datetime, timezone
 from typing import Any
 
-from rasterio.io import MemoryFile
-
 from .base import (
     ConnectorUnavailable,
     FetchRequest,
@@ -103,6 +101,12 @@ def _tile_url(lon: int, lat: int) -> str:
 
 
 def _open_raster(content: bytes):
+    try:
+        from rasterio.io import MemoryFile
+    except ImportError as exc:
+        raise ConnectorUnavailable(
+            "rasterio is required to process JRC Global Surface Water GeoTIFF tiles but is not installed."
+        ) from exc
     memory = MemoryFile(content)
     return memory, memory.open()
 
