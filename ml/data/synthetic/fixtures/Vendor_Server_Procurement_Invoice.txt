@@ -1,0 +1,17 @@
+GLOBAL TECH HARDWARE SUPPLIES LLC
+Invoice No: INV-2026-992384
+Date: February 24, 2026
+Bill To: CloudScale Data Systems India Pvt Ltd
+
+Item Description:
+1. 42U Server Racks with PDU: 120 units @ $1,800 = $216,000
+2. 500kVA Lithium-Ion UPS Module: 4 units @ $45,000 = $180,000
+3. Category 6A Cabling Spools: 50 reels @ $320 = $16,000
+
+Total Taxable Value: $412,000
+GST @ 18%: $74,160
+Total Amount Payable: $486,160
+
+Payment Terms: Net 30 days via Wire Transfer.
+This document is a commercial invoice for equipment purchase and does not constitute
+utility approval, environmental sanction or statutory regulatory clearance.

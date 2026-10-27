@@ -1,0 +1,22 @@
+MAHARASHTRA STATE ELECTRICITY DISTRIBUTION COMPANY LIMITED (MSEDCL)
+Order No: MSEDCL/COMM/DC/2026/901                                  Date: 11-03-2026
+
+SUBJECT: SANCTION OF HT POWER SUPPLY - ULTIMATE MASTER PLAN
+To: M/s Navi Mumbai Cloud Hub Private Limited
+
+Approval is hereby communicated for grid power connectivity for the candidate data centre.
+Ultimate Full Campus Master Plan Capacity: 80.0 MW grid demand.
+
+--- [Page Break] ---
+
+CHAPTER 2: OPERATIONAL CEILING AND PHASE 1 RESTRICTION
+Notwithstanding the ultimate master capacity in Chapter 1, the immediate sanctioned load energized
+under Phase 1 shall be strictly restricted as follows:
+Phase 1 Power Sanction: 40.0 MW grid sanction at 220 kV
+Contracted Maximum Demand: 44.4 MVA
+Interconnection Substation: Airoli GIS Substation
+
+Any load escalation beyond 40 MW requires fresh statutory submission.
+
+Superintending Engineer
+MSEDCL

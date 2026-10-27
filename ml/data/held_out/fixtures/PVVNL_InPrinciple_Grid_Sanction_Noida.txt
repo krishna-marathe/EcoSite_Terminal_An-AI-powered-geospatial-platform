@@ -1,0 +1,27 @@
+PASCHIMANCHAL VIDYUT VITRAN NIGAM LIMITED (PVVNL)
+Corporate Office: Urja Bhawan, Victoria Park, Meerut - 250001
+COMMERCIAL & PLANNING CELL
+
+Memorandum No: PVVNL/COMM/EHV/2026/7710
+
+To:
+M/s Noida Hyperscale Data Infra Ltd
+Plot Tech-14, Data Centre Park, Sector 154, Noida, District Gautam Buddha Nagar.
+
+SUBJECT: IN-PRINCIPLE SANCTION OF EXTRA HIGH VOLTAGE (EHV) POWER GRID CONNECTIVITY
+Reference: Developer Online Portal Application UP-EHV-2026-0811.
+
+In accordance with UP Data Centre Policy guidelines and UPPTCL load-flow clearance, in-principle sanction
+is hereby communicated for grid power interconnection:
+
+1. Sanctioned Load: 60.0 MVA at 132 kV voltage grade
+2. Proposed Transmission Line: Double circuit 132 kV underground XLPE line
+3. Source Interconnection: from Sector 148 Substation (Dedicated 132 kV bay)
+4. Phase Scope: Phase 1 Commercial Operations
+5. Commissioning Schedule: Target Commercial Operation by 31-10-2028
+6. Valid up to: 30-10-2028
+
+The applicant is advised to sign the formal EHV power supply agreement within 60 days.
+
+Superintending Engineer (EHV Commercial)
+PVVNL, Meerut

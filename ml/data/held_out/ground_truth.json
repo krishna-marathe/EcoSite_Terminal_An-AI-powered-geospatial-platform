@@ -1,0 +1,288 @@
+{
+  "dataset_version": "1.0.0-held-out",
+  "description": "Genuinely held-out test fixtures: unseen states, missing values, contradictions, OCR noise, and non-DC lease",
+  "total_documents": 6,
+  "documents": [
+    {
+      "document_id": "doc-held-001-up-power-sanction",
+      "filename": "PVVNL_InPrinciple_Grid_Sanction_Noida.pdf",
+      "true_document_type": "UTILITY_SANCTION",
+      "true_document_subtype": "GRID_SANCTION_LETTER",
+      "jurisdiction": "Uttar Pradesh",
+      "issuing_authority": "PVVNL",
+      "page_count": 1,
+      "expected_fields": [
+        {
+          "field_key": "contract_demand_mva",
+          "page_number": 1,
+          "raw_text": "1. Sanctioned Load: 60.0 MVA",
+          "normalized_value": 60.0,
+          "unit": "MVA",
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "supply_voltage_kv",
+          "page_number": 1,
+          "raw_text": "at 132 kV voltage grade",
+          "normalized_value": 132.0,
+          "unit": "kV",
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "substation_name",
+          "page_number": 1,
+          "raw_text": "from Sector 148 Substation",
+          "normalized_value": "Sector 148 Substation",
+          "unit": null,
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "document_reference_number",
+          "page_number": 1,
+          "raw_text": "Memorandum No: PVVNL/COMM/EHV/2026/7710",
+          "normalized_value": "PVVNL/COMM/EHV/2026/7710",
+          "unit": null,
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "validity_expiry_date",
+          "page_number": 1,
+          "raw_text": "Valid up to: 30-10-2028",
+          "normalized_value": "2028-10-30",
+          "unit": "YYYY-MM-DD",
+          "phase_scope": "PHASE_1"
+        }
+      ]
+    },
+    {
+      "document_id": "doc-held-002-gj-water-allotment",
+      "filename": "DICDL_Water_Allotment_Dholera_SIR.docx",
+      "true_document_type": "WATER_ALLOCATION",
+      "true_document_subtype": "MUNICIPAL_BULK_WATER_ALLOCATION",
+      "jurisdiction": "Gujarat",
+      "issuing_authority": "DICDL",
+      "page_count": 1,
+      "expected_fields": [
+        {
+          "field_key": "water_allocation_kld",
+          "page_number": 1,
+          "raw_text": "Permitted Normal Water Allocation: 2500 cum/day",
+          "normalized_value": 2500.0,
+          "unit": "KLD",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "peak_summer_water_kld",
+          "page_number": 1,
+          "raw_text": "Seasonal Peak Water: 3200 cum/day",
+          "normalized_value": 3200.0,
+          "unit": "KLD",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "treated_wastewater_kld",
+          "page_number": 1,
+          "raw_text": "Treated STP Effluent mandatory off-take: 1000 cum/day",
+          "normalized_value": 1000.0,
+          "unit": "KLD",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "document_reference_number",
+          "page_number": 1,
+          "raw_text": "Allotment Reference: DICDL/WATER/2026/ALLOT-449",
+          "normalized_value": "DICDL/WATER/2026/ALLOT-449",
+          "unit": null,
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "sanction_date",
+          "page_number": 1,
+          "raw_text": "Date: 15-04-2026",
+          "normalized_value": "2026-04-15",
+          "unit": "YYYY-MM-DD",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "validity_expiry_date",
+          "page_number": 1,
+          "raw_text": "expiring on: 14-04-2036",
+          "normalized_value": "2036-04-14",
+          "unit": "YYYY-MM-DD",
+          "phase_scope": "CAMPUS_WIDE"
+        }
+      ]
+    },
+    {
+      "document_id": "doc-held-003-missing-fields-feasibility",
+      "filename": "KPTCL_Preliminary_Feasibility_Study.pdf",
+      "true_document_type": "UTILITY_APPLICATION",
+      "true_document_subtype": "DISCOM_POWER_APPLICATION",
+      "jurisdiction": "Karnataka",
+      "issuing_authority": "KPTCL",
+      "page_count": 1,
+      "expected_fields": [
+        {
+          "field_key": "supply_voltage_kv",
+          "page_number": 1,
+          "raw_text": "interconnection at 220 kV level",
+          "normalized_value": 220.0,
+          "unit": "kV",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "substation_name",
+          "page_number": 1,
+          "raw_text": "from Hoodi Substation",
+          "normalized_value": "Hoodi Substation",
+          "unit": null,
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "document_reference_number",
+          "page_number": 1,
+          "raw_text": "Application Reference: KPTCL/CEE/SLDC/2026/FS-302",
+          "normalized_value": "KPTCL/CEE/SLDC/2026/FS-302",
+          "unit": null,
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "application_date",
+          "page_number": 1,
+          "raw_text": "Date: 28-02-2026",
+          "normalized_value": "2026-02-28",
+          "unit": "YYYY-MM-DD",
+          "phase_scope": "CAMPUS_WIDE"
+        }
+      ]
+    },
+    {
+      "document_id": "doc-held-004-conflicting-power-values",
+      "filename": "MSEDCL_Sanction_Phased_Contradiction.pdf",
+      "true_document_type": "UTILITY_SANCTION",
+      "true_document_subtype": "GRID_SANCTION_LETTER",
+      "jurisdiction": "Maharashtra",
+      "issuing_authority": "MSEDCL",
+      "page_count": 2,
+      "expected_fields": [
+        {
+          "field_key": "document_reference_number",
+          "page_number": 1,
+          "raw_text": "Order No: MSEDCL/COMM/DC/2026/901",
+          "normalized_value": "MSEDCL/COMM/DC/2026/901",
+          "unit": null,
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "sanction_date",
+          "page_number": 1,
+          "raw_text": "Date: 11-03-2026",
+          "normalized_value": "2026-03-11",
+          "unit": "YYYY-MM-DD",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "sanctioned_grid_mw",
+          "page_number": 2,
+          "raw_text": "Phase 1 Power Sanction: 40.0 MW grid sanction",
+          "normalized_value": 40.0,
+          "unit": "MW",
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "contract_demand_mva",
+          "page_number": 2,
+          "raw_text": "Contracted Maximum Demand: 44.4 MVA",
+          "normalized_value": 44.4,
+          "unit": "MVA",
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "supply_voltage_kv",
+          "page_number": 2,
+          "raw_text": "at 220 kV",
+          "normalized_value": 220.0,
+          "unit": "kV",
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "substation_name",
+          "page_number": 2,
+          "raw_text": "Interconnection Substation: Airoli GIS Substation",
+          "normalized_value": "Airoli GIS Substation",
+          "unit": null,
+          "phase_scope": "PHASE_1"
+        }
+      ]
+    },
+    {
+      "document_id": "doc-held-005-malformed-ocr-text",
+      "filename": "TSSPDCL_Degraded_OCR_Sanction.txt",
+      "true_document_type": "UTILITY_SANCTION",
+      "true_document_subtype": "GRID_SANCTION_LETTER",
+      "jurisdiction": "Telangana",
+      "issuing_authority": "TSSPDCL",
+      "page_count": 1,
+      "expected_fields": [
+        {
+          "field_key": "sanctioned_grid_mw",
+          "page_number": 1,
+          "raw_text": "SANCTIONEDGRIDLOAD:30.0MW",
+          "normalized_value": 30.0,
+          "unit": "MW",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "supply_voltage_kv",
+          "page_number": 1,
+          "raw_text": "SUPPLYVOLTAGE:33kV",
+          "normalized_value": 33.0,
+          "unit": "kV",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "substation_name",
+          "page_number": 1,
+          "raw_text": "SUBSTATION:Gachibowli33kVSwitchyard",
+          "normalized_value": "Gachibowli33kVSwitchyard",
+          "unit": null,
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "document_reference_number",
+          "page_number": 1,
+          "raw_text": "Ref:TSSPDCL/HT/2026/9912",
+          "normalized_value": "TSSPDCL/HT/2026/9912",
+          "unit": null,
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "sanction_date",
+          "page_number": 1,
+          "raw_text": "Date:18-05-2026",
+          "normalized_value": "2026-05-18",
+          "unit": "YYYY-MM-DD",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "validity_expiry_date",
+          "page_number": 1,
+          "raw_text": "VALIDUNTIL:17-05-2028",
+          "normalized_value": "2028-05-17",
+          "unit": "YYYY-MM-DD",
+          "phase_scope": "CAMPUS_WIDE"
+        }
+      ]
+    },
+    {
+      "document_id": "doc-held-006-out-of-domain-lease",
+      "filename": "Apartment_Residential_Lease_Agreement.docx",
+      "true_document_type": "OTHER",
+      "true_document_subtype": "MISCELLANEOUS",
+      "jurisdiction": "Private",
+      "issuing_authority": "Individual",
+      "page_count": 1,
+      "expected_fields": []
+    }
+  ]
+}

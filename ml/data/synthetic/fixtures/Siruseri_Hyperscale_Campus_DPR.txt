@@ -1,0 +1,33 @@
+DETAILED PROJECT REPORT (DPR)
+PROJECT: CHENNAI ONE HYPERSCALE GREEN DATA CENTRE CAMPUS
+SIPCOT IT Park, Siruseri, Chengalpattu District, Tamil Nadu
+Document No: DPR-CHE-2026-REV3                                   Date: 05-04-2026
+
+CHAPTER 1: EXECUTIVE SITE SUMMARY & MASTER PLAN
+1.1 Campus Plot Area: 14.16 hectares (35.0 acres allotted by SIPCOT)
+1.2 Total Permissible Built-up Area: 450,000 sq ft across 3 modular data halls
+1.3 Master Plan Planned IT Capacity: 60.0 MW
+1.4 Facility Peak Load: 78.0 MW
+1.5 Design Power Usage Effectiveness (Target PUE): 1.30
+1.6 Campus Development Schedule:
+    - Phase 1 (30 MW IT / 40 MW Grid): CoD Q1 2027
+    - Phase 2 (Cumulative 60 MW IT / 78 MW Grid): CoD Q4 2028
+
+--- [Page Break] ---
+
+CHAPTER 2: POWER INFRASTRUCTURE & SUBSTATION HEADROOM
+2.1 Grid Interconnection: TANGEDCO 230/33 kV Siruseri Auto-Substation
+2.2 Phase 1 Power Sanction: 40.0 MW grid sanction at 230 kV
+2.3 Phase 2 Power Requirement: Cumulative 78.0 MW grid capacity
+2.4 Captive Renewable Energy Component: 15.0 MW dedicated on-site/near-site solar PV
+2.5 Dual-feed Redundancy: 2N independent feeder lines from TANGEDCO 230 kV busbars
+
+--- [Page Break] ---
+
+CHAPTER 3: WATER RESOURCE ASSESSMENT & COOLING BALANCE
+3.1 Cooling Architecture: Closed loop chilled water system with evaporative cooling assist
+3.2 Baseline Average Water Demand: 950 KLD
+3.3 Peak Summer Water Demand: 1500 KLD
+3.4 Water Supply Source: CMWSSB Tertiary Treated Water pipeline (TTRO Siruseri terminal)
+3.5 Evaporative Treated Wastewater Recycle Component: 900 KLD
+3.6 Zero Liquid Discharge (ZLD): Internal STP treated effluent 150 KLD recycled for cooling towers

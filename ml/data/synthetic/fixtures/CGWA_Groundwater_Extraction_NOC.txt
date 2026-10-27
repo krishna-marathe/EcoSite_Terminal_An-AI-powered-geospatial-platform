@@ -1,0 +1,27 @@
+GOVERNMENT OF INDIA
+CENTRAL GROUND WATER AUTHORITY (CGWA)
+Ministry of Jal Shakti, Department of Water Resources
+18/11, Jamnagar House, New Delhi - 110011
+
+NOC No: CGWA/NOC/IND/ORIG/2026/19420                             Date: 12-01-2026
+
+NO OBJECTION CERTIFICATE (NOC) FOR GROUND WATER ABSTRACTION
+
+To:
+M/s Deccan Cloud Infrastructure Private Limited
+Fab City, Ranga Reddy District, Telangana.
+
+1. Category of Assessment Unit: Semi-Critical
+2. Purpose of Extraction: Emergency Standby & Potable Uses for Data Centre
+3. Permitted Daily Ground Water Withdrawal: 50.0 KLD (Fifty Kilo-Litres per Day)
+4. Permitted Annual Quantity: 18,250 m3/year
+5. Number of Existing/Proposed Abstraction Structures: 2 Borewells
+6. Validity: 3 Years from 12-01-2026 to 11-01-2029
+
+SPECIAL CONDITIONS:
+- Continuous digital water meter with telemetry shall be fitted.
+- Ground water extraction shall NOT be utilized for regular cooling tower evaporation.
+- Artificial recharge to groundwater structures (rainwater harvesting) must achieve minimum 150% recharge.
+
+Member Secretary
+Central Ground Water Authority

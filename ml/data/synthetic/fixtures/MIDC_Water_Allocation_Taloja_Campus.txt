@@ -1,0 +1,33 @@
+MAHARASHTRA INDUSTRIAL DEVELOPMENT CORPORATION (MIDC)
+Office of the Executive Engineer, Water Works Division
+Taloja Industrial Area, Navi Mumbai, Maharashtra - 410208
+
+Order No: MIDC/EE/WATER/TALOJA/2026/W-104                           Date: 20-01-2026
+
+SANCTION ORDER FOR INDUSTRIAL BULK WATER SUPPLY
+
+To:
+M/s Sahyadri Data Hubs LLP,
+Plot No. PAP-V-12, Taloja Industrial Area,
+District Raigad, Maharashtra.
+
+Subject: Bulk Water Supply Commitment for 80 MW Green Cloud Data Centre Campus
+Reference: Developer Application MIDC/WTR/APP/992 dated 05-11-2025.
+
+Sanction is hereby accorded for external municipal raw and potable water connection as follows:
+
+1. Permitted Normal Water Allocation: 1800 KLD (1.80 MLD)
+2. Peak Summer Water Cap: 2200 KLD
+3. Mandatory Treated Wastewater Supply: 800 KLD (from Taloja CETP Tertiary Facility)
+4. Primary Water Source: Barvi Dam Industrial Gravity Main via MIDC 400mm Feeder
+5. Applicable Tariff: Non-domestic Industrial IT Rate Rs. 38.50 per 1,000 Litres
+6. Campus Scope: Entire Full Campus (Phase 1 through Phase 3 cumulative)
+
+TERMS AND MONITORING:
+- Total raw water extraction shall not exceed 1800 KLD during normal operating seasons.
+- Peak summer drawl up to 2200 KLD is authorized strictly subject to tertiary recycle reuse.
+- The applicant shall install dual ultrasonic flow meters calibrated by MIDC.
+- Validity: 5 years from date of commissioning (Valid until: 19-01-2031).
+
+Executive Engineer
+MIDC Water Works Division

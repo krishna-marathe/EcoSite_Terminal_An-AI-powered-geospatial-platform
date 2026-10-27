@@ -1,0 +1,320 @@
+{
+  "dataset_version": "1.0.0",
+  "description": "Synthetic multi-state Indian data centre regulatory & utility document benchmark",
+  "total_documents": 6,
+  "documents": [
+    {
+      "document_id": "doc-syn-001-ts-power-sanction",
+      "filename": "TSSPDCL_Grid_Sanction_FabCity_Phase1.pdf",
+      "true_document_type": "UTILITY_SANCTION",
+      "true_document_subtype": "GRID_SANCTION_LETTER",
+      "jurisdiction": "Telangana",
+      "issuing_authority": "TSSPDCL",
+      "page_count": 1,
+      "expected_fields": [
+        {
+          "field_key": "sanctioned_grid_mw",
+          "page_number": 1,
+          "raw_text": "Sanctioned Grid Load: 50.0 MW",
+          "normalized_value": 50.0,
+          "unit": "MW",
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "contract_demand_mva",
+          "page_number": 1,
+          "raw_text": "Contracted Maximum Demand: 55.5 MVA",
+          "normalized_value": 55.5,
+          "unit": "MVA",
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "supply_voltage_kv",
+          "page_number": 1,
+          "raw_text": "Supply Voltage: 220 kV",
+          "normalized_value": 220.0,
+          "unit": "kV",
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "substation_name",
+          "page_number": 1,
+          "raw_text": "Interconnection Substation: Fab City 220/33kV GIS Substation",
+          "normalized_value": "Fab City 220/33kV GIS Substation",
+          "unit": null,
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "document_reference_number",
+          "page_number": 1,
+          "raw_text": "Ref: TSSPDCL/CGM/COM/HT/2026/D-8841",
+          "normalized_value": "TSSPDCL/CGM/COM/HT/2026/D-8841",
+          "unit": null,
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "sanction_date",
+          "page_number": 1,
+          "raw_text": "Date: 15-03-2026",
+          "normalized_value": "2026-03-15",
+          "unit": "YYYY-MM-DD",
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "validity_expiry_date",
+          "page_number": 1,
+          "raw_text": "Valid until: 14-03-2028",
+          "normalized_value": "2028-03-14",
+          "unit": "YYYY-MM-DD",
+          "phase_scope": "PHASE_1"
+        }
+      ]
+    },
+    {
+      "document_id": "doc-syn-002-mh-water-allocation",
+      "filename": "MIDC_Water_Allocation_Taloja_Campus.pdf",
+      "true_document_type": "WATER_ALLOCATION",
+      "true_document_subtype": "MUNICIPAL_BULK_WATER_ALLOCATION",
+      "jurisdiction": "Maharashtra",
+      "issuing_authority": "MIDC",
+      "page_count": 1,
+      "expected_fields": [
+        {
+          "field_key": "water_allocation_kld",
+          "page_number": 1,
+          "raw_text": "Permitted Normal Water Allocation: 1800 KLD",
+          "normalized_value": 1800.0,
+          "unit": "KLD",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "peak_summer_water_kld",
+          "page_number": 1,
+          "raw_text": "Peak Summer Water Cap: 2200 KLD",
+          "normalized_value": 2200.0,
+          "unit": "KLD",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "treated_wastewater_kld",
+          "page_number": 1,
+          "raw_text": "Mandatory Treated Wastewater Supply: 800 KLD",
+          "normalized_value": 800.0,
+          "unit": "KLD",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "document_reference_number",
+          "page_number": 1,
+          "raw_text": "Order No: MIDC/EE/WATER/TALOJA/2026/W-104",
+          "normalized_value": "MIDC/EE/WATER/TALOJA/2026/W-104",
+          "unit": null,
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "sanction_date",
+          "page_number": 1,
+          "raw_text": "Date: 20-01-2026",
+          "normalized_value": "2026-01-20",
+          "unit": "YYYY-MM-DD",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "validity_expiry_date",
+          "page_number": 1,
+          "raw_text": "Valid until: 19-01-2031",
+          "normalized_value": "2031-01-19",
+          "unit": "YYYY-MM-DD",
+          "phase_scope": "CAMPUS_WIDE"
+        }
+      ]
+    },
+    {
+      "document_id": "doc-syn-003-ka-grid-application",
+      "filename": "BESCOM_HT_Power_Application_Devanahalli.pdf",
+      "true_document_type": "UTILITY_APPLICATION",
+      "true_document_subtype": "DISCOM_POWER_APPLICATION",
+      "jurisdiction": "Karnataka",
+      "issuing_authority": "BESCOM",
+      "page_count": 1,
+      "expected_fields": [
+        {
+          "field_key": "contract_demand_mva",
+          "page_number": 1,
+          "raw_text": "Proposed Contract Demand: 42.0 MVA",
+          "normalized_value": 42.0,
+          "unit": "MVA",
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "sanctioned_grid_mw",
+          "page_number": 1,
+          "raw_text": "Estimated Peak Active Load: 35.0 MW",
+          "normalized_value": 35.0,
+          "unit": "MW",
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "supply_voltage_kv",
+          "page_number": 1,
+          "raw_text": "Desired Supply Voltage: 66 kV",
+          "normalized_value": 66.0,
+          "unit": "kV",
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "substation_name",
+          "page_number": 1,
+          "raw_text": "Devanahalli 220/66kV Substation",
+          "normalized_value": "Devanahalli 220/66kV Substation",
+          "unit": null,
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "document_reference_number",
+          "page_number": 1,
+          "raw_text": "Application ID: BESCOM/APP/2026/HT-08914",
+          "normalized_value": "BESCOM/APP/2026/HT-08914",
+          "unit": null,
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "application_date",
+          "page_number": 1,
+          "raw_text": "Date: 10-02-2026",
+          "normalized_value": "2026-02-10",
+          "unit": "YYYY-MM-DD",
+          "phase_scope": "PHASE_1"
+        }
+      ]
+    },
+    {
+      "document_id": "doc-syn-004-tn-campus-dpr",
+      "filename": "Siruseri_Hyperscale_Campus_DPR.pdf",
+      "true_document_type": "DPR",
+      "true_document_subtype": "DETAILED_PROJECT_REPORT",
+      "jurisdiction": "Tamil Nadu",
+      "issuing_authority": "SIPCOT",
+      "page_count": 3,
+      "expected_fields": [
+        {
+          "field_key": "site_area_hectares",
+          "page_number": 1,
+          "raw_text": "Campus Plot Area: 14.16 hectares",
+          "normalized_value": 14.16,
+          "unit": "hectares",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "total_builtup_sqft",
+          "page_number": 1,
+          "raw_text": "Total Permissible Built-up Area: 450,000 sq ft",
+          "normalized_value": 450000.0,
+          "unit": "sq ft",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "planned_it_capacity_mw",
+          "page_number": 1,
+          "raw_text": "Master Plan Planned IT Capacity: 60.0 MW",
+          "normalized_value": 60.0,
+          "unit": "MW",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "target_pue",
+          "page_number": 1,
+          "raw_text": "Design Power Usage Effectiveness (Target PUE): 1.30",
+          "normalized_value": 1.3,
+          "unit": "ratio",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "sanctioned_grid_mw",
+          "page_number": 2,
+          "raw_text": "Phase 1 Power Sanction: 40.0 MW grid sanction",
+          "normalized_value": 40.0,
+          "unit": "MW",
+          "phase_scope": "PHASE_1"
+        },
+        {
+          "field_key": "captive_re_mw",
+          "page_number": 2,
+          "raw_text": "Captive Renewable Energy Component: 15.0 MW",
+          "normalized_value": 15.0,
+          "unit": "MW",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "peak_summer_water_kld",
+          "page_number": 3,
+          "raw_text": "Peak Summer Water Demand: 1500 KLD",
+          "normalized_value": 1500.0,
+          "unit": "KLD",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "treated_wastewater_kld",
+          "page_number": 3,
+          "raw_text": "Treated Wastewater Recycle Component: 900 KLD",
+          "normalized_value": 900.0,
+          "unit": "KLD",
+          "phase_scope": "CAMPUS_WIDE"
+        }
+      ]
+    },
+    {
+      "document_id": "doc-syn-005-cgwa-groundwater-noc",
+      "filename": "CGWA_Groundwater_Extraction_NOC.pdf",
+      "true_document_type": "WATER_ALLOCATION",
+      "true_document_subtype": "GROUNDWATER_CGWA_NOC",
+      "jurisdiction": "National",
+      "issuing_authority": "CGWA",
+      "page_count": 1,
+      "expected_fields": [
+        {
+          "field_key": "groundwater_permitted_kld",
+          "page_number": 1,
+          "raw_text": "Permitted Daily Ground Water Withdrawal: 50.0 KLD",
+          "normalized_value": 50.0,
+          "unit": "KLD",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "document_reference_number",
+          "page_number": 1,
+          "raw_text": "NOC No: CGWA/NOC/IND/ORIG/2026/19420",
+          "normalized_value": "CGWA/NOC/IND/ORIG/2026/19420",
+          "unit": null,
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "sanction_date",
+          "page_number": 1,
+          "raw_text": "Date: 12-01-2026",
+          "normalized_value": "2026-01-12",
+          "unit": "YYYY-MM-DD",
+          "phase_scope": "CAMPUS_WIDE"
+        },
+        {
+          "field_key": "validity_expiry_date",
+          "page_number": 1,
+          "raw_text": "to 11-01-2029",
+          "normalized_value": "2029-01-11",
+          "unit": "YYYY-MM-DD",
+          "phase_scope": "CAMPUS_WIDE"
+        }
+      ]
+    },
+    {
+      "document_id": "doc-syn-006-negative-commercial-invoice",
+      "filename": "Vendor_Server_Procurement_Invoice.txt",
+      "true_document_type": "OTHER",
+      "true_document_subtype": "MISCELLANEOUS",
+      "jurisdiction": "Commercial",
+      "issuing_authority": "Private Vendor",
+      "page_count": 1,
+      "expected_fields": []
+    }
+  ]
+}
