@@ -1,6 +1,7 @@
+import { DEMO_OVERLAYS } from '../../utils/environmentalLayers';
 import type { EnvironmentalLayer } from '../../types';
 
-export const DEMO_LAYERS: EnvironmentalLayer[] = [
+const catalogue: EnvironmentalLayer[] = [
   // Infrastructure Layers
   {
     id: 'layer-data-centres',
@@ -369,3 +370,12 @@ export const DEMO_LAYERS: EnvironmentalLayer[] = [
     },
   },
 ];
+
+export const DEMO_LAYERS: EnvironmentalLayer[] = catalogue.map(layer => {
+  const overlay = DEMO_OVERLAYS.find(item => item.key === layer.id);
+  const available = !!overlay || layer.category === 'infrastructure';
+  return { ...layer, isAvailable: available,
+    description: overlay ? `Synthetic illustrative geometry (${overlay.count} features), not sourced observations.` : layer.category === 'infrastructure' ? 'Facility markers from the current record set; consult each record’s provenance.' : 'Unavailable — no map geometry or validated model is connected.',
+    provenance: { sourceOrganization: overlay ? 'Bundled demonstration geometry' : 'No observation dataset connected', publicationDate: '', lastUpdated: '', geographicResolution: overlay ? 'Illustrative geometry' : 'Unavailable', dataStatus: overlay ? 'synthetic' : 'unavailable', confidenceScore: 0 },
+  };
+});

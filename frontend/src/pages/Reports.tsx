@@ -15,21 +15,7 @@ import { DefinitionRow } from '../components/ui/MetricTile';
 import { PageHeader, PageShell } from '../components/ui/PageHeader';
 import { EmptyState, ErrorState, InlineAlert } from '../components/ui/StateViews';
 import { DATA_STATUS_LABELS, FACILITY_TYPE_LABELS } from '../theme/tokens';
-import type { MitigationRecommendation } from '../types';
-
-interface SavedPlan {
-  recommendations: MitigationRecommendation[];
-  source: string;
-  constraints: string;
-  generatedAt: string;
-}
-
-const readPlan = (key: string): SavedPlan | null => {
-  try {
-    const value = JSON.parse(localStorage.getItem(key) || 'null');
-    return value && Array.isArray(value.recommendations) ? value : null;
-  } catch { return null; }
-};
+import { readPlan, inContext } from '../utils/savedContext';
 
 /**
  * Scenario severity ladder — one mapping shared by the on-screen
@@ -51,15 +37,17 @@ const scenarioSeverityLevel = (severityPercent: number | null): ScenarioSeverity
 };
 
 export const Reports: React.FC = () => {
-  const { cityId, dataMode, facilities, facilitiesStatus, facilitiesError, candidateSites, scenario, selectedFacilityId, setSelectedFacilityId, setDataMode } = useDashboardStore();
+  const { cityId, dataMode, facilities, facilitiesStatus, facilitiesError, savedCandidates, savedScenarios, storageNotice, selectedFacilityId, setSelectedFacilityId, setDataMode } = useDashboardStore();
   const [params] = useSearchParams();
   const [search, setSearch] = useState('');
   const city = getPilotCity(cityId);
   const selectedFacility = facilities.find((facility) => facility.id === (params.get('facility') || selectedFacilityId)) || facilities[0];
-  const plan = selectedFacility ? readPlan(`ecosite-mitigation-${cityId}-${selectedFacility.id}`) : null;
-  const dossier = buildPlanningDossier({ cityId, dataMode, facilities, candidateSites, scenario, mitigationPlan: plan ? { facilityId: selectedFacility.id, ...plan } : null });
+  const savedPlan = selectedFacility ? readPlan(dataMode, cityId, selectedFacility.id) : null;
+  const dossier = buildPlanningDossier({ cityId, dataMode, facilities, candidateSites: savedCandidates, scenario: savedScenarios.find(record => inContext(record, dataMode, cityId)) ?? null, mitigationPlan: savedPlan?.record });
+  const plan = dossier.mitigationPlan;
+  const scenario = dossier.scenario;
   const filtered = dossier.facilities.filter((facility) => `${facility.name} ${facility.type} ${facility.district}`.toLowerCase().includes(search.toLowerCase()));
-  const filename = `ecosite-${cityId}-${new Date().toISOString().slice(0, 10)}`;
+  const filename = `ecosite-${dataMode}-${cityId}-${new Date().toISOString().slice(0, 10)}`;
   const measurement = (value: number | null, suffix = '') => value == null ? 'Unavailable' : `${value.toLocaleString()}${suffix}`;
   const canExport = facilitiesStatus === 'ready';
 
@@ -75,12 +63,12 @@ export const Reports: React.FC = () => {
   }, [city.name]);
 
   const exportFacilities = () => downloadCsv(`${filename}-facilities.csv`, [
-    ['City', 'ID', 'Name', 'Type', 'Longitude', 'Latitude', 'Capacity MW', 'Risk index /100', 'Data status', 'Source', 'Updated', 'Scoring version'],
-    ...filtered.map((f) => [cityId, f.id, f.name, f.type, ...f.coordinates, f.capacityMw ?? null, f.overallRiskScore, f.provenance.dataStatus, f.provenance.sourceOrganization, f.provenance.lastUpdated, SCORING_VERSION]),
+    ['Mode', 'City', 'ID', 'Name', 'Type', 'Longitude', 'Latitude', 'Capacity MW', 'Risk index /100', 'Data status', 'Source', 'Updated', 'Scoring version'],
+    ...filtered.map((f) => [dataMode, cityId, f.id, f.name, f.type, ...f.coordinates, f.capacityMw ?? null, f.overallRiskScore, f.provenance.dataStatus, f.provenance.sourceOrganization, f.provenance.lastUpdated, SCORING_VERSION]),
   ]);
   const exportCandidates = () => downloadCsv(`${filename}-candidates.csv`, [
-    ['City', 'Name', 'Longitude', 'Latitude', 'Suitability /100', 'Status', 'Substation km', 'Protected area km', 'Population 5km', 'Data status', 'Scenario', 'Scenario severity level (0 none – 4 critical)'],
-    ...dossier.candidateSites.map((site) => [cityId, site.name, ...site.coordinates, site.suitabilityScore, site.suitabilityStatus, site.substationDistanceKm, site.protectedAreaDistanceKm, site.population5km, site.dataStatus, scenario ? scenario.type.replaceAll('_', ' ') : 'None', SCENARIO_SEVERITY_CODES[scenarioLevel]]),
+    ['Mode', 'City', 'Name', 'Longitude', 'Latitude', 'Suitability /100', 'Status', 'Substation km', 'Protected area km', 'Population 5km', 'Data status', 'Scenario', 'Scenario severity level (0 none – 4 critical)'],
+    ...dossier.candidateSites.map((site) => [dataMode, cityId, site.name, ...site.coordinates, site.suitabilityScore, site.suitabilityStatus, site.substationDistanceKm, site.protectedAreaDistanceKm, site.population5km, site.dataStatus, scenario ? scenario.type.replaceAll('_', ' ') : 'None', SCENARIO_SEVERITY_CODES[scenarioLevel]]),
   ]);
 
   const facilityRows = filtered.map((f) => [
@@ -135,6 +123,8 @@ export const Reports: React.FC = () => {
             : 'API mode: individual sources may still contain synthetic or estimated data. Saved candidates and scenarios are stored in this browser only.'}
         </InlineAlert>
 
+        {storageNotice && <InlineAlert tone="warning">{storageNotice}</InlineAlert>}
+        {savedPlan?.notice && <InlineAlert tone="warning">{savedPlan.notice}</InlineAlert>}
         <Card title="Planning context">
           <dl className="grid gap-x-8 sm:grid-cols-2">
             <DefinitionRow label="Planning area" value={city.name} />
@@ -224,7 +214,7 @@ export const Reports: React.FC = () => {
               <p className="text-meta text-eco-muted">
                 Source: {plan.source === 'ai' ? 'AI-generated advice (unverified)' : 'Illustrative intervention catalogue'} · Generated: {plan.generatedAt} · Constraints: {plan.constraints || 'None supplied'}. Benefits require site-specific verification.
               </p>
-              <Button className="print-hidden" onClick={() => downloadCsv(`${filename}-mitigation.csv`, [['City', 'Facility', 'Action', 'Priority', 'Benefit assumption', 'Verification', 'Source'], ...plan.recommendations.map((rec) => [cityId, selectedFacility.name, rec.title, rec.priority, rec.expectedBenefit, rec.verificationRequirements, plan.source])])}>Export mitigation CSV</Button>
+              <Button className="print-hidden" onClick={() => downloadCsv(`${filename}-mitigation.csv`, [['Mode', 'City', 'Facility', 'Action', 'Priority', 'Benefit assumption', 'Verification', 'Source'], ...plan.recommendations.map((rec) => [dataMode, cityId, selectedFacility.name, rec.title, rec.priority, rec.expectedBenefit, rec.verificationRequirements, plan.source])])}>Export mitigation CSV</Button>
               <ul className="space-y-3">
                 {plan.recommendations.map((rec) => (
                   <li key={rec.id} className="rounded-sm border border-eco-border p-3">

@@ -1,3 +1,4 @@
+import { layerAvailable, environmentalMessage } from '../../utils/environmentalLayers';
 import React, { useState } from 'react';
 import { Building2, ChevronDown, Droplets, Filter, Flame, Layers, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useDashboardStore } from '../../stores/dashboardStore';
@@ -23,6 +24,7 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 
 export const LeftSidebar: React.FC = () => {
   const {
+    dataMode,
     activeLayers,
     layerOpacities,
     toggleLayer,
@@ -158,6 +160,7 @@ export const LeftSidebar: React.FC = () => {
           </div>
         </div>
 
+        <p className="text-meta text-eco-warning">{environmentalMessage(dataMode)}</p>
         {/* Layer categories */}
         <div className="space-y-3">
           {categories.map((category) => {
@@ -180,7 +183,7 @@ export const LeftSidebar: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-1.5 text-eco-muted">
                     <span className="rounded-sm border border-eco-border bg-eco-bg px-1.5 font-mono text-micro">
-                      {categoryLayers.filter((l) => activeLayers[l.id]).length}/{categoryLayers.length}
+                      {categoryLayers.filter((l) => layerAvailable(l.id, l.category, dataMode) && activeLayers[l.id]).length}/{categoryLayers.length}
                     </span>
                     <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`} />
                   </div>
@@ -189,7 +192,8 @@ export const LeftSidebar: React.FC = () => {
                 {!isCollapsed && (
                   <div className="divide-y divide-eco-border/60">
                     {categoryLayers.map((layer) => {
-                      const isActive = !!activeLayers[layer.id];
+                      const available = layerAvailable(layer.id, layer.category, dataMode);
+                      const isActive = available && !!activeLayers[layer.id];
                       const opacity = layerOpacities[layer.id] ?? 1.0;
                       const isOpacityOpen = expandedOpacityLayerId === layer.id;
 
@@ -198,6 +202,7 @@ export const LeftSidebar: React.FC = () => {
                           <div className="flex items-start justify-between gap-2">
                             <button
                               type="button"
+                              disabled={!available}
                               onClick={() => toggleLayer(layer.id)}
                               aria-pressed={isActive}
                               className="group flex flex-1 items-start gap-2 text-left"
@@ -219,12 +224,13 @@ export const LeftSidebar: React.FC = () => {
                                   {layer.name}
                                   <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: layer.color }} />
                                 </span>
-                                <span className="mt-0.5 line-clamp-1 text-meta text-eco-muted">{layer.description}</span>
+                                <span className="mt-0.5 line-clamp-1 text-meta text-eco-muted">{available ? layer.description : 'Unavailable — no observation geometry is connected.'}</span>
                               </span>
                             </button>
 
                             <IconButton
                               size="sm"
+                              disabled={!available}
                               label={isOpacityOpen ? 'Hide opacity control' : 'Adjust layer opacity'}
                               aria-pressed={isOpacityOpen}
                               icon={<SlidersHorizontal className="h-3 w-3" />}
@@ -233,7 +239,7 @@ export const LeftSidebar: React.FC = () => {
                             />
                           </div>
 
-                          {isOpacityOpen && (
+                          {available && isOpacityOpen && (
                             <div className="mt-2.5 space-y-1.5 border-t border-eco-border/60 pt-2">
                               <div className="flex items-center justify-between text-meta text-eco-muted">
                                 <label htmlFor={`opacity-${layer.id}`}>Opacity</label>

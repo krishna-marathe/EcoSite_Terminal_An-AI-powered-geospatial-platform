@@ -1,9 +1,10 @@
+import { initializePlan, readPlan } from '../utils/savedContext';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ClipboardList, Sparkles } from 'lucide-react';
 import { useDashboardStore } from '../stores/dashboardStore';
 import { getMitigationRecommendations, generateAIMitigationPlan, AI_UNAVAILABLE_MESSAGE } from '../services/mitigation';
-import type { CityId, Facility, MitigationRecommendation } from '../types';
+import type { CityId, DataMode, Facility, MitigationRecommendation } from '../types';
 import { Badge, DataModeBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -97,12 +98,12 @@ export function Mitigation() {
         </Field>
       </div>
 
-      <FacilityMitigation key={`${cityId}-${dataMode}-${facility.id}`} cityId={cityId} facility={facility} />
+      <FacilityMitigation key={`${cityId}-${dataMode}-${facility.id}`} cityId={cityId} dataMode={dataMode} facility={facility} />
     </PageShell>
   );
 }
 
-function FacilityMitigation({ cityId, facility }: { cityId: CityId; facility: Facility }) {
+function FacilityMitigation({ cityId, dataMode, facility }: { cityId: CityId; dataMode: DataMode; facility: Facility }) {
   const [recommendations, setRecommendations] = useState<MitigationRecommendation[]>([]);
   const [constraints, setConstraints] = useState('');
   const [source, setSource] = useState<'catalog' | 'ai'>('catalog');
@@ -110,19 +111,26 @@ function FacilityMitigation({ cityId, facility }: { cityId: CityId; facility: Fa
   const [busy, setBusy] = useState(false);
   const [catalogSettled, setCatalogSettled] = useState(false);
   const active = useRef(true);
-  const storageKey = `ecosite-mitigation-${cityId}-${facility.id}`;
+  const [notice, setNotice] = useState('');
 
   useEffect(() => {
     active.current = true;
     getMitigationRecommendations(facility.type).then(items => {
-      if (active.current) {
-        setRecommendations(items);
-        setCatalogSettled(true);
-        try { if (localStorage.getItem(storageKey) === null) localStorage.setItem(storageKey, JSON.stringify({ recommendations: items, source: 'catalog', constraints: '', generatedAt: new Date().toISOString() })); } catch { setError('Plan could not be saved in this browser.'); }
+      if (!active.current) return;
+      const saved = readPlan(dataMode, cityId, facility.id);
+      setNotice(saved.notice);
+      let plan = saved.record?.payload;
+      if (!plan && saved.writable) {
+        try { plan = initializePlan(dataMode, cityId, facility.id, { recommendations: items, source: 'catalog', constraints: '', generatedAt: new Date().toISOString() }).payload; }
+        catch { setError('Plan could not be saved in this browser.'); }
       }
+      setRecommendations(plan?.recommendations ?? items);
+      setConstraints(plan?.constraints ?? '');
+      setSource(plan?.source ?? 'catalog');
+      setCatalogSettled(true);
     });
     return () => { active.current = false; };
-  }, [facility.type, storageKey]);
+  }, [facility.type, facility.id, cityId, dataMode]);
 
   const generate = async (event: FormEvent) => {
     event.preventDefault(); setBusy(true); setError('');
@@ -130,13 +138,14 @@ function FacilityMitigation({ cityId, facility }: { cityId: CityId; facility: Fa
       const items = await generateAIMitigationPlan();
       if (!active.current) return;
       setRecommendations(items); setSource('ai');
-      try { localStorage.setItem(storageKey, JSON.stringify({ recommendations: items, source: 'ai', constraints, generatedAt: new Date().toISOString() })); } catch { setError('AI advice received, but could not be saved in this browser.'); }
+      try { initializePlan(dataMode, cityId, facility.id, { recommendations: items, source: 'ai', constraints, generatedAt: new Date().toISOString() }); } catch { setError('AI advice received, but could not be saved in this browser.'); }
     } catch (e) { if (active.current) setError(e instanceof Error ? e.message : 'AI request failed.'); }
     finally { if (active.current) setBusy(false); }
   };
 
   return (
     <>
+      {notice && <InlineAlert tone="warning">{notice}</InlineAlert>}
       {error && <InlineAlert tone="critical">{error}</InlineAlert>}
 
       <Card

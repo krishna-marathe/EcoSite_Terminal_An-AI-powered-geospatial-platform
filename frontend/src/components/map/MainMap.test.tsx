@@ -19,6 +19,8 @@ vi.mock('maplibre-gl', () => ({
     remove() {}
     resize() {}
     loaded() { return true; }
+    isStyleLoaded() { return false; }
+    getSource() { return undefined; }
     getLayer() { return undefined; }
     getCenter() { return { lng: 0, lat: 0 }; }
     getZoom() { return 0; }

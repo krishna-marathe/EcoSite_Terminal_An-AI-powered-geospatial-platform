@@ -1,4 +1,4 @@
-import type { WorldMonitorLayerKey } from '../../types';
+import type { WorldMonitorLayerKey, Facility } from '../../types';
 
 export interface WorldMonitorLayerDef {
   key: WorldMonitorLayerKey;
@@ -12,7 +12,7 @@ export interface WorldMonitorLayerDef {
   source: string;
 }
 
-export const WM_LAYER_CATALOG: WorldMonitorLayerDef[] = [
+const catalogue: WorldMonitorLayerDef[] = [
   {
     key: 'hotspots',
     label: 'Critical Hotspots',
@@ -146,3 +146,22 @@ export const WM_LAYER_CATALOG: WorldMonitorLayerDef[] = [
     source: 'Wildlife Institute of India (WII)',
   },
 ];
+
+const filterLabels: Partial<Record<WorldMonitorLayerKey, string>> = { hotspots: 'All facilities', conflicts: 'Critical-risk facilities', weather: 'Air-pressure facilities', canadaAlerts: 'Heat-pressure facilities', outages: 'Grid-pressure facilities', natural: 'Flood-pressure facilities', waterways: 'Hydropower facilities', sanctions: 'Ecology / industrial facilities' };
+export const WM_LAYER_CATALOG = catalogue.map(layer => ({ ...layer, label: filterLabels[layer.key] ?? layer.shortLabel, shortLabel: filterLabels[layer.key] ?? layer.shortLabel, description: 'Filters current facility records by type or screening index; not an environmental observation layer.', source: 'Current facility records — consult individual provenance', unit: 'Matching facility records' }));
+export const matchesFacilityLayer = (key: WorldMonitorLayerKey, facility: Facility): boolean => {
+  switch (key) {
+    case 'hotspots': return true;
+    case 'conflicts': return facility.riskLevel === 'critical';
+    case 'bases': return facility.type === 'data_centre';
+    case 'nuclear': return facility.type === 'thermal_power';
+    case 'military': return facility.type === 'substation';
+    case 'weather': return facility.indicators.airPollution >= 55;
+    case 'canadaAlerts': return facility.indicators.heatExposure >= 65;
+    case 'outages': return facility.indicators.gridPressure >= 70;
+    case 'natural': return facility.indicators.floodHazard >= 60;
+    case 'waterways': return facility.type === 'hydro_power';
+    case 'economic': return facility.type === 'solar_farm' || facility.type === 'wind_farm';
+    case 'sanctions': return facility.indicators.biodiversityConstraint >= 60 || facility.type === 'industrial';
+  }
+};

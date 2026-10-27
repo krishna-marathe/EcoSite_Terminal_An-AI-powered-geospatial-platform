@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDashboardStore } from '../stores/dashboardStore';
 import { getPilotCity, isInCity } from '../data/pilotCities';
 import { assessProposedSite, type SiteAssessmentRequest } from '../services/siteAssessments';
@@ -39,19 +39,47 @@ export function SiteAnalysis() {
 
 function CitySiteAnalysis({ cityId, dataMode }: { cityId: CityId; dataMode: DataMode }) {
   const city = getPilotCity(cityId);
-  const { candidateSites: allCandidates, addCandidateSite, removeCandidateSite, clearCandidateSites } = useDashboardStore();
+  const { candidateSites: allCandidates, storageNotice, addCandidateSite, removeCandidateSite, clearCandidateSites } = useDashboardStore();
   const candidateSites = allCandidates.filter(site => site.cityId === cityId);
   const [form, setForm] = useState<SiteAssessmentRequest>({ cityId, name: `${city.name} candidate`, type: 'data_centre', longitude: city.center[0], latitude: city.center[1], capacityMw: 100, waterDemandKld: 0, powerDemandMw: 100 });
   const [result, setResult] = useState<ProposedSite | null>(null);
   const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'invalidated' | 'success' | 'error'>('idle');
+  const busy = status === 'loading';
   const request = useRef(0);
+  const controller = useRef<AbortController | null>(null);
+  useEffect(() => () => {
+    request.current++;
+    controller.current?.abort();
+  }, []);
+  const updateForm = (changes: Partial<SiteAssessmentRequest>) => {
+    request.current++;
+    controller.current?.abort();
+    setForm(current => ({ ...current, ...changes }));
+    setResult(null);
+    setError('');
+    setStatus(current => current === 'idle' ? 'idle' : 'invalidated');
+  };
   const coordinatesInCity = isInCity([form.longitude, form.latitude], cityId);
   const evaluate = async (event: React.FormEvent) => {
-    event.preventDefault(); const token = ++request.current; setBusy(true); setError(''); setResult(null);
-    try { const value = await assessProposedSite(form, dataMode); if (token === request.current) setResult(value); }
-    catch (e) { if (token === request.current) setError(e instanceof Error ? e.message : 'Assessment unavailable.'); }
-    finally { if (token === request.current) setBusy(false); }
+    event.preventDefault();
+    const token = ++request.current;
+    controller.current?.abort();
+    const currentController = new AbortController();
+    controller.current = currentController;
+    const snapshot = { ...form };
+    setStatus('loading'); setError(''); setResult(null);
+    try {
+      const value = await assessProposedSite(snapshot, dataMode, currentController.signal);
+      if (token === request.current) { setResult(value); setStatus('success'); }
+    } catch (e) {
+      if (token === request.current) {
+        setError(e instanceof Error ? e.message : 'Assessment unavailable.');
+        setStatus('error');
+      }
+    } finally {
+      if (token === request.current) controller.current = null;
+    }
   };
   const presets = cityId === 'pune' ? [{ name: 'Pune central candidate', longitude: 73.86, latitude: 18.52 }, { name: 'Pune western candidate', longitude: 73.74, latitude: 18.59 }] : [{ name: 'Mumbai central candidate', longitude: 72.88, latitude: 19.08 }, { name: 'Navi Mumbai candidate', longitude: 73.02, latitude: 19.12 }];
   return <PageShell>
@@ -64,39 +92,40 @@ function CitySiteAnalysis({ cityId, dataMode }: { cityId: CityId; dataMode: Data
         <span className="text-meta text-eco-muted">Saved comparisons are stored in this browser</span>
       </>}
     />
+    {storageNotice && <InlineAlert tone="warning">{storageNotice}</InlineAlert>}
     <div className="grid gap-6 lg:grid-cols-2">
       <Card title="Candidate parameters" footer={`Pilot extent: ${city.extentDescription}`}>
         <form onSubmit={evaluate} className="space-y-4">
-          <SiteMapPicker latitude={form.latitude} longitude={form.longitude} siteName={form.name} onCoordinatesChange={coords => { setForm({ ...form, ...coords }); setResult(null); }} />
+          <SiteMapPicker latitude={form.latitude} longitude={form.longitude} siteName={form.name} onCoordinatesChange={coords => updateForm(coords)} />
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-meta text-eco-muted">Presets</span>
-            {presets.map(p => <Button type="button" variant="secondary" size="xs" key={p.name} onClick={() => { setForm({ ...form, ...p }); setResult(null); }}>{p.name}</Button>)}
+            {presets.map(p => <Button type="button" variant="secondary" size="xs" key={p.name} onClick={() => updateForm(p)}>{p.name}</Button>)}
           </div>
           <Field label="Project name" htmlFor="candidate-name" required>
-            <Input id="candidate-name" required value={form.name} onChange={e => { setForm({ ...form, name: e.target.value }); setResult(null); }} />
+            <Input id="candidate-name" required value={form.name} onChange={e => updateForm({ name: e.target.value })} />
           </Field>
           <Field label="Infrastructure type" htmlFor="candidate-type">
-            <Select id="candidate-type" value={form.type} onChange={e => { setForm({ ...form, type: e.target.value as InfrastructureType }); setResult(null); }}>
+            <Select id="candidate-type" value={form.type} onChange={e => updateForm({ type: e.target.value as InfrastructureType })}>
               {INFRASTRUCTURE_TYPES.map(type => <option key={type} value={type}>{FACILITY_TYPE_LABELS[type]}</option>)}
             </Select>
           </Field>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Latitude (°)" htmlFor="candidate-latitude" hint="Decimal degrees; negative values are south.">
-              <Input id="candidate-latitude" type="number" step="any" required value={form.latitude} onChange={e => { request.current++; setForm({ ...form, latitude: Number(e.target.value) }); setResult(null); }} />
+              <Input id="candidate-latitude" type="number" step="any" required value={form.latitude} onChange={e => updateForm({ latitude: Number(e.target.value) })} />
             </Field>
             <Field label="Longitude (°)" htmlFor="candidate-longitude" hint="Decimal degrees; negative values are west.">
-              <Input id="candidate-longitude" type="number" step="any" required value={form.longitude} onChange={e => { request.current++; setForm({ ...form, longitude: Number(e.target.value) }); setResult(null); }} />
+              <Input id="candidate-longitude" type="number" step="any" required value={form.longitude} onChange={e => updateForm({ longitude: Number(e.target.value) })} />
             </Field>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <Field label="Capacity (MW)" htmlFor="candidate-capacity">
-              <Input id="candidate-capacity" type="number" step="any" min={0} required value={form.capacityMw} onChange={e => { request.current++; setForm({ ...form, capacityMw: Number(e.target.value) }); setResult(null); }} />
+              <Input id="candidate-capacity" type="number" step="any" min={0} required value={form.capacityMw} onChange={e => updateForm({ capacityMw: Number(e.target.value) })} />
             </Field>
             <Field label="Water demand (kL/day)" htmlFor="candidate-water">
-              <Input id="candidate-water" type="number" step="any" min={0} required value={form.waterDemandKld} onChange={e => { request.current++; setForm({ ...form, waterDemandKld: Number(e.target.value) }); setResult(null); }} />
+              <Input id="candidate-water" type="number" step="any" min={0} required value={form.waterDemandKld} onChange={e => updateForm({ waterDemandKld: Number(e.target.value) })} />
             </Field>
             <Field label="Power demand (MW)" htmlFor="candidate-power">
-              <Input id="candidate-power" type="number" step="any" min={0} required value={form.powerDemandMw} onChange={e => { request.current++; setForm({ ...form, powerDemandMw: Number(e.target.value) }); setResult(null); }} />
+              <Input id="candidate-power" type="number" step="any" min={0} required value={form.powerDemandMw} onChange={e => updateForm({ powerDemandMw: Number(e.target.value) })} />
             </Field>
           </div>
           {!coordinatesInCity && (
@@ -119,11 +148,12 @@ function CitySiteAnalysis({ cityId, dataMode }: { cityId: CityId; dataMode: Data
           {busy && !result && <LoadingSkeleton rows={4} />}
           {!busy && !result && !error && (
             <EmptyState
-              title="Evaluate coordinates to see available evidence"
+              title={status === 'invalidated' ? 'Inputs changed — evaluate again for current evidence' : 'Evaluate coordinates to see available evidence'}
               body="Missing environmental observations prevent a suitability ranking."
             />
           )}
           {result && <>
+            <InlineAlert tone="info">Assessment completed for current inputs.{result.suitabilityScore === null ? ' Suitability remains unavailable because evidence is insufficient.' : ''}</InlineAlert>
             <MetricTile
               label="Suitability"
               value={result.suitabilityScore === null ? null : result.suitabilityScore.toLocaleString()}

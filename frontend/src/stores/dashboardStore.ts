@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { DASHBOARD_KEY, dashboardStorage, activeCandidates, activeScenario, inContext, saveRecord, validCandidate, type SavedRecord, type Scenario } from '../utils/savedContext';
 import { getPilotCity } from '../data/pilotCities';
 import { DEMO_LAYERS } from '../data/demo/layers';
 
@@ -26,7 +27,9 @@ export interface DashboardState {
   setFacilities: (facilities: Facility[]) => void;
   facilitiesStatus: 'loading' | 'ready' | 'error';
   facilitiesError: string | null;
-  scenariosByCity: Partial<Record<CityId, { type: ScenarioType; severity: number } | null>>;
+  savedCandidates: SavedRecord<ProposedSite>[];
+  savedScenarios: SavedRecord<Scenario>[];
+  storageNotice: string;
   // Facility Selection
   selectedFacilityId: string | null;
   selectedFacility: Facility | null;
@@ -125,9 +128,11 @@ export const useDashboardStore = create<DashboardState>()(persist((set, get) => 
   facilities: [],
   facilitiesStatus: 'loading',
   facilitiesError: null,
-  scenariosByCity: {},
-  setCityId: (cityId) => set({ cityId, facilities: [], facilitiesStatus: 'loading', facilitiesError: null, selectedFacility: null, selectedFacilityId: null, scenario: get().scenariosByCity[cityId] || null, viewport: cityViewport(cityId) }),
-  setDataMode: (dataMode) => set({ dataMode, facilities: [], facilitiesStatus: 'loading', facilitiesError: null, selectedFacility: null, selectedFacilityId: null }),
+  savedCandidates: [],
+  savedScenarios: [],
+  storageNotice: '',
+  setCityId: (cityId) => set({ cityId, facilities: [], facilitiesStatus: 'loading', facilitiesError: null, selectedFacility: null, selectedFacilityId: null, scenario: activeScenario(get().savedScenarios, get().dataMode, cityId), viewport: cityViewport(cityId) }),
+  setDataMode: (dataMode) => set({ dataMode, candidateSites: activeCandidates(get().savedCandidates, dataMode), scenario: activeScenario(get().savedScenarios, dataMode, get().cityId), facilities: [], facilitiesStatus: 'loading', facilitiesError: null, selectedFacility: null, selectedFacilityId: null }),
   setFacilities: (facilities) => set((state) => {
     const selectedFacility = facilities.find((facility) => facility.id === state.selectedFacilityId) || facilities[0] || null;
     return { facilities, facilitiesStatus: 'ready', facilitiesError: null, selectedFacility, selectedFacilityId: selectedFacility?.id || null };
@@ -195,7 +200,10 @@ export const useDashboardStore = create<DashboardState>()(persist((set, get) => 
     }),
 
   scenario: null,
-  setScenario: (scenario) => set((state) => ({ scenario, scenariosByCity: { ...state.scenariosByCity, [state.cityId]: scenario } })),
+  setScenario: (scenario) => set((state) => ({ scenario, savedScenarios: [
+    ...state.savedScenarios.filter(record => !inContext(record, state.dataMode, state.cityId)),
+    ...(scenario ? [saveRecord(state.dataMode, state.cityId, state.cityId, scenario)] : []),
+  ] })),
 
   audioAlertsEnabled: true,
   toggleAudioAlerts: () => set((state) => ({ audioAlertsEnabled: !state.audioAlertsEnabled })),
@@ -243,15 +251,19 @@ export const useDashboardStore = create<DashboardState>()(persist((set, get) => 
     }),
 
   candidateSites: [],
-  addCandidateSite: (site) =>
-    set((state) => ({
-      candidateSites: [...state.candidateSites.filter((s) => s.id !== site.id), site],
-    })),
-  removeCandidateSite: (siteId) =>
-    set((state) => ({
-      candidateSites: state.candidateSites.filter((s) => s.id !== siteId),
-    })),
-  clearCandidateSites: () => set((state) => ({ candidateSites: state.candidateSites.filter((site) => site.cityId !== state.cityId) })),
+  addCandidateSite: (site) => set((state) => {
+    if (!validCandidate(site)) return state;
+    const savedCandidates = [...state.savedCandidates.filter(record => !(inContext(record, state.dataMode, site.cityId) && record.id === site.id)), saveRecord(state.dataMode, site.cityId, site.id, site)];
+    return { savedCandidates, candidateSites: activeCandidates(savedCandidates, state.dataMode) };
+  }),
+  removeCandidateSite: (siteId) => set((state) => {
+    const savedCandidates = state.savedCandidates.filter(record => !(inContext(record, state.dataMode, state.cityId) && record.id === siteId));
+    return { savedCandidates, candidateSites: activeCandidates(savedCandidates, state.dataMode) };
+  }),
+  clearCandidateSites: () => set((state) => {
+    const savedCandidates = state.savedCandidates.filter(record => !inContext(record, state.dataMode, state.cityId));
+    return { savedCandidates, candidateSites: activeCandidates(savedCandidates, state.dataMode) };
+  }),
 
   isLeftSidebarOpen: false, // Collapsed by default like World Monitor to give maximum room to map & panels!
   toggleLeftSidebar: () => set((state) => ({ isLeftSidebarOpen: !state.isLeftSidebarOpen })),
@@ -259,11 +271,12 @@ export const useDashboardStore = create<DashboardState>()(persist((set, get) => 
   isRightPanelOpen: false, // Opens upon facility click
   toggleRightPanel: () => set((state) => ({ isRightPanelOpen: !state.isRightPanelOpen })),
 }), {
-  name: 'ecosite-pilot-project-v1',
-  partialize: (state) => ({ cityId: state.cityId, dataMode: state.dataMode, candidateSites: state.candidateSites, scenariosByCity: state.scenariosByCity }),
+  name: DASHBOARD_KEY,
+  version: 2,
+  storage: dashboardStorage,
+  partialize: (state) => ({ schemaVersion: 2 as const, cityId: state.cityId, dataMode: state.dataMode, savedCandidates: state.savedCandidates, savedScenarios: state.savedScenarios }),
   merge: (persisted, current) => {
-    const saved = persisted as Partial<DashboardState>;
-    const cityId = saved.cityId === 'mumbai' ? 'mumbai' : 'pune';
-    return { ...current, ...saved, cityId, scenario: saved.scenariosByCity?.[cityId] || null, viewport: cityViewport(cityId) };
+    const saved = persisted as import('../utils/savedContext').SavedDashboard;
+    return { ...current, cityId: saved.cityId, dataMode: saved.dataMode, savedCandidates: saved.savedCandidates, savedScenarios: saved.savedScenarios, storageNotice: saved.storageNotice || '', candidateSites: activeCandidates(saved.savedCandidates, saved.dataMode), scenario: activeScenario(saved.savedScenarios, saved.dataMode, saved.cityId), viewport: cityViewport(saved.cityId) };
   },
 }));

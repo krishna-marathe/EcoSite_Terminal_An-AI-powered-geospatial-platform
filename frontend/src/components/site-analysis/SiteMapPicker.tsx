@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Target, Compass } from 'lucide-react';
@@ -83,6 +83,10 @@ export const SiteMapPicker: React.FC<SiteMapPickerProps> = ({
   siteName,
   onCoordinatesChange,
 }) => {
+  const onCoordinatesChangeRef = useRef(onCoordinatesChange);
+  useLayoutEffect(() => {
+    onCoordinatesChangeRef.current = onCoordinatesChange;
+  }, [onCoordinatesChange]);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const targetMarkerRef = useRef<maplibregl.Marker | null>(null);
@@ -205,7 +209,7 @@ export const SiteMapPicker: React.FC<SiteMapPickerProps> = ({
     map.on('style.load', ensureScreeningBuffer);
 
     // Handle Click anywhere to Pick New Coordinates
-    map.on('click', (e) => {
+    const handleMapClick = (e: maplibregl.MapMouseEvent) => {
       const clickedLng = parseFloat(e.lngLat.lng.toFixed(4));
       const clickedLat = parseFloat(e.lngLat.lat.toFixed(4));
 
@@ -218,12 +222,13 @@ export const SiteMapPicker: React.FC<SiteMapPickerProps> = ({
       else if (clickedLat >= 12 && clickedLat < 18 && clickedLng >= 74 && clickedLng <= 78) approxState = 'Karnataka';
       else if (clickedLat < 14 && clickedLng >= 77) approxState = 'Tamil Nadu';
 
-      onCoordinatesChange({
+      onCoordinatesChangeRef.current({
         latitude: clickedLat,
         longitude: clickedLng,
         state: approxState,
       });
-    });
+    };
+    map.on('click', handleMapClick);
 
     // ResizeObserver
     const resizeObserver = new ResizeObserver(() => map.resize());
@@ -233,8 +238,10 @@ export const SiteMapPicker: React.FC<SiteMapPickerProps> = ({
 
     return () => {
       destroyed = true;
+      map.off('click', handleMapClick);
       resizeObserver.disconnect();
       if (targetMarkerRef.current) targetMarkerRef.current.remove();
+      targetMarkerRef.current = null;
       Object.values(facilityMarkersRef.current).forEach((m) => m.remove());
       facilityMarkersRef.current = {};
       map.remove();

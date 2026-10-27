@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { AI_UNAVAILABLE_MESSAGE, generateAIMitigationPlan, getMitigationRecommendations, retireLegacyGeminiCredential } from './mitigation';
+import { planKey } from '../utils/savedContext';
 import { apiClient } from './api';
 import { ApiKeyModal } from '../components/ui/ApiKeyModal';
 import { Mitigation } from '../pages/Mitigation';
@@ -91,8 +92,8 @@ it('still saves a standard catalogue for a facility with no existing plan', asyn
   const facility = PILOT_FACILITIES[0];
   useDashboardStore.getState().setFacilities([facility]);
   render(<MemoryRouter><Mitigation /></MemoryRouter>);
-  await waitFor(() => expect(localStorage.getItem('ecosite-mitigation-pune-' + facility.id)).not.toBeNull());
-  const plan = JSON.parse(localStorage.getItem('ecosite-mitigation-pune-' + facility.id)!);
+  await waitFor(() => expect(localStorage.getItem(planKey('demo', 'pune', facility.id))).not.toBeNull());
+  const plan = JSON.parse(localStorage.getItem(planKey('demo', 'pune', facility.id))!).payload;
   expect(plan.source).toBe('catalog');
   expect(plan.recommendations).toEqual(await getMitigationRecommendations(facility.type));
 });

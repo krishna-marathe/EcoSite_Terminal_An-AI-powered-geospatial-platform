@@ -10,7 +10,7 @@ import { DataModeBadge, SourceTag } from '../components/ui/Badge';
 import { Field, Select } from '../components/ui/Field';
 import { MetricTile } from '../components/ui/MetricTile';
 import { EmptyState, InlineAlert, LoadingSkeleton } from '../components/ui/StateViews';
-import type { CityId, DataMode, ForecastResponse } from '../types';
+import type { CityId, DataMode, ForecastMetric, ForecastResponse } from '../types';
 
 export function Forecast() {
   const { cityId, dataMode } = useDashboardStore();
@@ -18,7 +18,7 @@ export function Forecast() {
 }
 
 function CityForecast({ cityId, dataMode }: { cityId: CityId; dataMode: DataMode }) {
-  const [metric, setMetric] = useState('electricity_demand');
+  const [metric, setMetric] = useState<ForecastMetric>('electricity_demand');
   const [horizon, setHorizon] = useState(12);
   const [response, setResponse] = useState<{ key: string; data?: ForecastResponse; error?: string } | null>(null);
   const key = `${cityId}-${dataMode}-${metric}-${horizon}`;
@@ -32,7 +32,7 @@ function CityForecast({ cityId, dataMode }: { cityId: CityId; dataMode: DataMode
   const points = data?.forecast ?? [];
   const first = points[0]?.prediction;
   const last = points.at(-1)?.prediction;
-  const metricConfig = FORECAST_METRICS[metric as keyof typeof FORECAST_METRICS];
+  const metricConfig = FORECAST_METRICS[metric];
   const changePercent = first !== undefined && first !== 0 && last !== undefined ? ((last - first) / first) * 100 : null;
 
   return <PageShell>
@@ -48,7 +48,7 @@ function CityForecast({ cityId, dataMode }: { cityId: CityId; dataMode: DataMode
     <Card title="Projection settings">
       <div className="grid max-w-xl gap-4 sm:grid-cols-2">
         <Field label="Metric" htmlFor="forecast-metric">
-          <Select id="forecast-metric" value={metric} onChange={e => setMetric(e.target.value)}>
+          <Select id="forecast-metric" value={metric} onChange={e => setMetric(e.target.value as ForecastMetric)}>
             {Object.entries(FORECAST_METRICS).map(([id, item]) => <option key={id} value={id}>{item.label} ({item.unit})</option>)}
           </Select>
         </Field>

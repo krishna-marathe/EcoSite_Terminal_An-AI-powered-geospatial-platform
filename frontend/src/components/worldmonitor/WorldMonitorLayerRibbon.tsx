@@ -19,7 +19,7 @@ import {
   ChevronUp,
   Search,
 } from 'lucide-react';
-import { WM_LAYER_CATALOG } from '../../data/demo/wmLayers';
+import { WM_LAYER_CATALOG, matchesFacilityLayer } from '../../data/demo/wmLayers';
 import { useDashboardStore } from '../../stores/dashboardStore';
 import type { WorldMonitorLayerKey } from '../../types';
 
@@ -39,7 +39,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 };
 
 export const WorldMonitorLayerRibbon: React.FC = () => {
-  const { wmLayers, toggleWmLayer, setAllWmLayers } = useDashboardStore();
+  const { wmLayers, toggleWmLayer, setAllWmLayers, facilities } = useDashboardStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isExpanded, setIsExpanded] = useState(false);
   const [catalogQuery, setCatalogQuery] = useState('');
@@ -93,15 +93,15 @@ export const WorldMonitorLayerRibbon: React.FC = () => {
             className="flex cursor-pointer items-center gap-1.5 text-meta font-medium text-eco-text transition-colors hover:text-eco-primary"
           >
             {isExpanded ? <ChevronUp className="h-3 w-3 text-eco-muted" /> : <ChevronDown className="h-3 w-3 text-eco-muted" />}
-            <span>Map layers</span>
+            <span>Facility filters</span>
             <span className="rounded-sm border border-eco-primary/40 bg-eco-primary/10 px-1.5 py-0.5 font-mono text-micro text-eco-primary">
-              {activeCount}/{totalCount} active
+              {activeCount}/{totalCount} selected
             </span>
           </button>
 
           {!isExpanded && (
             <div className="hidden max-w-xl items-center gap-1 truncate md:flex">
-              <span className="text-eco-muted">Active:</span>
+              <span className="text-eco-muted">Selected:</span>
               {WM_LAYER_CATALOG.filter((l) => wmLayers[l.key])
                 .slice(0, 6)
                 .map((l) => (
@@ -113,7 +113,7 @@ export const WorldMonitorLayerRibbon: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsExpanded(true)}
-                  title="Show all layers"
+                  title="Show all facility filters"
                   className="cursor-pointer font-mono text-micro text-eco-muted underline-offset-2 hover:text-eco-primary hover:underline"
                 >
                   +{activeCount - 6} more
@@ -128,7 +128,7 @@ export const WorldMonitorLayerRibbon: React.FC = () => {
             type="button"
             onClick={() => handleSetAll(true)}
             className="flex cursor-pointer items-center gap-1 rounded-sm px-1.5 py-0.5 text-eco-primary transition-colors hover:bg-eco-surface-secondary"
-            title="Enable all layers"
+            title="Enable all facility filters"
           >
             <CheckCheck className="h-3 w-3" />
             <span className="hidden sm:inline">Select all</span>
@@ -137,7 +137,7 @@ export const WorldMonitorLayerRibbon: React.FC = () => {
             type="button"
             onClick={() => handleSetAll(false)}
             className="flex cursor-pointer items-center gap-1 rounded-sm px-1.5 py-0.5 text-eco-muted transition-colors hover:bg-eco-surface-secondary hover:text-eco-critical"
-            title="Clear all layers"
+            title="Clear all facility filters"
           >
             <XCircle className="h-3 w-3" />
             <span className="hidden sm:inline">Clear</span>
@@ -147,6 +147,7 @@ export const WorldMonitorLayerRibbon: React.FC = () => {
 
       {isExpanded && (
         <div className="border-t border-eco-border/60 pb-2.5 pt-2">
+          <p className="mb-2 text-eco-muted">Counts are matching facility records, not environmental observations. Environmental overlays are controlled in Layers &amp; filters.</p>
           <div className="mb-2 flex items-center gap-2 rounded-sm border border-eco-border bg-eco-surface px-2 py-1">
             <Search className="h-3.5 w-3.5 text-eco-muted" />
             <input
@@ -183,7 +184,7 @@ export const WorldMonitorLayerRibbon: React.FC = () => {
                       isActive ? 'border border-eco-border bg-eco-bg text-eco-primary' : 'text-eco-muted'
                     }`}
                   >
-                    {layer.count}
+                    {facilities.filter(facility => matchesFacilityLayer(layer.key, facility)).length}
                   </span>
                 </button>
               );

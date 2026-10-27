@@ -120,6 +120,8 @@ export interface EnvironmentalLayer {
   provenance: DataProvenance;
 }
 
+export type ForecastMetric = 'electricity_demand' | 'air_quality' | 'groundwater_depletion' | 'temperature_heat' | 'environmental_risk_index';
+
 export interface ForecastPoint {
   date: string;
   prediction: number;
@@ -129,7 +131,7 @@ export interface ForecastPoint {
 }
 
 export interface ForecastResponse {
-  metric: string;
+  metric: ForecastMetric;
   locationId: string;
   locationName: string;
   unit: string;

@@ -1,3 +1,5 @@
+import { WM_LAYER_CATALOG, matchesFacilityLayer } from '../../data/demo/wmLayers';
+import { DEMO_OVERLAYS, overlayLayerIds, environmentalMessage } from '../../utils/environmentalLayers';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -319,6 +321,27 @@ const setupEnvironmentalLayers = (
   }
 };
 
+const syncEnvironmentalLayers = (map: maplibregl.Map, styleLoadEvent = false) => {
+  const { dataMode, activeLayers, layerOpacities } = useDashboardStore.getState();
+  if (dataMode !== 'demo') {
+    for (const overlay of DEMO_OVERLAYS) {
+      for (const id of overlayLayerIds(overlay)) if (map.getLayer(id)) map.removeLayer(id);
+      if (map.getSource(overlay.source)) map.removeSource(overlay.source);
+    }
+    return;
+  }
+  // style.load permits source edits even while isStyleLoaded waits for source data.
+  if (!styleLoadEvent && !map.isStyleLoaded()) return;
+  setupEnvironmentalLayers(map, activeLayers, layerOpacities);
+  for (const overlay of DEMO_OVERLAYS) {
+    const opacity = layerOpacities[overlay.key] ?? overlay.opacity;
+    for (const id of overlayLayerIds(overlay)) {
+      const fill = id.endsWith('-fill');
+      map.setPaintProperty(id, fill ? 'fill-opacity' : 'line-opacity', activeLayers[overlay.key] ? (fill || overlay.key === 'layer-transmission-lines' ? opacity : 0.8) : 0);
+    }
+  }
+};
+
 const getFacilityIconSvg = (type: InfrastructureType): string => {
   switch (type) {
     case 'data_centre':
@@ -352,6 +375,7 @@ export const MainMap: React.FC = () => {
     '';
 
   const {
+    dataMode,
     selectedFacilityId,
     setSelectedFacilityId,
     searchQuery,
@@ -387,6 +411,7 @@ export const MainMap: React.FC = () => {
     if (!mapContainerRef.current) return;
 
     const styleDef = getMapStyle(mapStyle, mapboxToken);
+    prevStyleRef.current = mapStyle;
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
@@ -437,13 +462,13 @@ export const MainMap: React.FC = () => {
       window.clearTimeout(loadTimer);
       setMapError(null);
       map.resize();
-      setupEnvironmentalLayers(map, activeLayers, layerOpacities);
+      syncEnvironmentalLayers(map);
       setMapInstance(map);
 
       // Register hover events on environmental hazard layers
       const registerEnvHover = (layerId: string) => {
         map.on('mousemove', layerId, (e) => {
-          if (e.features && e.features[0]) {
+          if (useDashboardStore.getState().dataMode === 'demo' && e.features && e.features[0]) {
             const props = e.features[0].properties as { name?: string; status?: string; description?: string };
             if (props?.name) {
               map.getCanvas().style.cursor = 'help';
@@ -475,6 +500,8 @@ export const MainMap: React.FC = () => {
       envFillLayers.forEach((l) => registerEnvHover(l));
     };
 
+    const onStyleLoaded = () => syncEnvironmentalLayers(map, true);
+    map.on('style.load', onStyleLoaded);
     map.on('load', onMapLoaded);
     setMapInstance(map);
 
@@ -483,6 +510,8 @@ export const MainMap: React.FC = () => {
       resizeObserver.disconnect();
       Object.values(markersRef.current).forEach((marker) => marker.remove());
       markersRef.current = {};
+      map.off('style.load', onStyleLoaded);
+      map.off('load', onMapLoaded);
       map.remove();
       setMapInstance(null);
     };
@@ -497,41 +526,13 @@ export const MainMap: React.FC = () => {
       const styleDef = getMapStyle(mapStyle, mapboxToken);
       mapInstance.setStyle(styleDef);
 
-      mapInstance.once('style.load', () => {
-        setupEnvironmentalLayers(mapInstance, activeLayers, layerOpacities);
-      });
     }
   }, [mapStyle, mapboxToken, mapInstance, activeLayers, layerOpacities]);
 
-  // Synchronize environmental layers visibility and opacity with left sidebar
+  // Reconcile mode and settings without reconstructing the basemap.
   useEffect(() => {
-    if (!mapInstance) return;
-
-    const syncLayer = (fillId: string, lineId: string, storeKey: string, defaultOpacity: number, isLineOnly = false) => {
-      const isActive = !!activeLayers[storeKey];
-      const opacity = layerOpacities[storeKey] ?? defaultOpacity;
-
-      if (!isLineOnly) {
-        if (mapInstance.getLayer(fillId)) {
-          mapInstance.setPaintProperty(fillId, 'fill-opacity', isActive ? opacity : 0);
-        }
-        if (mapInstance.getLayer(lineId)) {
-          mapInstance.setPaintProperty(lineId, 'line-opacity', isActive ? 0.8 : 0);
-        }
-      } else {
-        if (mapInstance.getLayer(lineId)) {
-          mapInstance.setPaintProperty(lineId, 'line-opacity', isActive ? opacity : 0);
-        }
-      }
-    };
-
-    syncLayer('layer-gw-stress-fill', 'layer-gw-stress-line', 'env-groundwater-stress', 0.45);
-    syncLayer('layer-air-quality-fill', 'layer-air-quality-line', 'env-air-quality', 0.4);
-    syncLayer('layer-heat-anomaly-fill', 'layer-heat-anomaly-line', 'env-surface-temp', 0.4);
-    syncLayer('layer-flood-hazard-fill', 'layer-flood-hazard-line', 'env-flood-susceptibility', 0.45);
-    syncLayer('layer-protected-areas-fill', 'layer-protected-areas-line', 'env-protected-areas', 0.4);
-    syncLayer('', 'layer-transmission-grid-line', 'layer-transmission-lines', 0.85, true);
-  }, [activeLayers, layerOpacities, mapInstance]);
+    if (mapInstance) syncEnvironmentalLayers(mapInstance);
+  }, [dataMode, activeLayers, layerOpacities, mapInstance]);
 
   // Synchronize viewport from store
   useEffect(() => {
@@ -574,19 +575,7 @@ export const MainMap: React.FC = () => {
         }
 
         // 2. World Monitor Tactical Layers matching logic
-        const matchesWmLayer =
-          wmLayers.hotspots ||
-          (wmLayers.conflicts && f.riskLevel === 'critical') ||
-          (wmLayers.bases && f.type === 'data_centre') ||
-          (wmLayers.nuclear && f.type === 'thermal_power') ||
-          (wmLayers.military && f.type === 'substation') ||
-          (wmLayers.weather && f.indicators.airPollution >= 55) ||
-          (wmLayers.canadaAlerts && f.indicators.heatExposure >= 65) ||
-          (wmLayers.outages && f.indicators.gridPressure >= 70) ||
-          (wmLayers.natural && f.indicators.floodHazard >= 60) ||
-          (wmLayers.waterways && f.type === 'hydro_power') ||
-          (wmLayers.economic && (f.type === 'solar_farm' || f.type === 'wind_farm')) ||
-          (wmLayers.sanctions && (f.indicators.biodiversityConstraint >= 60 || f.type === 'industrial'));
+        const matchesWmLayer = WM_LAYER_CATALOG.some(layer => wmLayers[layer.key] && matchesFacilityLayer(layer.key, f));
 
         if (!matchesWmLayer) return false;
 
@@ -924,9 +913,6 @@ export const MainMap: React.FC = () => {
               setMapError(null);
               if (!mapInstance) return;
               mapInstance.setStyle(getMapStyle(mapStyle, mapboxToken));
-              mapInstance.once('style.load', () => {
-                setupEnvironmentalLayers(mapInstance, activeLayers, layerOpacities);
-              });
             }}
             className="shrink-0 text-eco-primary hover:underline"
           >
@@ -943,12 +929,14 @@ export const MainMap: React.FC = () => {
         </div>
       )}
 
+      <div className="absolute top-14 left-4 z-20 max-w-sm rounded border border-eco-warning/30 bg-eco-surface/95 px-2 py-1 text-micro text-eco-warning">{environmentalMessage(dataMode)}</div>
+
       {/* Facility type legend */}
       <div className="absolute bottom-4 left-4 z-20 hidden lg:flex flex-wrap items-center gap-x-3 gap-y-1 max-w-[75%] px-3 py-2 bg-eco-surface/90 border border-eco-border rounded-lg shadow-2xl backdrop-blur-md text-xs text-eco-text select-none">
         <span className="text-micro uppercase tracking-wider text-eco-muted font-mono">
           Legend
         </span>
-        {(Object.keys(FACILITY_TYPE_COLORS) as InfrastructureType[]).map((type) => (
+        {Array.from(new Set(filteredFacilities.map(facility => facility.type))).map((type) => (
           <div key={type} className="flex items-center gap-1.5">
             <span
               className="w-2.5 h-2.5 rounded-full border border-eco-bg shadow"
@@ -1012,7 +1000,7 @@ export const MainMap: React.FC = () => {
       )}
 
       {/* Environmental overlay hover tooltip */}
-      {hoveredEnvZone && (
+      {dataMode === 'demo' && hoveredEnvZone && (
         <div
           className="fixed z-50 pointer-events-none bg-eco-surface/95 border border-eco-border text-eco-text rounded-lg p-3 shadow-2xl backdrop-blur-md text-xs max-w-xs -translate-x-1/2 -translate-y-full mb-3"
           style={{

@@ -1,19 +1,19 @@
 import { getPilotCity } from '../data/pilotCities';
-import type { CityId, DataMode, ForecastResponse } from '../types';
+import type { CityId, DataMode, ForecastMetric, ForecastResponse } from '../types';
 import { apiClient } from './api';
-export interface ForecastRequest { location_id: string; metric: string; horizon_months: number }
-export const FORECAST_METRICS = {
+export interface ForecastRequest { location_id: string; metric: ForecastMetric; horizon_months: number }
+export const FORECAST_METRICS: Record<ForecastMetric, { label: string; unit: string; base: number; step: number }> = {
   electricity_demand: { label: 'Electricity demand', unit: 'MW', base: 800, step: 12 },
   air_quality: { label: 'Ambient PM2.5', unit: 'µg/m³', base: 40, step: 0.3 },
-  groundwater: { label: 'Groundwater depth', unit: 'm below ground', base: 12, step: 0.1 },
-  temperature: { label: 'Temperature', unit: '°C', base: 30, step: 0.04 },
-  environmental_risk: { label: 'Environmental stress', unit: 'index 0–100', base: 50, step: 0.2 },
+  groundwater_depletion: { label: 'Groundwater depth', unit: 'm below ground', base: 12, step: 0.1 },
+  temperature_heat: { label: 'Temperature', unit: '°C', base: 30, step: 0.04 },
+  environmental_risk_index: { label: 'Environmental stress', unit: 'index 0–100', base: 50, step: 0.2 },
 };
 export const getForecast = async (req: ForecastRequest, mode: DataMode = 'demo'): Promise<ForecastResponse> => {
-  if (!['pune', 'mumbai'].includes(req.location_id) || !(req.metric in FORECAST_METRICS)) throw new Error('Forecast unavailable for this city or metric.');
+  if (!['pune', 'mumbai'].includes(req.location_id) || !Object.hasOwn(FORECAST_METRICS, req.metric)) throw new Error('Forecast unavailable for this city or metric.');
   if (!Number.isInteger(req.horizon_months) || req.horizon_months < 1 || req.horizon_months > 60) throw new Error('Forecast horizon must be 1–60 months.');
   if (mode === 'api') return (await apiClient.post<ForecastResponse>('/forecasts', req)).data;
-  const metric = FORECAST_METRICS[req.metric as keyof typeof FORECAST_METRICS];
+  const metric = FORECAST_METRICS[req.metric];
   const now = new Date();
   const forecast = Array.from({ length: req.horizon_months }, (_, i) => {
     const prediction = Number((metric.base * (req.location_id === 'mumbai' ? 1.1 : 1) + i * metric.step).toFixed(2));
