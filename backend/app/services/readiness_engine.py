@@ -75,6 +75,11 @@ def _get_power_entitlement_key(
         m = re.search(r'(?:sanction|order|entitlement|ref|reference)[:\s#]+([A-Za-z0-9_\-\/]+)', pc.notes, re.IGNORECASE)
         if m:
             return f"sanction_ref:{m.group(1).lower()}"
+    if pc.substation_name:
+        sub_norm = pc.substation_name.strip().lower()
+        prov_norm = (pc.utility_provider or "").strip().lower()
+        volt_norm = f"{pc.voltage_kv}" if pc.voltage_kv is not None else ""
+        return f"grid_conn:{prov_norm}:{sub_norm}:{volt_norm}"
     return f"commitment:{pc.id}"
 
 
@@ -519,7 +524,7 @@ def evaluate_phase_power(
     # Round all values
     verified_firm_mw = round(verified_firm_mw, 4)
     documented_firm_mw = round(documented_firm_mw, 4)
-    qualifying_firm_mw = round(verified_firm_mw, 4)
+    qualifying_firm_mw = round(verified_firm_mw + documented_firm_mw, 4)
     proposed_mw = round(proposed_mw, 4)
     unverified_mw = round(unverified_mw, 4)
 
