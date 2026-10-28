@@ -205,6 +205,47 @@ class AuthorityEvidence(Base):
     updated_at: Mapped[str] = mapped_column(String(32), default=utc_timestamp)
 
 
+class DeveloperEvidence(Base):
+    """Private phase-bound developer design evidence, not operational telemetry."""
+
+    __tablename__ = "developer_evidence"
+    __table_args__ = (
+        CheckConstraint("revision >= 1", name="ck_developer_evidence_revision"),
+        CheckConstraint("phase_revision >= 1", name="ck_developer_evidence_phase_revision"),
+        CheckConstraint(f"evidence_status IN ({_quoted(EVIDENCE_STATUSES)})", name="ck_developer_evidence_status"),
+        CheckConstraint("design_wue_l_per_kwh_it IS NULL OR design_wue_l_per_kwh_it >= 0", name="ck_developer_evidence_wue"),
+        CheckConstraint("design_cue_kgco2_per_kwh IS NULL OR design_cue_kgco2_per_kwh >= 0", name="ck_developer_evidence_cue"),
+        CheckConstraint(
+            "internal_reuse_fraction IS NULL OR (internal_reuse_fraction >= 0 AND internal_reuse_fraction <= 1)",
+            name="ck_developer_evidence_reuse",
+        ),
+        CheckConstraint("backup_generation_mw IS NULL OR backup_generation_mw >= 0", name="ck_developer_evidence_backup"),
+        UniqueConstraint("phase_id", "revision", name="uq_developer_evidence_phase_revision"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    site_id: Mapped[str] = mapped_column(ForeignKey("candidate_sites.id", ondelete="CASCADE"), index=True)
+    phase_id: Mapped[str] = mapped_column(ForeignKey("project_phases.id", ondelete="CASCADE"), index=True)
+    phase_revision: Mapped[int] = mapped_column(Integer)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    evidence_status: Mapped[str] = mapped_column(String(20))
+    document_reference: Mapped[str] = mapped_column(String(300))
+    document_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    declared_by: Mapped[str] = mapped_column(String(200))
+    declared_on: Mapped[str] = mapped_column(String(32))
+    valid_until: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    measurement_boundary: Mapped[str] = mapped_column(String(500))
+    design_wue_l_per_kwh_it: Mapped[float | None] = mapped_column(Float, nullable=True)
+    design_cue_kgco2_per_kwh: Mapped[float | None] = mapped_column(Float, nullable=True)
+    internal_reuse_fraction: Mapped[float | None] = mapped_column(Float, nullable=True)
+    backup_generation_mw: Mapped[float | None] = mapped_column(Float, nullable=True)
+    backup_fuel: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    water_source_mix: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    asset_register: Mapped[dict] = mapped_column(JSON, default=dict)
+    notes: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    created_at: Mapped[str] = mapped_column(String(32), default=utc_timestamp)
+
+
 class ScoreRun(Base):
     __tablename__ = "score_runs"
     __table_args__ = (

@@ -15,6 +15,7 @@ import { PolygonEditor } from '../components/site-analysis/PolygonEditor';
 import { PageHeader, PageShell } from '../components/ui/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import type { EvidenceUploadMetadata } from '../components/projects/EvidenceWorkspace';
 
 function useMounted() {
   const mounted = useRef(false);
@@ -65,7 +66,7 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
     queryFn: () => evidenceService.getExtractions(projectId),
   });
 
-  const handleUpload = async (file: File, metadata: any) => {
+  const handleUpload = async (file: File, metadata: EvidenceUploadMetadata) => {
     onBusy(true);
     try {
       await evidenceService.uploadArtifact(projectId, file, metadata);

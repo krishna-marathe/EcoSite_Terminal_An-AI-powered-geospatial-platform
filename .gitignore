@@ -8,6 +8,9 @@ frontend/.env
 # Runtime connector snapshots: large and reproducible from the source.
 backend/data/raw/
 
+# Local SQLite safety backups created before migrations/retention.
+backend/data/backups/
+
 # Python caches
 __pycache__/
 *.pyc

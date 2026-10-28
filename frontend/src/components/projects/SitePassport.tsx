@@ -2,7 +2,6 @@ import React, { useRef } from 'react';
 import type { Project, CandidateSite } from '../../services/projects';
 import type { ProjectPhase } from '../../services/phases';
 import type { Assertion, EvidenceArtifact } from '../../types/evidence';
-import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 
 interface SitePassportProps {

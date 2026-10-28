@@ -1,13 +1,15 @@
 import { PlanningBar } from './PlanningBar';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { WorldMonitorHeader } from '../worldmonitor/WorldMonitorHeader';
 import { StatusBar } from './StatusBar';
 
 export const AppLayout: React.FC = () => {
+  const location = useLocation();
+  const showPlanningContext = !location.pathname.startsWith('/public-facilities') && !location.pathname.startsWith('/ministry') && !location.pathname.startsWith('/operator');
   return (
     <div className="flex flex-col h-screen w-screen bg-eco-bg text-eco-text overflow-hidden select-none">
       <WorldMonitorHeader />
-      <PlanningBar />
+      {showPlanningContext && <PlanningBar />}
       <main className="flex-1 relative overflow-hidden flex">
         <Outlet />
       </main>

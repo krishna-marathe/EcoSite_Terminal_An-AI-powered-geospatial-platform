@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import type { DocumentType } from '../../types/evidence';
-import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 
 interface EvidenceUploadModalProps {
@@ -54,8 +53,8 @@ export function EvidenceUploadModal({ isOpen, onClose, onUpload, busy }: Evidenc
         notes: notes.trim() || undefined,
       });
       onClose();
-    } catch (err: any) {
-      setError(err?.message || 'Failed to upload document.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to upload document.');
     }
   };
 

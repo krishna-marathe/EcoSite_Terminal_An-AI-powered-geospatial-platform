@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Assertion, AssertionStatus, EvidenceArtifact } from '../../types/evidence';
+import type { Assertion, AssertionStatus, DocumentType, EvidenceArtifact } from '../../types/evidence';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { EvidenceUploadModal } from './EvidenceUploadModal';
@@ -8,14 +8,21 @@ interface EvidenceWorkspaceProps {
   projectId: string;
   artifacts: EvidenceArtifact[];
   assertions: Assertion[];
-  onUpload: (file: File, metadata: any) => Promise<void>;
+  onUpload: (file: File, metadata: EvidenceUploadMetadata) => Promise<void>;
   onReviewAssertion?: (assertionId: string, decision: 'VERIFIED_WITHIN_SCOPE' | 'REJECTED' | 'FLAG_CONFLICT') => Promise<void>;
   onOpenReviewer?: () => void;
   busy?: boolean;
 }
 
+export interface EvidenceUploadMetadata {
+  document_type: DocumentType;
+  issuer?: string;
+  reference?: string;
+  valid_until?: string;
+  notes?: string;
+}
+
 export function EvidenceWorkspace({
-  projectId,
   artifacts,
   assertions,
   onUpload,
@@ -25,8 +32,6 @@ export function EvidenceWorkspace({
 }: EvidenceWorkspaceProps) {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedArtifactId, setSelectedArtifactId] = useState<string | null>(null);
-  const [reviewingId, setReviewingId] = useState<string | null>(null);
-  const [reviewNote, setReviewNote] = useState('');
 
   const statusBadge = (status: AssertionStatus) => {
     switch (status) {

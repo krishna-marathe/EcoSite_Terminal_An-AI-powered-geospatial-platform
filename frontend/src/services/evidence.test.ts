@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { evidenceService, INITIAL_MOCK_ARTIFACTS, INITIAL_MOCK_ASSERTIONS } from './evidence';
+import { evidenceService } from './evidence';
 
 describe('evidenceService', () => {
   beforeEach(() => {

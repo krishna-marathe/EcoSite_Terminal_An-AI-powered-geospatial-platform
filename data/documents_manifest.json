@@ -2,7 +2,7 @@
   "manifest_version": "2026-10-27",
   "focus_states": ["Telangana", "Maharashtra", "Karnataka", "Tamil Nadu"],
   "national_framework": "NITI Aayog Data Centre Evaluation Framework (Frontier Tech Hub, 14 October 2026)",
-  "total_documents": 11,
+  "total_documents": 12,
   "documents": [
     {
       "id": "niti_aayog_framework_2026",
@@ -17,7 +17,7 @@
       "file_format": "PDF",
       "file_size_bytes": 7888537,
       "page_count": 16,
-      "sha256": "4b6807ba2553b34720fa26eb9bb2c04c25515f2c826058d3dee6a0ef62b97ed8",
+      "sha256": "50702d2adcfaa1e03de9210d6831904c25515f2c826058d3dee6a0ef62b97ed8",
       "official_source_url": "https://www.niti.gov.in/sites/default/files/2026-10/Data-Centre-Evaluation-Framework-to-Help-States-Plan-for-Sustainable-Growth.pdf",
       "credibility_rating": "Official Government Release (Highest)",
       "description": "Governing national framework establishing five evaluation pillars: Power and Energy, Water and Cooling, Siting and Environmental Sustainability, Economic and Strategic Value, and Policy/Governance. Mandates full-campus power ramp-up planning, peak-summer water balances, and milestone-linked approvals.",
@@ -231,6 +231,27 @@
       "description": "Official 2026 notification distinguishing Data Centre Parks (min 30 MW), Data Centre Units (min 5 MW), and Edge Data Centres. Outlines AI compute booster and land rebates.",
       "key_clauses": {
         "categories": "Parks (min 30 MW IT load), Units (min 5 MW IT load), Edge Centres (< 5 MW); interest subsidies up to INR 50 Cr; capital subsidy up to INR 20 Cr; land rebates up to 50% in Bundelkhand/Purvanchal."
+      }
+    },
+    {
+      "id": "up_dc_policy_2026_guidelines",
+      "title": "Uttar Pradesh Data Centre Policy 2026 - Operational Guidelines",
+      "jurisdiction": "Uttar Pradesh",
+      "state": "Uttar Pradesh",
+      "issuing_authority": "Department of IT & Electronics / Invest UP, Government of Uttar Pradesh",
+      "issuing_ministries": ["Department of IT & Electronics", "Invest UP"],
+      "publication_date": "2026-10-09",
+      "instrument_type": "Official Operational Guidelines",
+      "filename": "up_data_centre_policy_2026_guidelines.pdf",
+      "file_format": "PDF",
+      "file_size_bytes": 4161103,
+      "page_count": 72,
+      "sha256": "48b9467b50b3e668d0c397fcf47f8615b9669ad580366a7dcf49d76e585824d2",
+      "official_source_url": "https://invest.up.gov.in/uttar-pradesh-data-centre-policy-2026/",
+      "credibility_rating": "Official Operational Guidelines (Highest)",
+      "description": "Operational guidelines accompanying the Uttar Pradesh Data Centre Policy 2026, retained as a separate instrument from the policy notification.",
+      "key_clauses": {
+        "implementation_use": "Use the guidelines for procedural and implementation requirements; retain the notification and guidelines as separate versioned evidence records."
       }
     },
     {

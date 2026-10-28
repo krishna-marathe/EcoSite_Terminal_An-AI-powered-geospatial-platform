@@ -10,7 +10,7 @@ from sqlalchemy.pool import NullPool
 
 ROOT = Path(__file__).resolve().parents[1]
 DB_PATH = Path(os.getenv("ECOSITE_DB_PATH", str(ROOT / "data" / "ecosite.db"))).expanduser().resolve()
-SCHEMA_REVISION = "03a_001"
+SCHEMA_REVISION = "04c_001"
 
 
 class SchemaNotReady(Exception):

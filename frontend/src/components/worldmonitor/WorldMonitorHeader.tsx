@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate, useSearchParams } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search,
   Layers,
@@ -17,6 +17,10 @@ import {
   LayoutGrid,
   Key,
   Database,
+  Server,
+  ShieldCheck,
+  ClipboardCheck,
+  UserPlus,
 } from 'lucide-react';
 import { useDashboardStore } from '../../stores/dashboardStore';
 import { ApiKeyModal } from '../ui/ApiKeyModal';
@@ -24,6 +28,10 @@ import { IconButton } from '../ui/Button';
 import type { TimeRange, DashboardViewMode } from '../../types';
 
 const NAV_MODULES = [
+  { to: '/public-facilities', label: 'Registry', icon: <Server className="h-3.5 w-3.5" /> },
+  { to: '/ministry', label: 'Ministry', icon: <ShieldCheck className="h-3.5 w-3.5" /> },
+  { to: '/operator/register', label: 'Register', icon: <UserPlus className="h-3.5 w-3.5" /> },
+  { to: '/ministry/review', label: 'Review', icon: <ClipboardCheck className="h-3.5 w-3.5" /> },
   { to: '/dashboard', label: 'Dashboard', icon: <Globe2 className="h-3.5 w-3.5" /> },
   { to: '/risk-analysis', label: 'Risk', icon: <Activity className="h-3.5 w-3.5" /> },
   { to: '/forecast', label: 'Forecast', icon: <TrendingUp className="h-3.5 w-3.5" /> },
@@ -56,6 +64,7 @@ export const WorldMonitorHeader: React.FC = () => {
   } = useDashboardStore();
 
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
 
@@ -87,6 +96,7 @@ export const WorldMonitorHeader: React.FC = () => {
   };
 
   const activeLayerCount = Object.values(wmLayers).filter(Boolean).length;
+  const showDashboardTools = !location.pathname.startsWith('/public-facilities') && !location.pathname.startsWith('/ministry') && !location.pathname.startsWith('/operator');
 
   return (
     <header className="z-30 flex h-14 shrink-0 select-none items-center justify-between border-b border-eco-border bg-eco-bg/95 px-4 backdrop-blur-md">
@@ -134,6 +144,7 @@ export const WorldMonitorHeader: React.FC = () => {
 
       {/* Search · view · time · layers · utilities */}
       <div className="flex items-center gap-2">
+        {showDashboardTools && <>
         <div className="relative w-36 sm:w-48">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-eco-muted" />
           <input
@@ -224,6 +235,7 @@ export const WorldMonitorHeader: React.FC = () => {
           icon={<Key className="h-4 w-4" />}
           onClick={() => setIsApiKeyModalOpen(true)}
         />
+        </>}
       </div>
 
       <ApiKeyModal isOpen={isApiKeyModalOpen} onClose={() => setIsApiKeyModalOpen(false)} />

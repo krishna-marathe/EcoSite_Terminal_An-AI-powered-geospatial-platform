@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { EvidenceWorkspace } from './EvidenceWorkspace';
 import { INITIAL_MOCK_ARTIFACTS, INITIAL_MOCK_ASSERTIONS } from '../../services/evidence';

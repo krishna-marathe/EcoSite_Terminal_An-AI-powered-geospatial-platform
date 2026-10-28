@@ -1,5 +1,14 @@
 import axios from 'axios';
 
+export interface ApiErrorEnvelope {
+  error: {
+    code: string;
+    message: string;
+    details: Record<string, unknown>;
+    requestId: string;
+  };
+}
+
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 export const apiClient = axios.create({
@@ -24,6 +33,18 @@ export function expectArray<T>(data: unknown, label: string): T[] {
     );
   }
   return data as T[];
+}
+
+export function apiErrorEnvelope(error: unknown): ApiErrorEnvelope | null {
+  if (!axios.isAxiosError(error)) return null;
+  const value = error.response?.data as Partial<ApiErrorEnvelope> | undefined;
+  return value?.error && typeof value.error.code === 'string' && typeof value.error.message === 'string'
+    ? value as ApiErrorEnvelope
+    : null;
+}
+
+export function apiErrorMessage(error: unknown, fallback: string): string {
+  return apiErrorEnvelope(error)?.error.message ?? (error instanceof Error ? error.message : fallback);
 }
 
 apiClient.interceptors.response.use(

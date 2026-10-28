@@ -17,14 +17,25 @@ from typing import Any, Literal
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from sqlalchemy.orm import Session
 
-from .db import DB_PATH
+from .db import DB_PATH, make_engine
 from .data.registry import seed_data_sources
 from .routers.projects import router as projects_router
 from .routers.sites import router as sites_router
 from .routers.phases import router as phases_router
 from .routers.data_sources import router as data_sources_router
 from .routers.environmental import router as environmental_router
+from .routers.public_facilities import router as public_facilities_router
+from .routers.public_environmental import router as public_environmental_router
+from .routers.restricted_workflows import router as restricted_workflows_router
+from .services.public_facilities import PublicFacilityService
+from .services.public_facility_sqlalchemy import SqlAlchemyPublicFacilityRepository
+from .services.environmental_monitoring import EnvironmentalMonitoringService
+from .services.environmental_sqlalchemy import SqlAlchemyEnvironmentalRepository
+from .services.ministry_operations import MinistryOperationsService
+from .services.ministry_sqlalchemy import SqlAlchemyMinistryOperationsRepository
+from .services.prototype_publication import build_prototype_submission_workflow
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -264,11 +275,35 @@ def weighted_risk(indicators: Indicators, facility_type: InfrastructureType = "i
 
 app = FastAPI(title="EcoSite Terminal API", version="0.1.0", description="Environmental infrastructure intelligence API with provenance-aware demo data.")
 app.state.project_origins = {origin for origin in CORS_ORIGINS if urllib.parse.urlsplit(origin).hostname in {"localhost", "127.0.0.1", "::1"}}
+PUBLIC_REGISTRY_STORE = os.getenv("ECOSITE_PUBLIC_REGISTRY_STORE", "sqlite").strip().lower()
+if PUBLIC_REGISTRY_STORE not in {"json", "sqlite"}:
+    raise RuntimeError("ECOSITE_PUBLIC_REGISTRY_STORE must be 'json' or 'sqlite'.")
+application_data_engine = make_engine(DB_PATH)
+app.state.application_data_engine = application_data_engine
+if PUBLIC_REGISTRY_STORE == "sqlite":
+    public_registry_repository = SqlAlchemyPublicFacilityRepository(
+        lambda: Session(application_data_engine, expire_on_commit=False)
+    )
+    app.state.public_facility_service = PublicFacilityService(public_registry_repository)
+environmental_repository = SqlAlchemyEnvironmentalRepository(
+    lambda: Session(application_data_engine, expire_on_commit=False)
+)
+app.state.environmental_monitoring_service = EnvironmentalMonitoringService(environmental_repository)
+ministry_repository = SqlAlchemyMinistryOperationsRepository(
+    lambda: Session(application_data_engine, expire_on_commit=False)
+)
+app.state.ministry_operations_service = MinistryOperationsService(ministry_repository)
+
+
+app.state.submission_workflow_service = build_prototype_submission_workflow(application_data_engine)
 app.include_router(projects_router, prefix=API_PREFIX)
 app.include_router(sites_router, prefix=API_PREFIX)
 app.include_router(phases_router, prefix=API_PREFIX)
 app.include_router(data_sources_router, prefix=API_PREFIX)
 app.include_router(environmental_router, prefix=API_PREFIX)
+app.include_router(public_facilities_router, prefix=API_PREFIX)
+app.include_router(public_environmental_router, prefix=API_PREFIX)
+app.include_router(restricted_workflows_router, prefix=API_PREFIX)
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS or ["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 
@@ -279,6 +314,13 @@ def startup() -> None:
     with closing(sqlite3.connect(DB_PATH)) as connection, connection:
         # Safe before the data-plane migration: the seed returns 0 if the table is absent.
         seed_data_sources(connection)
+
+
+@app.on_event("shutdown")
+def shutdown() -> None:
+    engine = getattr(app.state, "application_data_engine", None)
+    if engine is not None:
+        engine.dispose()
 
 
 @app.get("/health")
