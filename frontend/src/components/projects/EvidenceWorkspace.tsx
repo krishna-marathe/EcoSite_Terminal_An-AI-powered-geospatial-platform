@@ -10,6 +10,7 @@ interface EvidenceWorkspaceProps {
   assertions: Assertion[];
   onUpload: (file: File, metadata: any) => Promise<void>;
   onReviewAssertion?: (assertionId: string, decision: 'VERIFIED_WITHIN_SCOPE' | 'REJECTED' | 'FLAG_CONFLICT') => Promise<void>;
+  onOpenReviewer?: () => void;
   busy?: boolean;
 }
 
@@ -19,6 +20,7 @@ export function EvidenceWorkspace({
   assertions,
   onUpload,
   onReviewAssertion,
+  onOpenReviewer,
   busy = false,
 }: EvidenceWorkspaceProps) {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -52,6 +54,16 @@ export function EvidenceWorkspace({
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {onOpenReviewer && (
+              <Button
+                type="button"
+                disabled={busy}
+                onClick={onOpenReviewer}
+                className="whitespace-nowrap border-eco-border hover:bg-eco-surface-2"
+              >
+                🔍 Review Extractions
+              </Button>
+            )}
             <Button
               type="button"
               disabled={busy}

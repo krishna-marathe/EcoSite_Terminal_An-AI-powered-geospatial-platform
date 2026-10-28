@@ -2,6 +2,9 @@ import { PhaseEditor } from '../components/projects/PhaseEditor';
 import { EnvironmentalObservations } from '../components/projects/EnvironmentalObservations';
 import { EvidenceWorkspace } from '../components/projects/EvidenceWorkspace';
 import { ResourceReadinessTimeline } from '../components/projects/ResourceReadinessTimeline';
+import { ExtractionReviewDrawer } from '../components/projects/ExtractionReviewDrawer';
+import { SiteComparisonMatrix } from '../components/projects/SiteComparisonMatrix';
+import { SitePassport } from '../components/projects/SitePassport';
 import { evidenceService } from '../services/evidence';
 import { getPhases } from '../services/phases';
 import { useEffect, useRef, useState } from 'react';
@@ -47,6 +50,8 @@ export function Projects() {
 
 function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (busy: boolean) => void }) {
   const queryClient = useQueryClient();
+  const [isReviewDrawerOpen, setIsReviewDrawerOpen] = useState(false);
+
   const artifactsQuery = useQuery({
     queryKey: ['evidence-artifacts', projectId],
     queryFn: () => evidenceService.getArtifacts(projectId),
@@ -54,6 +59,10 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
   const assertionsQuery = useQuery({
     queryKey: ['evidence-assertions', projectId],
     queryFn: () => evidenceService.getAssertions(projectId),
+  });
+  const extractionsQuery = useQuery({
+    queryKey: ['evidence-extractions', projectId],
+    queryFn: () => evidenceService.getExtractions(projectId),
   });
 
   const handleUpload = async (file: File, metadata: any) => {
@@ -63,6 +72,7 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['evidence-artifacts', projectId] }),
         queryClient.invalidateQueries({ queryKey: ['evidence-assertions', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['evidence-extractions', projectId] }),
       ]);
     } finally {
       onBusy(false);
@@ -78,6 +88,19 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
         reviewer_role: 'CONSULTANT',
       });
       await queryClient.invalidateQueries({ queryKey: ['evidence-assertions', projectId] });
+    } finally {
+      onBusy(false);
+    }
+  };
+
+  const handleConfirmExtraction = async (extractionId: string, decision: 'ACCEPTED' | 'REJECTED', adjustedValue?: string | number) => {
+    onBusy(true);
+    try {
+      await evidenceService.confirmExtraction(extractionId, decision, adjustedValue);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['evidence-extractions', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['evidence-assertions', projectId] }),
+      ]);
     } finally {
       onBusy(false);
     }
@@ -100,7 +123,15 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
         assertions={assertionsQuery.data || []}
         onUpload={handleUpload}
         onReviewAssertion={handleReview}
+        onOpenReviewer={() => setIsReviewDrawerOpen(true)}
         busy={artifactsQuery.isFetching || assertionsQuery.isFetching}
+      />
+      <ExtractionReviewDrawer
+        isOpen={isReviewDrawerOpen}
+        onClose={() => setIsReviewDrawerOpen(false)}
+        extractions={extractionsQuery.data || []}
+        onConfirm={handleConfirmExtraction}
+        busy={extractionsQuery.isFetching}
       />
     </div>
   );
@@ -124,18 +155,33 @@ function LoadedProjectSites({ project, onBusy, initialSite, data, selectId, quer
   const [state, setState] = useState(initialSite?.state_code || 'IN-MH');
   const [district, setDistrict] = useState(initialSite?.district || '');
   const [geometry, setGeometry] = useState<PolygonGeometry | null>(initialSite?.geometry || null);
-  const [busy, updateBusy] = useState(false);
-  const setBusy = (value: boolean) => { updateBusy(value); onBusy(value); };
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [busy, updateBusy] = useState(false);
+  const setBusy = (value: boolean) => { updateBusy(value); onBusy(value); };
   const [editorVersion, setEditorVersion] = useState(0);
   const choose = (site?: CandidateSite) => { selectId(site?.id); setEditorVersion(n => n + 1); setSelected(site); setName(site?.name || ''); setState(site?.state_code || 'IN-MH'); setDistrict(site?.district || ''); setGeometry(site?.geometry || null); setError(''); setMessage(''); };
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['project-sites', project.id] });
+  const [passportSite, setPassportSite] = useState<CandidateSite | null>(null);
+
+  const phasesQuery = useQuery({
+    queryKey: ['project-phases', project.id],
+    queryFn: () => getPhases(project.id),
+  });
+  const assertionsQuery = useQuery({
+    queryKey: ['evidence-assertions', project.id],
+    queryFn: () => evidenceService.getAssertions(project.id),
+  });
+  const artifactsQuery = useQuery({
+    queryKey: ['evidence-artifacts', project.id],
+    queryFn: () => evidenceService.getArtifacts(project.id),
+  });
+
   return <div className="space-y-4">
     <div className="grid gap-4 lg:grid-cols-2"><Card title="Saved candidate polygons">
     <p>{data.length} / 3 active candidates</p>
     <Button type="button" disabled={busy} onClick={() => choose()}>New candidate</Button>
-    {data.map(site => <div key={site.id} className="border p-3"><Button type="button" disabled={busy} onClick={() => choose(site)}>{site.name}</Button><p>{site.area_ha.toFixed(4)} ha · {site.state_code} · revision {site.revision}</p><p>Boundary screening: {site.boundary_source}. State/district are user supplied. Screening only, not official legal boundary verification.</p><p>{site.boundary_screening?.status === "inside_screening_boundary" ? "Inside screening boundary; no legal verification." : "Boundary review required — consult Survey of India."} {site.boundary_screening?.version} {site.boundary_screening?.licence}</p>
+    {data.map(site => <div key={site.id} className="border p-3 space-y-2"><div className="flex justify-between items-start"><Button type="button" disabled={busy} onClick={() => choose(site)}>{site.name}</Button><Button type="button" disabled={busy} onClick={() => setPassportSite(site)} className="text-[11px] py-1 px-2 border-eco-primary text-eco-primary hover:bg-eco-primary/10">📜 Passport</Button></div><p>{site.area_ha.toFixed(4)} ha · {site.state_code} · revision {site.revision}</p><p>Boundary screening: {site.boundary_source}. State/district are user supplied. Screening only, not official legal boundary verification.</p><p>{site.boundary_screening?.status === "inside_screening_boundary" ? "Inside screening boundary; no legal verification." : "Boundary review required — consult Survey of India."} {site.boundary_screening?.version} {site.boundary_screening?.licence}</p>
       <Button type="button" disabled={busy} onClick={async () => { if (!window.confirm('Archive candidate ' + site.name + '?')) return; setBusy(true); setError(''); try { await archiveSite(site); if (!mounted.current) return; if (selected?.id === site.id) choose(); await invalidate(); } catch (err) { setError(projectError(err)); } finally { setBusy(false); } }}>Archive {site.name}</Button>
     </div>)}
   </Card><Card title={selected ? 'Edit candidate polygon' : 'New candidate polygon'}><form className="space-y-3" onSubmit={async e => { e.preventDefault(); if (!geometry) return; setBusy(true); setError(''); setMessage(''); try { const site = await saveSite(project.id, { name, state_code: state, district: district || null, geometry }, selected); if (!mounted.current) return; choose(site); await invalidate(); setMessage('Candidate saved to the local backend.'); } catch (err) { setError(projectError(err)); } finally { setBusy(false); } }}>
@@ -147,6 +193,27 @@ function LoadedProjectSites({ project, onBusy, initialSite, data, selectId, quer
     {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
     <p>Invalid or out-of-boundary polygons are rejected by the backend. Unsaved drafts are not restored after reload.</p>
   </form></Card></div>
+  {data.length > 1 && (
+    <SiteComparisonMatrix
+      sites={data}
+      phases={phasesQuery.data || []}
+      assertions={assertionsQuery.data || []}
+      onGeneratePassport={(id) => {
+        const s = data.find(item => item.id === id);
+        if (s) setPassportSite(s);
+      }}
+    />
+  )}
   {selected && <EnvironmentalObservations key={selected.id} site={selected} />}
+  {passportSite && (
+    <SitePassport
+      project={project}
+      site={passportSite}
+      phases={phasesQuery.data || []}
+      assertions={assertionsQuery.data || []}
+      artifacts={artifactsQuery.data || []}
+      onClose={() => setPassportSite(null)}
+    />
+  )}
   </div>;
 }
