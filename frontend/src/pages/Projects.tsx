@@ -1,5 +1,7 @@
 import { PhaseEditor } from '../components/projects/PhaseEditor';
 import { EnvironmentalObservations } from '../components/projects/EnvironmentalObservations';
+import { EvidenceWorkspace } from '../components/projects/EvidenceWorkspace';
+import { evidenceService } from '../services/evidence';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -37,7 +39,58 @@ export function Projects() {
     {projectId && !projects.isPending && projects.data && !project && <p role="alert">Selected project is unavailable or archived.</p>}
     {project && <PhaseEditor key={"phases:" + project.id} projectId={project.id} />}
     {project && <ProjectSites key={project.id} project={project} onBusy={setBusy} />}
+    {project && <ProjectEvidence key={"evidence:" + project.id} projectId={project.id} onBusy={setBusy} />}
   </PageShell>;
+}
+
+function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (busy: boolean) => void }) {
+  const queryClient = useQueryClient();
+  const artifactsQuery = useQuery({
+    queryKey: ['evidence-artifacts', projectId],
+    queryFn: () => evidenceService.getArtifacts(projectId),
+  });
+  const assertionsQuery = useQuery({
+    queryKey: ['evidence-assertions', projectId],
+    queryFn: () => evidenceService.getAssertions(projectId),
+  });
+
+  const handleUpload = async (file: File, metadata: any) => {
+    onBusy(true);
+    try {
+      await evidenceService.uploadArtifact(projectId, file, metadata);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['evidence-artifacts', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['evidence-assertions', projectId] }),
+      ]);
+    } finally {
+      onBusy(false);
+    }
+  };
+
+  const handleReview = async (assertionId: string, decision: 'VERIFIED_WITHIN_SCOPE' | 'REJECTED' | 'FLAG_CONFLICT') => {
+    onBusy(true);
+    try {
+      await evidenceService.reviewAssertion({
+        assertion_id: assertionId,
+        decision,
+        reviewer_role: 'CONSULTANT',
+      });
+      await queryClient.invalidateQueries({ queryKey: ['evidence-assertions', projectId] });
+    } finally {
+      onBusy(false);
+    }
+  };
+
+  return (
+    <EvidenceWorkspace
+      projectId={projectId}
+      artifacts={artifactsQuery.data || []}
+      assertions={assertionsQuery.data || []}
+      onUpload={handleUpload}
+      onReviewAssertion={handleReview}
+      busy={artifactsQuery.isFetching || assertionsQuery.isFetching}
+    />
+  );
 }
 
 function ProjectSites({ project, onBusy }: { project: Project; onBusy: (busy: boolean) => void }) {

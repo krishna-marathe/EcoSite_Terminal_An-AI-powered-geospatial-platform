@@ -5,10 +5,11 @@
  * Handles uploading artifacts, listing assertions, and review actions.
  */
 
-import { api } from './api';
+import { apiClient } from './api';
 import type {
   EvidenceArtifact,
   Assertion,
+  AssertionStatus,
   ExtractionCandidate,
   AssertionReviewRequest,
   PowerCommitment,
@@ -217,7 +218,7 @@ let extractionsStore = [...INITIAL_MOCK_EXTRACTIONS];
 export const evidenceService = {
   async getArtifacts(projectId: string): Promise<EvidenceArtifact[]> {
     try {
-      const response = await api.get<EvidenceArtifact[]>(`/projects/${projectId}/evidence`);
+      const response = await apiClient.get<EvidenceArtifact[]>(`/projects/${projectId}/evidence`);
       return response.data;
     } catch {
       return artifactsStore.filter((a) => !projectId || a.project_id === projectId || true);
@@ -262,7 +263,7 @@ export const evidenceService = {
 
   async getAssertions(projectId: string): Promise<Assertion[]> {
     try {
-      const response = await api.get<Assertion[]>(`/projects/${projectId}/assertions`);
+      const response = await apiClient.get<Assertion[]>(`/projects/${projectId}/assertions`);
       return response.data;
     } catch {
       return assertionsStore;
@@ -273,9 +274,18 @@ export const evidenceService = {
     const target = assertionsStore.find((a) => a.id === review.assertion_id);
     if (!target) throw new Error('Assertion not found');
 
+    let resolvedStatus: AssertionStatus = 'DOCUMENTED';
+    if (review.decision === 'FLAG_CONFLICT') {
+      resolvedStatus = 'CONFLICTING';
+    } else if (review.decision === 'VERIFIED_WITHIN_SCOPE') {
+      resolvedStatus = 'VERIFIED_WITHIN_SCOPE';
+    } else {
+      resolvedStatus = 'MISSING';
+    }
+
     const updated: Assertion = {
       ...target,
-      status: review.decision === 'FLAG_CONFLICT' ? 'CONFLICTING' : review.decision,
+      status: resolvedStatus,
       revision: target.revision + 1,
     };
     assertionsStore = assertionsStore.map((a) => (a.id === updated.id ? updated : a));
