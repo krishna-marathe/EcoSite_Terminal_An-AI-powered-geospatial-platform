@@ -29,6 +29,7 @@ import { useDashboardStore } from '../../stores/dashboardStore';
 import { getPilotCity } from '../../data/pilotCities';
 import { RISK_LEVEL_LABELS, riskColor, scoreColor } from '../../theme/tokens';
 import type { RiskLevel, WorldMonitorLayerKey } from '../../types';
+import type { PublicFacility } from '../../types/publicFacilities';
 
 type PanelId = 'hotspots' | 'signals' | 'telemetry' | 'risk' | 'forecast' | 'mitigation' | 'news';
 
@@ -275,7 +276,9 @@ const MitigationSummary: React.FC = () => {
   );
 };
 
-export const EcoWorkspace: React.FC = () => {
+export interface EcoWorkspaceProps { publicDataCentres?: PublicFacility[] }
+
+export const EcoWorkspace: React.FC<EcoWorkspaceProps> = ({ publicDataCentres }) => {
   const { setAllWmLayers, setWmLayer, facilities, facilitiesStatus, dataMode, cityId } =
     useDashboardStore();
   const [workspaceId, setWorkspaceId] = useState('command');
@@ -419,7 +422,7 @@ export const EcoWorkspace: React.FC = () => {
           </div>
           <div className="relative flex-1 overflow-hidden p-2">
             <div className="h-full overflow-hidden rounded-md border border-eco-border">
-              <MainMap />
+              <MainMap publicDataCentres={publicDataCentres} />
             </div>
           </div>
           <DataQualityBanner />

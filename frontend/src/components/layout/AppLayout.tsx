@@ -5,7 +5,7 @@ import { StatusBar } from './StatusBar';
 
 export const AppLayout: React.FC = () => {
   const location = useLocation();
-  const showPlanningContext = !location.pathname.startsWith('/public-facilities') && !location.pathname.startsWith('/ministry') && !location.pathname.startsWith('/operator');
+  const showPlanningContext = location.pathname.startsWith('/site-analysis') || location.pathname.startsWith('/projects');
   return (
     <div className="flex flex-col h-screen w-screen bg-eco-bg text-eco-text overflow-hidden select-none">
       <WorldMonitorHeader />

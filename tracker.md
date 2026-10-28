@@ -47,6 +47,9 @@ working.
 
 ## Confirmed product decisions
 
+- [x] Limit the product to data centres; environmental and infrastructure data
+  are contextual inputs, not separate facility categories or dashboards.
+
 - [x] Include every physically existing, publicly disclosed facility in the four
   states, regardless of private or government ownership.
 - [x] Keep proposed and under-construction facilities in separate lifecycle states.
@@ -112,10 +115,11 @@ Agent, API-contract freezing to the Backend Agent and typed mock/shell alignment
 to the Frontend Agent. Phase 1 integration starts only after the shared contract
 gate passes.
 
-Current execution change: frontend implementation is deferred. Database and
-Backend/API agents are active under
-`docs/implementation/backend-database-delivery-board.md`; frontend resumes after
-stable registry and environmental contracts.
+The backend/database two-track work ran under
+`docs/implementation/backend-database-delivery-board.md`. Frontend deferral is
+now complete: stable backend contracts were integrated
+into public registry, environmental monitoring, ministry operations, operator
+registration and ministry review routes.
 
 - [x] Assigned Database Agent Wave 0: migration recovery and database contract.
 - [x] Assigned Backend/API Agent Wave 0: API contract and repository boundaries.
@@ -128,18 +132,18 @@ stable registry and environmental contracts.
 - [x] Public registry privacy and verification-window unit tests
 - [x] Create isolated Python 3.11 environment and run the complete backend suite
   (179/179 passing).
-- [ ] Public facility map, filters and profiles
+- [x] Public facility map, filters and profiles
 - [x] Public registry frontend route, state/search filters and provenance table
 - [x] Operational summary cards without invalid capacity aggregation
 - [x] Public registry frontend service tests (3 passing)
 - [x] Touched public-registry frontend files pass ESLint
 - [x] Frontend production build passes after registry integration
-- [ ] Public facility map and individual facility profile
+- [x] Public facility map and individual facility profile
 - [x] Registration/review/publication schema and immutable audit history
 - [x] Backend API contracts, persistence integration and tests
-- [ ] Public registry dashboard
-- [ ] Operator registration interface
-- [ ] Ministry review interface
+- [x] Public registry dashboard with paginated API, map/list and detail route
+- [x] Operator registration interface with restricted exact geometry
+- [x] Ministry overview and review interfaces with demo role separation
 - [x] Cached environmental API integration with honest `NOT_COVERED` responses
 - [x] Environmental time-series schema, station links, observations and rollups
 - [x] CPCB connector, transactional ingestion store and manual job runner
@@ -147,6 +151,18 @@ stable registry and environmental contracts.
 - [ ] Verify IMD and NWDP response/access contracts before enabling their adapters
 - [x] Backend end-to-end, migration, privacy, restart and live smoke verification
 - [x] SQLite integrity, backup/restore and dry-run retention tooling/runbook
+- [x] Frontend contract clients for registry, environmental, ministry and workflow APIs
+- [x] Frontend full suite passes (204/204), ESLint passes and production build passes
+- [x] End-to-end runtime smoke: FastAPI and Vite start together; registry,
+  environmental and ministry APIs return 200; all new frontend routes serve the app.
+- [x] Keep `/dashboard` as the default full-map command view, remove the
+  Pune/Mumbai comparison and render real public data-centre registry markers.
+- [x] Replace synthetic dashboard telemetry/signals/hotspots with public-registry,
+  environmental-coverage and ministry-operations API panels.
+- [x] Add selectable, keyboard-accessible public data-centre map markers and a
+  source-backed facility dossier without exposing exact coordinates.
+- [x] Restrict dashboard controls to data centres and clearly label retained
+  environmental, water, biodiversity, climate and grid layers as context.
 
 Inventory status: research pass 1 is sufficient for a prototype seed but is not
 an exhaustive four-state census. Additional operators and aliases still require

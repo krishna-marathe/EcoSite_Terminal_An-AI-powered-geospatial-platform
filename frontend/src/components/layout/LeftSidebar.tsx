@@ -1,12 +1,25 @@
 import { layerAvailable, environmentalMessage } from '../../utils/environmentalLayers';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Building2, ChevronDown, Droplets, Filter, Flame, Layers, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useDashboardStore } from '../../stores/dashboardStore';
 import { DEMO_LAYERS } from '../../data/demo/layers';
 import { IconButton } from '../ui/Button';
-import { Select } from '../ui/Field';
 import { SourceTag } from '../ui/Badge';
-import type { InfrastructureType, RiskLevel } from '../../types';
+import type { RiskLevel } from '../../types';
+
+const DATA_CENTRE_CONTEXT_LAYER_IDS = new Set([
+  'layer-data-centres',
+  'layer-substations',
+  'layer-transmission-lines',
+  'env-groundwater-stress',
+  'env-air-quality',
+  'env-surface-temp',
+  'env-flood-susceptibility',
+  'env-protected-areas',
+  'pred-water-stress',
+  'pred-electricity-demand',
+  'pred-climate-exposure',
+]);
 
 const RISK_TIERS: Array<{ value: RiskLevel | 'all'; label: string }> = [
   { value: 'all', label: 'All' },
@@ -46,17 +59,21 @@ export const LeftSidebar: React.FC = () => {
   });
   const [expandedOpacityLayerId, setExpandedOpacityLayerId] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (typeFilter !== 'data_centre') setTypeFilter('data_centre');
+  }, [setTypeFilter, typeFilter]);
+
   const toggleCategory = (cat: string) => {
     setCollapsedCategories((prev) => ({ ...prev, [cat]: !prev[cat] }));
   };
 
   const categories = [
-    { id: 'infrastructure', name: 'Infrastructure layers' },
-    { id: 'environmental', name: 'Environmental & hazard layers' },
-    { id: 'predictive', name: 'Predictive & stress forecast layers' },
+    { id: 'infrastructure', name: 'Data centres & grid context' },
+    { id: 'environmental', name: 'Environmental context' },
+    { id: 'predictive', name: 'Forecast context' },
   ];
 
-  const filteredLayers = DEMO_LAYERS.filter((layer) => {
+  const filteredLayers = DEMO_LAYERS.filter((layer) => DATA_CENTRE_CONTEXT_LAYER_IDS.has(layer.id)).filter((layer) => {
     if (!searchLayerText.trim()) return true;
     const q = searchLayerText.toLowerCase();
     return (
@@ -71,7 +88,7 @@ export const LeftSidebar: React.FC = () => {
   }
 
   return (
-    <aside className="z-30 flex h-full w-80 shrink-0 flex-col border-r border-eco-border bg-eco-surface md:w-[340px]">
+    <aside className="absolute inset-y-0 left-0 z-30 flex h-full w-[min(20rem,calc(100vw-3rem))] shrink-0 flex-col border-r border-eco-border bg-eco-surface md:relative md:w-[340px]">
       <div className="flex h-12 shrink-0 items-center justify-between border-b border-eco-border px-4">
         <div className="flex items-center gap-2 text-body font-semibold text-eco-text">
           <Layers className="h-4 w-4 text-eco-primary" />
@@ -103,11 +120,10 @@ export const LeftSidebar: React.FC = () => {
               <Filter className="h-3.5 w-3.5 text-eco-primary" />
               Facility filters
             </span>
-            {(typeFilter !== 'all' || riskFilter !== 'all') && (
+            {riskFilter !== 'all' && (
               <button
                 type="button"
                 onClick={() => {
-                  setTypeFilter('all');
                   setRiskFilter('all');
                 }}
                 className="cursor-pointer text-meta text-eco-muted underline-offset-2 hover:text-eco-primary hover:underline"
@@ -119,23 +135,11 @@ export const LeftSidebar: React.FC = () => {
 
           <div className="space-y-1">
             <label htmlFor="filter-type" className="block text-meta text-eco-muted">
-              Infrastructure type
+              Facility type
             </label>
-            <Select
-              id="filter-type"
-              size="sm"
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as InfrastructureType | 'all')}
-            >
-              <option value="all">All infrastructure types</option>
-              <option value="data_centre">Data centres (IT load)</option>
-              <option value="thermal_power">Thermal power plants</option>
-              <option value="solar_farm">Solar farms</option>
-              <option value="wind_farm">Wind farms</option>
-              <option value="hydro_power">Hydro power plants</option>
-              <option value="substation">Substations &amp; grid</option>
-              <option value="industrial">Industrial &amp; fab clusters</option>
-            </Select>
+            <div id="filter-type" className="flex h-7 items-center rounded-sm border border-eco-border bg-eco-surface-secondary px-2.5 text-meta font-medium text-eco-text">
+              Data centres (fixed)
+            </div>
           </div>
 
           <div className="space-y-1">
@@ -221,7 +225,7 @@ export const LeftSidebar: React.FC = () => {
                               </span>
                               <span>
                                 <span className={`flex items-center gap-1.5 text-body ${isActive ? 'font-medium text-eco-text' : 'text-eco-muted'}`}>
-                                  {layer.name}
+                                  {layer.id === 'layer-data-centres' ? layer.name : `${layer.name} · Context`}
                                   <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: layer.color }} />
                                 </span>
                                 <span className="mt-0.5 line-clamp-1 text-meta text-eco-muted">{available ? layer.description : 'Unavailable — no observation geometry is connected.'}</span>

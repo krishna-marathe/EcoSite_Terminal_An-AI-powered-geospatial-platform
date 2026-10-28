@@ -4,11 +4,7 @@ import {
   Search,
   Layers,
   Globe2,
-  Activity,
-  TrendingUp,
   MapPin,
-  Sparkles,
-  FileSpreadsheet,
   Volume2,
   VolumeX,
   Compass,
@@ -28,17 +24,13 @@ import { IconButton } from '../ui/Button';
 import type { TimeRange, DashboardViewMode } from '../../types';
 
 const NAV_MODULES = [
+  { to: '/dashboard', label: 'Dashboard', icon: <Globe2 className="h-3.5 w-3.5" /> },
   { to: '/public-facilities', label: 'Registry', icon: <Server className="h-3.5 w-3.5" /> },
   { to: '/ministry', label: 'Ministry', icon: <ShieldCheck className="h-3.5 w-3.5" /> },
   { to: '/operator/register', label: 'Register', icon: <UserPlus className="h-3.5 w-3.5" /> },
   { to: '/ministry/review', label: 'Review', icon: <ClipboardCheck className="h-3.5 w-3.5" /> },
-  { to: '/dashboard', label: 'Dashboard', icon: <Globe2 className="h-3.5 w-3.5" /> },
-  { to: '/risk-analysis', label: 'Risk', icon: <Activity className="h-3.5 w-3.5" /> },
-  { to: '/forecast', label: 'Forecast', icon: <TrendingUp className="h-3.5 w-3.5" /> },
-  { to: '/site-analysis', label: 'Site analysis', icon: <MapPin className="h-3.5 w-3.5" /> },
-  { to: '/mitigation', label: 'Mitigation', icon: <Sparkles className="h-3.5 w-3.5" /> },
-  { to: '/reports', label: 'Reports', icon: <FileSpreadsheet className="h-3.5 w-3.5" /> },
-  { to: '/data-sources', label: 'Data sources', icon: <Database className="h-3.5 w-3.5" /> },
+  { to: '/site-analysis', label: 'DC site planning', icon: <MapPin className="h-3.5 w-3.5" /> },
+  { to: '/data-sources', label: 'DC data sources', icon: <Database className="h-3.5 w-3.5" /> },
 ];
 
 const VIEW_MODES: Array<{ mode: DashboardViewMode; label: string; icon: React.ReactNode; title: string }> = [
@@ -96,7 +88,7 @@ export const WorldMonitorHeader: React.FC = () => {
   };
 
   const activeLayerCount = Object.values(wmLayers).filter(Boolean).length;
-  const showDashboardTools = !location.pathname.startsWith('/public-facilities') && !location.pathname.startsWith('/ministry') && !location.pathname.startsWith('/operator');
+  const showDashboardTools = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/site-analysis');
 
   return (
     <header className="z-30 flex h-14 shrink-0 select-none items-center justify-between border-b border-eco-border bg-eco-bg/95 px-4 backdrop-blur-md">
@@ -112,7 +104,7 @@ export const WorldMonitorHeader: React.FC = () => {
                 EcoSite<span className="text-eco-primary"> Terminal</span>
               </span>
             </div>
-            <p className="mt-0.5 hidden text-micro text-eco-muted lg:block">Environmental intelligence platform</p>
+            <p className="mt-0.5 hidden text-micro text-eco-muted lg:block">Government data-centre oversight</p>
           </div>
         </NavLink>
 
@@ -218,7 +210,7 @@ export const WorldMonitorHeader: React.FC = () => {
           icon={<Compass className="h-4 w-4" />}
           onClick={() => {
             fitToIndia();
-            navigate('/dashboard');
+            navigate('/site-analysis');
           }}
         />
 

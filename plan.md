@@ -8,9 +8,10 @@ Use public and operator-declared data to help government monitor India's
 data-centre footprint and plan new facilities without unacceptable harm to
 biodiversity, communities, water systems or the electricity grid.
 
-The broader green-city vision remains relevant: data centres are the first
-vertical through which the platform will combine urban data, environmental
-intelligence, infrastructure planning and accountable public policy.
+The product scope is exclusively data centres. Power, water, air quality,
+weather, biodiversity, hazards and grid information are supporting context for
+data-centre monitoring and siting; they are not separate plant or resource
+registries.
 
 Visual reference: https://www.worldmonitor.app/dashboard
 
@@ -39,10 +40,12 @@ Build the public operational-facility registry first: credible-source records,
 facility profiles. Defer the final minimum operator-registration form until the
 public dashboard is working.
 
-Current execution order: frontend implementation is temporarily paused. The
-Database and Backend/API agents run as a two-track pipeline, with the database
+Backend/database implementation used a two-track pipeline, with the database
 one schema wave ahead and integration controlled by contract gates. See
-`docs/implementation/backend-database-delivery-board.md`.
+`docs/implementation/backend-database-delivery-board.md`. The frontend pause
+has ended: registry, environmental, ministry and restricted
+workflow contracts are integrated into routed React screens. The current local
+prototype passes the full frontend test, lint and production-build gates.
 
 Backend/database implementation status: Waves 0-6 are complete for the local
 prototype. The live SQLite database is at `04c_001`, contains 19 approved public
@@ -136,10 +139,10 @@ phase dependencies and copy-ready prompts.
 
 ### Phase 3 - Public dashboard
 
-- Build four-state overview and summary metrics.
-- Public registry list, summary and filters are implemented; map and detail profile remain.
-- Add facility map, filters and registry table.
-- Add facility profiles with field-level provenance.
+- Build four-state overview and summary metrics. (Complete for registry/ministry views.)
+- Public registry list, summary, filters, map and detail profile are implemented.
+- Add facility map, filters and registry table. (Complete.)
+- Add facility profiles with field-level provenance. (Complete.)
 - Exclude proposed, announced and under-construction facilities from public views.
 - Show unknown values instead of estimates.
 - Seed only credible-source-supported public facilities; keep government,
@@ -149,10 +152,10 @@ phase dependencies and copy-ready prompts.
 
 ### Phase 4 - Registration and review interfaces
 
-- Build operator registration wizard and map picker.
-- Build private submission/status view.
-- Build ministry queue and evidence review.
-- Publish approved snapshots with generalised geometry.
+- Build operator registration and restricted exact-location interface. (Complete.)
+- Build private submission/status view. (Complete.)
+- Build ministry queue and restricted review detail/actions. (Complete.)
+- Preview and publish approved snapshots with generalised geometry. (Complete.)
 
 ### Phase 5 - Sustainable site planning
 
@@ -172,11 +175,24 @@ phase dependencies and copy-ready prompts.
   current Python 3.15/Pydantic import failure as an application test result.
 
 Current verification: the isolated Python 3.11 environment passes the complete
-backend suite (179/179). The live database reports revision `04c_001`,
+backend suite (181/181). The live database reports revision `04c_001`,
 `PRAGMA integrity_check=ok`, no foreign-key violations and no Alembic drift.
-Frontend public-registry service tests and production build passed before the
-backend response was intentionally changed to a paginated envelope; frontend
-integration remains the next phase and must update that client contract.
+The frontend suite passes 204/204 tests, full ESLint passes and the production
+build succeeds. Vite still reports a non-blocking large-bundle warning; route
+code splitting remains a performance-hardening opportunity.
+
+Runtime smoke verification also passes with FastAPI and Vite running together:
+the live registry returns 19 facilities, ministry overview returns 19,
+environmental requests return explicit `NOT_COVERED` values where no station is
+linked, and all public/ministry/operator routes serve the application shell.
+
+The primary `/dashboard` remains the restored full-bleed command map. It is
+constrained to data centres, loads approved public-registry markers, omits the
+Pune/Mumbai comparison strip and opens a source-backed facility dossier before
+linking to the public profile. Split and grid modes now use real registry,
+environmental-coverage and ministry-operations API panels instead of synthetic
+telemetry, signal and hotspot panels. External AQI, water, climate,
+biodiversity and grid layers remain clearly labelled contextual evidence.
 
 ## Architectural guardrails
 
@@ -193,6 +209,9 @@ integration remains the next phase and must update that client contract.
 - Missing operational data is not synthetically filled in the public registry.
 - Operational publication requires revalidation at least once every 90 days.
 - Sensitive network, customer, resilience and cybersecurity details are never public.
+- Do not expose thermal plants, renewable plants, substations or other industrial
+  assets as first-class monitored facilities; include external infrastructure
+  only as contextual evidence for a data centre or candidate site.
 
 ## Deferred beyond the prototype
 

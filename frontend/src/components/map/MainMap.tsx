@@ -5,7 +5,6 @@ import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Compass, Layers, Sparkles, X, ZoomIn, ZoomOut } from 'lucide-react';
 import { useDashboardStore } from '../../stores/dashboardStore';
-import { getPilotCity } from '../../data/pilotCities';
 import {
   GROUNDWATER_ZONES_GEOJSON,
   AIR_QUALITY_ZONES_GEOJSON,
@@ -16,6 +15,7 @@ import {
 } from '../../data/demo/environmentalOverlays';
 import { FACILITY_TYPE_COLORS, FACILITY_TYPE_LABELS, scoreColor } from '../../theme/tokens';
 import type { Facility, InfrastructureType } from '../../types';
+import type { PublicFacility } from '../../types/publicFacilities';
 
 // Dynamic style generator: uses Mapbox HD tiles when a token is provided, otherwise falls back to Carto/ESRI
 const getMapStyle = (
@@ -362,12 +362,32 @@ const getFacilityIconSvg = (type: InfrastructureType): string => {
   }
 };
 
-export const MainMap: React.FC = () => {
+export interface MainMapProps {
+  publicDataCentres?: PublicFacility[];
+  /** Load state of the public registry that supplies `publicDataCentres`. */
+  publicDataCentresStatus?: 'loading' | 'error' | 'ready';
+  suppressLegacyFacilities?: boolean;
+  selectedPublicFacilityId?: string | null;
+  onSelectPublicFacility?: (facility: PublicFacility) => void;
+  onOpenPublicFacility?: (facility: PublicFacility) => void;
+}
+
+export const MainMap: React.FC<MainMapProps> = ({
+  publicDataCentres = [],
+  publicDataCentresStatus = 'ready',
+  suppressLegacyFacilities = false,
+  selectedPublicFacilityId: controlledPublicFacilityId,
+  onSelectPublicFacility,
+  onOpenPublicFacility,
+}) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null);
   const markersRef = useRef<{ [key: string]: maplibregl.Marker }>({});
+  const publicDataCentreMarkersRef = useRef<maplibregl.Marker[]>([]);
   const prevStyleRef = useRef<string>('dark');
   const [mapError, setMapError] = useState<string | null>(null);
+  const [internalPublicFacilityId, setInternalPublicFacilityId] = useState<string | null>(null);
+  const selectedPublicFacilityId = controlledPublicFacilityId ?? internalPublicFacilityId;
 
   const mapboxToken =
     localStorage.getItem('ECOSITE_MAPBOX_TOKEN') ||
@@ -385,8 +405,6 @@ export const MainMap: React.FC = () => {
     layerOpacities,
     wmLayers,
     facilities,
-    facilitiesStatus,
-    cityId,
     mapStyle,
     setMapStyle,
     viewport,
@@ -510,6 +528,8 @@ export const MainMap: React.FC = () => {
       resizeObserver.disconnect();
       Object.values(markersRef.current).forEach((marker) => marker.remove());
       markersRef.current = {};
+      publicDataCentreMarkersRef.current.forEach((marker) => marker.remove());
+      publicDataCentreMarkersRef.current = [];
       map.off('style.load', onStyleLoaded);
       map.off('load', onMapLoaded);
       map.remove();
@@ -600,8 +620,6 @@ export const MainMap: React.FC = () => {
       }),
     [facilities, activeLayers, wmLayers, typeFilter, riskFilter, searchQuery]
   );
-
-  const city = getPilotCity(cityId);
 
   // Keep the hover card anchored to the marker's projected screen position.
   useEffect(() => {
@@ -723,7 +741,11 @@ export const MainMap: React.FC = () => {
       return el;
     };
 
-    const desired = new Map(filteredFacilities.map((facility) => [facility.id, facility]));
+    // The public registry supersedes synthetic/legacy facility pins. Keeping the
+    // two populations mutually exclusive prevents duplicate or misleading sites.
+    const desired = new Map(
+      (suppressLegacyFacilities || publicDataCentres.length > 0 ? [] : filteredFacilities).map((facility) => [facility.id, facility])
+    );
 
     // Drop markers whose facility is no longer visible.
     Object.entries(markersRef.current).forEach(([id, marker]) => {
@@ -756,7 +778,100 @@ export const MainMap: React.FC = () => {
     });
 
     // Teardown of all markers happens in the map-initialisation effect cleanup.
-  }, [mapInstance, filteredFacilities, selectedFacilityId, setSelectedFacilityId]);
+  }, [mapInstance, filteredFacilities, publicDataCentres.length, selectedFacilityId, setSelectedFacilityId, suppressLegacyFacilities]);
+
+  // The command map uses the real public data-centre registry. Public location
+  // precision is intentionally represented by locality/district context; exact
+  // coordinate values are never exposed in marker labels or interaction copy.
+  useEffect(() => {
+    if (!mapInstance) return;
+    publicDataCentreMarkersRef.current.forEach((marker) => marker.remove());
+    publicDataCentreMarkersRef.current = publicDataCentres.map((facility) => {
+      const element = document.createElement('button');
+      element.type = 'button';
+      const isSelected = facility.id === selectedPublicFacilityId;
+      element.className = 'public-data-centre-marker';
+      element.dataset.facilityId = facility.id;
+      element.dataset.selected = String(isSelected);
+      element.setAttribute('aria-pressed', String(isSelected));
+      element.setAttribute(
+        'aria-label',
+        `${isSelected ? 'Selected data centre' : 'Select data centre'}: ${facility.name}, ${facility.city}, ${facility.state}`
+      );
+      element.style.cssText = [
+        'position:relative',
+        `width:${isSelected ? '42px' : '34px'}`,
+        `height:${isSelected ? '42px' : '34px'}`,
+        'display:flex',
+        'align-items:center',
+        'justify-content:center',
+        'border-radius:8px',
+        `border:${isSelected ? '3px solid #f8fafc' : '2px solid #08110d'}`,
+        'background:#39f58b',
+        'color:#08110d',
+        'font:900 11px/1 ui-monospace,monospace',
+        'box-shadow:0 0 0 2px rgba(57,245,139,.45),0 5px 18px rgba(0,0,0,.8)',
+        'cursor:pointer',
+        'transition:width .15s,height .15s,box-shadow .15s',
+        `z-index:${isSelected ? '120' : '60'}`,
+      ].join(';');
+
+      const glyph = document.createElement('span');
+      glyph.setAttribute('aria-hidden', 'true');
+      glyph.textContent = 'DC';
+      element.append(glyph);
+
+      const label = document.createElement('span');
+      label.className = 'public-data-centre-marker-label';
+      label.setAttribute('aria-hidden', 'true');
+      label.textContent = `${facility.name} · ${facility.city}, ${facility.state}`;
+      label.style.cssText = [
+        'position:absolute',
+        'top:calc(100% + 6px)',
+        'left:50%',
+        'transform:translateX(-50%)',
+        'max-width:260px',
+        'overflow:hidden',
+        'text-overflow:ellipsis',
+        'white-space:nowrap',
+        'border:1px solid #29362f',
+        'border-radius:4px',
+        'background:rgba(17,21,20,.97)',
+        'color:#e7f1e8',
+        'padding:4px 7px',
+        'font:500 12px/1.25 system-ui,sans-serif',
+        'box-shadow:0 4px 12px rgba(0,0,0,.65)',
+        `opacity:${isSelected ? '1' : '0'}`,
+        'pointer-events:none',
+        'transition:opacity .15s',
+      ].join(';');
+      element.append(label);
+
+      const revealLabel = () => { label.style.opacity = '1'; };
+      const concealLabel = () => { if (!isSelected) label.style.opacity = '0'; };
+      element.addEventListener('mouseenter', revealLabel);
+      element.addEventListener('mouseleave', concealLabel);
+      element.addEventListener('focus', revealLabel);
+      element.addEventListener('blur', concealLabel);
+      element.addEventListener('pointerdown', (event) => event.stopPropagation());
+      element.addEventListener('click', (event) => {
+        event.stopPropagation();
+        setInternalPublicFacilityId(facility.id);
+        onSelectPublicFacility?.(facility);
+        if (onOpenPublicFacility) {
+          onOpenPublicFacility(facility);
+        } else if (!onSelectPublicFacility) {
+          window.history.pushState({}, '', `/public-facilities/${facility.id}`);
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        }
+      });
+      return new maplibregl.Marker({ element, anchor: 'center' }).setLngLat(facility.publicCoordinates).addTo(mapInstance);
+    });
+    return () => {
+      publicDataCentreMarkersRef.current.forEach((marker) => marker.remove());
+      publicDataCentreMarkersRef.current = [];
+    };
+  }, [mapInstance, onOpenPublicFacility, onSelectPublicFacility, publicDataCentres, selectedPublicFacilityId]);
 
   return (
     <div className="relative w-full h-full min-h-[300px] overflow-hidden bg-eco-bg">
@@ -780,13 +895,11 @@ export const MainMap: React.FC = () => {
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-eco-surface/80 border border-eco-border text-eco-muted rounded-lg shadow-lg backdrop-blur-md text-xs">
           <span className="w-2 h-2 rounded-full bg-eco-primary" />
           <span className="font-semibold text-eco-text">
-            {facilitiesStatus === 'loading'
-              ? 'Loading facilities…'
-              : facilitiesStatus === 'error'
-              ? 'Facilities unavailable'
-              : `${filteredFacilities.length} ${
-                  filteredFacilities.length === 1 ? 'facility' : 'facilities'
-                } · ${city.name}`}
+            {publicDataCentresStatus === 'loading'
+              ? 'Loading data centres…'
+              : publicDataCentresStatus === 'error'
+                ? 'Data centres unavailable'
+                : `${publicDataCentres.length} operating data centre${publicDataCentres.length === 1 ? '' : 's'}`}
           </span>
           {mapboxToken && (
             <span className="text-micro text-eco-primary bg-eco-primary/10 px-1.5 py-0.5 rounded border border-eco-primary/30 font-mono uppercase tracking-wide">
@@ -889,12 +1002,12 @@ export const MainMap: React.FC = () => {
           <ZoomOut className="w-4 h-4" />
         </button>
 
-        {/* Recenter on the selected city */}
+        {/* Recenter on the current India data-centre scope */}
         <button
           type="button"
           onClick={() => fitToIndia()}
           className="w-8 h-8 rounded-lg bg-eco-surface/90 border border-eco-border text-eco-text flex items-center justify-center hover:bg-eco-surface-secondary shadow-lg backdrop-blur-md transition-colors cursor-pointer"
-          title={`Recenter on ${city.name}`}
+          title="Recenter on India data-centre scope"
         >
           <Compass className="w-4 h-4 text-eco-primary" />
         </button>
