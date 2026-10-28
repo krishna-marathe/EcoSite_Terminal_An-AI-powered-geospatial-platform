@@ -218,6 +218,8 @@ class MigrationTests(unittest.TestCase):
                         "assertions",
                         "assertion_evidence_links",
                         "assertion_reviews",
+                        "power_commitments",
+                        "water_commitments",
                         "alembic_version",
                     },
                 )

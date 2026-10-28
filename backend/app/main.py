@@ -27,6 +27,7 @@ from .routers.data_sources import router as data_sources_router
 from .routers.environmental import router as environmental_router
 from .routers.evidence import router as evidence_router
 from .routers.extraction import router as extraction_router
+from .routers.commitments import router as commitments_router
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -273,6 +274,7 @@ app.include_router(data_sources_router, prefix=API_PREFIX)
 app.include_router(environmental_router, prefix=API_PREFIX)
 app.include_router(evidence_router, prefix=API_PREFIX)
 app.include_router(extraction_router, prefix=API_PREFIX)
+app.include_router(commitments_router, prefix=API_PREFIX)
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS or ["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 

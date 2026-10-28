@@ -19,6 +19,10 @@ from backend.app.models.evidence import (  # Register evidence foundation.
     AssertionReview,
     EvidenceArtifact,
 )
+from backend.app.models.commitments import (  # Register resource commitments.
+    PowerCommitment,
+    WaterCommitment,
+)
 
 config = context.config
 
