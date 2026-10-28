@@ -84,7 +84,7 @@ it.each(['demo', 'api'] as const)('%s map clicks preserve edited form values, ma
   useDashboardStore.getState().setFacilities([PILOT_FACILITIES[0]]);
   const { container } = render(<MemoryRouter><SiteAnalysis /></MemoryRouter>);
   const map = currentMap(); act(() => map.emit('load'));
-  for (const [label, value] of [['Capacity (MW)', '250'], ['Water demand (kL/day)', '45'], ['Power demand (MW)', '175'], ['Project name', 'Updated candidate'], ['Infrastructure type', 'industrial']]) {
+  for (const [label, value] of [['Capacity (MW)', '250'], ['Water demand (kL/day)', '45'], ['Power demand (MW)', '175'], ['Project name', 'Updated candidate']]) {
     fireEvent.change(screen.getByLabelText(label, { exact: false }), { target: { value } });
     click(map);
     expect((screen.getByLabelText(label, { exact: false }) as HTMLInputElement).value).toBe(value);
@@ -100,7 +100,7 @@ it.each(['demo', 'api'] as const)('%s map clicks preserve edited form values, ma
   expect(map.flyTo).toHaveBeenLastCalledWith({ center: [73.81, 18.57], zoom: 8, duration: 600 });
   expect(maps).toHaveLength(1);
   // Use demo assessment data as a controlled API response, without a live server.
-  const response = await assessProposedSite({ cityId: 'pune', name: 'Updated candidate', type: 'industrial', longitude: 73.81, latitude: 18.57, capacityMw: 250, waterDemandKld: 45, powerDemandMw: 175 });
+  const response = await assessProposedSite({ cityId: 'pune', name: 'Updated candidate', type: 'data_centre', longitude: 73.81, latitude: 18.57, capacityMw: 250, waterDemandKld: 45, powerDemandMw: 175 });
   const { apiClient } = await import('../../services/api');
   const post = vi.spyOn(apiClient, 'post').mockResolvedValue({ data: response });
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Evaluate candidate' })); });
@@ -108,7 +108,8 @@ it.each(['demo', 'api'] as const)('%s map clicks preserve edited form values, ma
   click(map, 73.80, 18.58);
   expect(screen.queryByText('Save to comparison')).toBeNull();
   expect(screen.getByText(/Inputs changed/)).toBeTruthy();
-  for (const [label, value] of [['Capacity (MW)', '250'], ['Water demand (kL/day)', '45'], ['Power demand (MW)', '175'], ['Project name', 'Updated candidate'], ['Infrastructure type', 'industrial']]) expect((screen.getByLabelText(label, { exact: false }) as HTMLInputElement).value).toBe(value);
+  for (const [label, value] of [['Capacity (MW)', '250'], ['Water demand (kL/day)', '45'], ['Power demand (MW)', '175'], ['Project name', 'Updated candidate']]) expect((screen.getByLabelText(label, { exact: false }) as HTMLInputElement).value).toBe(value);
+  expect((screen.getByLabelText('Infrastructure type') as HTMLInputElement).value).toBe('Data centre');
   click(map, 0, 0);
   expect((screen.getByRole('button', { name: 'Evaluate candidate' }) as HTMLButtonElement).disabled).toBe(true);
   fireEvent.click(screen.getByRole('button', { name: 'Pune western candidate' }));

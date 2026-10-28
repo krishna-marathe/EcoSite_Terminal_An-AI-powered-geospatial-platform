@@ -6,8 +6,9 @@ import { LeftSidebar } from '../components/layout/LeftSidebar';
 import { MainMap } from '../components/map/MainMap';
 import { EnvironmentalCoveragePanel, MinistryOperationsPanel, RegistryDistribution, RegistryKpiSummary } from '../components/data-centre-dashboard';
 import { DataCentreMapDossier } from '../components/data-centre-map';
+import { NewsFeedPanel } from '../components/news/NewsFeedPanel';
 import { useDashboardStore } from '../stores/dashboardStore';
-import type { TimeRange, WorldMonitorLayerKey } from '../types';
+import type { TimeRange } from '../types';
 import type { PublicFacility, PublicStateCode } from '../types/publicFacilities';
 import { getPublicFacilities, getPublicFacilitySummary } from '../services/publicFacilities';
 import { getEnvironmentalStateSummary, getFacilityEnvironmentalCurrent } from '../services/environmentalMonitoring';
@@ -28,6 +29,7 @@ export const Dashboard: React.FC = () => {
   const selectedEnvironment = useQuery({ queryKey: ['facility-environmental-current', selectedFacility?.id], queryFn: () => getFacilityEnvironmentalCurrent(selectedFacility!.id), enabled: Boolean(selectedFacility), retry: false });
   const environmentalData = environmentalStates.flatMap((query) => query.data ? [query.data] : []);
   const environmentalError = environmentalStates.find((query) => query.error)?.error;
+  const failedEnvironmentalStates = environmentalStates.filter((query) => query.isError).length;
 
   useEffect(() => {
     setTypeFilter('data_centre');
@@ -41,16 +43,21 @@ export const Dashboard: React.FC = () => {
     const layersParam = searchParams.get('layers');
     if (layersParam) {
       const requestedKeys = new Set(layersParam.split(',').map((key) => key.trim()));
-      const keys: WorldMonitorLayerKey[] = ['hotspots', 'conflicts', 'bases', 'nuclear', 'military', 'weather', 'canadaAlerts', 'outages', 'natural', 'waterways', 'economic', 'sanctions'];
-      keys.forEach((key) => setWmLayer(key, requestedKeys.has(key)));
+      setWmLayer('bases', requestedKeys.has('bases'));
     }
   }, [fitToIndia, searchParams, setTimeRange, setTypeFilter, setViewMode, setWmLayer]);
 
   const dashboardPanels = <>
     <RegistryKpiSummary summary={registrySummary.data} isLoading={registrySummary.isLoading} error={errorMessage(registrySummary.error)} />
     <RegistryDistribution summary={registrySummary.data} facilities={facilities.data?.items} isLoading={facilities.isLoading || registrySummary.isLoading} error={errorMessage(facilities.error ?? registrySummary.error)} />
-    <EnvironmentalCoveragePanel states={environmentalData} isLoading={environmentalStates.some((query) => query.isLoading)} error={environmentalData.length === 0 ? errorMessage(environmentalError) : undefined} />
+    <EnvironmentalCoveragePanel
+      states={environmentalData}
+      isLoading={environmentalStates.some((query) => query.isLoading)}
+      error={environmentalData.length === 0 ? errorMessage(environmentalError) : undefined}
+      warning={environmentalData.length > 0 && failedEnvironmentalStates > 0 ? `${failedEnvironmentalStates} state summary could not be loaded; available states are shown.` : undefined}
+    />
     <MinistryOperationsPanel overview={ministryOverview.data} isLoading={ministryOverview.isLoading} error={errorMessage(ministryOverview.error)} />
+    <div className="xl:col-span-2"><NewsFeedPanel /></div>
   </>;
   const facilitiesStatus = facilities.isLoading ? 'loading' as const : facilities.error ? 'error' as const : 'ready' as const;
   const map = <MainMap publicDataCentres={facilities.data?.items} publicDataCentresStatus={facilitiesStatus} suppressLegacyFacilities selectedPublicFacilityId={selectedFacility?.id} onSelectPublicFacility={setSelectedFacility} />;

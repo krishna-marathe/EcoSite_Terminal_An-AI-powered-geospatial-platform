@@ -786,6 +786,17 @@ export const MainMap: React.FC<MainMapProps> = ({
   useEffect(() => {
     if (!mapInstance) return;
     publicDataCentreMarkersRef.current.forEach((marker) => marker.remove());
+
+    // Group coincident coordinates so facilities in the same locality/city
+    // are each rendered with a distinct, clickable marker instead of occluding one another.
+    const coordGroups = new Map<string, PublicFacility[]>();
+    publicDataCentres.forEach((facility) => {
+      const key = `${facility.publicCoordinates[0].toFixed(4)},${facility.publicCoordinates[1].toFixed(4)}`;
+      const list = coordGroups.get(key) || [];
+      list.push(facility);
+      coordGroups.set(key, list);
+    });
+
     publicDataCentreMarkersRef.current = publicDataCentres.map((facility) => {
       const element = document.createElement('button');
       element.type = 'button';
@@ -798,8 +809,10 @@ export const MainMap: React.FC<MainMapProps> = ({
         'aria-label',
         `${isSelected ? 'Selected data centre' : 'Select data centre'}: ${facility.name}, ${facility.city}, ${facility.state}`
       );
+      // MapLibre's .maplibregl-marker class manages absolute placement and projection transforms.
+      // Do not set position:relative here as it forces relative document flow, which stacks sibling
+      // markers into a vertical line and causes them to drift across the map during zoom operations.
       element.style.cssText = [
-        'position:relative',
         `width:${isSelected ? '42px' : '34px'}`,
         `height:${isSelected ? '42px' : '34px'}`,
         'display:flex',
@@ -818,7 +831,8 @@ export const MainMap: React.FC<MainMapProps> = ({
 
       const glyph = document.createElement('span');
       glyph.setAttribute('aria-hidden', 'true');
-      glyph.textContent = 'DC';
+      // Server-rack SVG (two rack units + status LED) — matches the facility type icon
+      glyph.innerHTML = '<svg style="width:16px;height:16px;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>';
       element.append(glyph);
 
       const label = document.createElement('span');
@@ -865,7 +879,23 @@ export const MainMap: React.FC<MainMapProps> = ({
           window.dispatchEvent(new PopStateEvent('popstate'));
         }
       });
-      return new maplibregl.Marker({ element, anchor: 'center' }).setLngLat(facility.publicCoordinates).addTo(mapInstance);
+
+      const key = `${facility.publicCoordinates[0].toFixed(4)},${facility.publicCoordinates[1].toFixed(4)}`;
+      const group = coordGroups.get(key) || [facility];
+      let renderCoords: [number, number] = facility.publicCoordinates;
+      if (group.length > 1) {
+        const index = group.findIndex((f) => f.id === facility.id);
+        const angle = (2 * Math.PI * index) / group.length;
+        // Subtle offset around the generalized locality centroid (~1.5-2km) so coincident markers do not occlude
+        const lngOffset = Math.cos(angle) * 0.02;
+        const latOffset = Math.sin(angle) * 0.016;
+        renderCoords = [
+          Number((facility.publicCoordinates[0] + lngOffset).toFixed(4)),
+          Number((facility.publicCoordinates[1] + latOffset).toFixed(4)),
+        ];
+      }
+
+      return new maplibregl.Marker({ element, anchor: 'center' }).setLngLat(renderCoords).addTo(mapInstance);
     });
     return () => {
       publicDataCentreMarkersRef.current.forEach((marker) => marker.remove());

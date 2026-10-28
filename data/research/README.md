@@ -28,6 +28,9 @@ Maharashtra, Telangana, Karnataka and Tamil Nadu.
   recommendation.
 - `10-data-integrity-audit.md` - official-document byte validation and a
   non-destructive raw-snapshot path/payload-hash classification.
+- `10-authoritative-collection-contracts.md` - implementation-ready source
+  contracts, access/licence decisions, refresh cadences, blockers and acceptance
+  gates for facility, environmental, grid, biodiversity and population data.
 
 ## Product statement
 

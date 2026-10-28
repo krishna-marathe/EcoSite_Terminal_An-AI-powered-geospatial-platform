@@ -32,7 +32,25 @@ class SubmissionWorkflowTests(unittest.TestCase):
         self.repo = Repository(); self.service = SubmissionWorkflowService(self.repo, lambda: NOW, lambda: "sub-1")
         self.operator = WorkflowActor("operator-user", "operator", "org-1")
         self.reviewer = WorkflowActor("reviewer", "ministry_reviewer")
-        self.draft = SubmissionDraft("Campus", "org-1", "colocation", "IN-MH", "Mumbai", "Locality", {"type": "Point", "coordinates": [72.8, 19.1]})
+        self.draft = SubmissionDraft(
+            "Campus", "org-1", "colocation", "IN-MH", "Mumbai", "Locality",
+            {"type": "Point", "coordinates": [72.889432, 19.112345]},
+            ({"value": 10, "unit": "MW", "capacityType": "it_load", "scope": "campus"},),
+            ({"evidenceType": "source_url", "title": "Operator disclosure", "reference": "https://example.test/campus"},),
+        )
+
+    def test_incomplete_draft_cannot_enter_review_and_reports_fields(self):
+        draft = replace(self.draft, capacity_disclosures=(), evidence=())
+        item = self.service.create_draft(self.operator, draft)
+        with self.assertRaises(IncompleteSubmission) as caught:
+            self.service.submit(self.operator, item.id, item.revision)
+        self.assertEqual({field["path"] for field in caught.exception.fields}, {"capacityDisclosures", "evidence"})
+
+    def test_exact_point_must_be_inside_declared_focus_state(self):
+        item = self.service.create_draft(self.operator, replace(self.draft, state_code="IN-TN"))
+        with self.assertRaises(IncompleteSubmission) as caught:
+            self.service.submit(self.operator, item.id, item.revision)
+        self.assertEqual([field["path"] for field in caught.exception.fields], ["exactGeometry"])
 
     def test_full_approve_flow_keeps_exact_geometry_out_of_publication(self):
         item = self.service.create_draft(self.operator, self.draft)
@@ -40,7 +58,7 @@ class SubmissionWorkflowTests(unittest.TestCase):
         result = self.service.review(self.reviewer, item.id, 2, "approve", "Reviewed", public_snapshot={"name": "Campus", "publicCoordinates": [72.8, 19.1]})
         self.assertEqual((result.submission.status, result.submission.revision), ("approved", 3))
         self.assertNotIn("exactGeometry", result.publication.payload)
-        self.assertEqual(self.repo.items[item.id].exact_geometry["coordinates"], [72.8, 19.1])
+        self.assertEqual(self.repo.items[item.id].exact_geometry["coordinates"], [72.889432, 19.112345])
 
     def test_information_request_revision_and_resubmission(self):
         item = self.service.submit(self.operator, self.service.create_draft(self.operator, self.draft).id, 1)

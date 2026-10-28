@@ -28,6 +28,7 @@ from .routers.data_sources import router as data_sources_router
 from .routers.environmental import router as environmental_router
 from .routers.public_facilities import router as public_facilities_router
 from .routers.public_environmental import router as public_environmental_router
+from .routers.news import router as news_router
 from .routers.restricted_workflows import router as restricted_workflows_router
 from .services.public_facilities import PublicFacilityService
 from .services.public_facility_sqlalchemy import SqlAlchemyPublicFacilityRepository
@@ -36,9 +37,16 @@ from .services.environmental_sqlalchemy import SqlAlchemyEnvironmentalRepository
 from .services.ministry_operations import MinistryOperationsService
 from .services.ministry_sqlalchemy import SqlAlchemyMinistryOperationsRepository
 from .services.prototype_publication import build_prototype_submission_workflow
+from .services.news import build_news_service
 
 
 ROOT = Path(__file__).resolve().parents[1]
+try:
+    from dotenv import load_dotenv
+    load_dotenv(ROOT / ".env")
+    load_dotenv(ROOT.parent / ".env")
+except ImportError:
+    pass
 API_PREFIX = os.getenv("ECOSITE_API_PREFIX", "/api/v1")
 CORS_ORIGINS = [origin.strip() for origin in os.getenv("ECOSITE_CORS_ORIGINS", "http://localhost:5173").split(",") if origin.strip()]
 
@@ -293,6 +301,7 @@ ministry_repository = SqlAlchemyMinistryOperationsRepository(
     lambda: Session(application_data_engine, expire_on_commit=False)
 )
 app.state.ministry_operations_service = MinistryOperationsService(ministry_repository)
+app.state.news_service = build_news_service()
 
 
 app.state.submission_workflow_service = build_prototype_submission_workflow(application_data_engine)
@@ -304,6 +313,7 @@ app.include_router(environmental_router, prefix=API_PREFIX)
 app.include_router(public_facilities_router, prefix=API_PREFIX)
 app.include_router(public_environmental_router, prefix=API_PREFIX)
 app.include_router(restricted_workflows_router, prefix=API_PREFIX)
+app.include_router(news_router, prefix=API_PREFIX)
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS or ["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 

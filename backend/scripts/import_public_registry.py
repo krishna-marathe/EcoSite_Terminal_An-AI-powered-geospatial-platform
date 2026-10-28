@@ -13,7 +13,7 @@ from datetime import date
 from pathlib import Path
 from uuid import UUID, uuid5
 
-from sqlalchemy import func, select, text, update
+from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.orm import Session
 
 from backend.app import db
@@ -27,6 +27,7 @@ from backend.app.models.public_registry import (
     STATE_CODES,
     VERIFICATION_STATUSES,
     FacilityCapacityDisclosure,
+    FacilityAlias,
     FacilityOperator,
     FacilitySource,
     FacilityVerification,
@@ -73,6 +74,8 @@ def load_and_validate_seed(path: Path) -> dict:
     if any(not isinstance(value, str) or not value for value in ids) or len(ids) != len(set(ids)):
         raise RegistryImportError("Facility IDs must be non-empty and unique")
 
+    canonical_facilities: set[tuple[str, str, str, str]] = set()
+    canonical_aliases: dict[str, str] = {}
     for record in facilities:
         if record.get("ownershipCategory") not in OWNERSHIP_CATEGORIES:
             raise RegistryImportError(f"Invalid ownership category for {record['id']}")
@@ -93,6 +96,25 @@ def load_and_validate_seed(path: Path) -> dict:
         if "exactGeometry" in record or "restrictedGeometry" in record:
             raise RegistryImportError(f"Restricted geometry is forbidden in public seed {record['id']}")
 
+        facility_key = (
+            canonical_text(record.get("operator", "")), canonical_text(record.get("name", "")),
+            record.get("stateCode", ""), canonical_text(record.get("city", "")),
+        )
+        if not all(facility_key) or facility_key in canonical_facilities:
+            raise RegistryImportError(f"Duplicate canonical facility for {record['id']}")
+        canonical_facilities.add(facility_key)
+
+        for alias in record.get("aliases", []):
+            if not isinstance(alias, dict) or alias.get("aliasType") not in {"former_name", "operator_name", "campus_name", "other"}:
+                raise RegistryImportError(f"Invalid alias for {record['id']}")
+            normalized = canonical_text(alias.get("alias", ""))
+            if not normalized:
+                raise RegistryImportError(f"Empty alias for {record['id']}")
+            owner = canonical_aliases.get(normalized)
+            if owner is not None and owner != record["id"]:
+                raise RegistryImportError(f"Alias {alias['alias']!r} is assigned to multiple facilities")
+            canonical_aliases[normalized] = record["id"]
+
         for capacity in record.get("capacityDisclosures", []):
             if not isinstance(capacity.get("value"), (int, float)) or capacity["value"] <= 0:
                 raise RegistryImportError(f"Invalid capacity value for {record['id']}")
@@ -112,16 +134,24 @@ def load_and_validate_seed(path: Path) -> dict:
         window = (expires_at - verified_at).days
         if window < 1 or window > 90:
             raise RegistryImportError(f"Verification window must be 1-90 days for {record['id']}")
-        source = verification.get("source", {})
-        if source.get("sourceClass") not in SOURCE_CLASSES:
-            raise RegistryImportError(f"Invalid source class for {record['id']}")
-        for key in ("title", "publisher", "url", "retrievedAt"):
-            if not isinstance(source.get(key), str) or not source[key].strip():
-                raise RegistryImportError(f"Source {key} is required for {record['id']}")
-        try:
-            date.fromisoformat(source["retrievedAt"])
-        except ValueError as exc:
-            raise RegistryImportError(f"Invalid source retrieval date for {record['id']}") from exc
+        sources = [verification.get("source", {})] + verification.get("supportingSources", [])
+        if not all(isinstance(source, dict) for source in sources):
+            raise RegistryImportError(f"Invalid supporting sources for {record['id']}")
+        source_keys: set[tuple[str, str]] = set()
+        for source in sources:
+            if source.get("sourceClass") not in SOURCE_CLASSES:
+                raise RegistryImportError(f"Invalid source class for {record['id']}")
+            for key in ("title", "publisher", "url", "retrievedAt"):
+                if not isinstance(source.get(key), str) or not source[key].strip():
+                    raise RegistryImportError(f"Source {key} is required for {record['id']}")
+            try:
+                date.fromisoformat(source["retrievedAt"])
+            except ValueError as exc:
+                raise RegistryImportError(f"Invalid source retrieval date for {record['id']}") from exc
+            source_key = (source["url"], source["retrievedAt"])
+            if source_key in source_keys:
+                raise RegistryImportError(f"Duplicate source retrieval for {record['id']}")
+            source_keys.add(source_key)
     return payload
 
 
@@ -154,6 +184,40 @@ def import_public_registry(database_path: Path, seed_path: Path = DEFAULT_SEED) 
                 )
 
         with Session(engine, expire_on_commit=False) as session, session.begin():
+            incoming_ids = {facility["id"] for facility in seed["facilities"]}
+            current_ministry_ids = set(session.scalars(
+                select(PublicFacilitySnapshot.facility_id).where(
+                    PublicFacilitySnapshot.is_current.is_(True),
+                    PublicFacilitySnapshot.approval_basis == "ministry_review",
+                    PublicFacilitySnapshot.facility_id.in_(incoming_ids),
+                )
+            ))
+            if current_ministry_ids:
+                raise RegistryImportError(
+                    "Seed import cannot supersede current ministry-reviewed facilities: "
+                    + ", ".join(sorted(current_ministry_ids))
+                )
+
+            omitted_seed_ids = set(session.scalars(
+                select(PublicFacilitySnapshot.facility_id).where(
+                    PublicFacilitySnapshot.is_current.is_(True),
+                    PublicFacilitySnapshot.approval_basis == "reviewed_public_seed",
+                    PublicFacilitySnapshot.facility_id.not_in(incoming_ids),
+                )
+            ))
+            session.execute(
+                update(PublicFacilitySnapshot)
+                .where(
+                    PublicFacilitySnapshot.is_current.is_(True),
+                    PublicFacilitySnapshot.approval_basis == "reviewed_public_seed",
+                    PublicFacilitySnapshot.facility_id.not_in(incoming_ids),
+                )
+                .values(is_current=False)
+            )
+            if omitted_seed_ids:
+                session.execute(delete(FacilityCapacityDisclosure).where(FacilityCapacityDisclosure.facility_id.in_(omitted_seed_ids)))
+                session.execute(delete(FacilityAlias).where(FacilityAlias.facility_id.in_(omitted_seed_ids)))
+
             for facility in seed["facilities"]:
                 verification = facility["verification"]
                 source = verification["source"]
@@ -200,6 +264,21 @@ def import_public_registry(database_path: Path, seed_path: Path = DEFAULT_SEED) 
                 )
                 session.flush()
 
+                # These normalized tables represent the current reviewed record;
+                # immutable historical values remain in snapshot payloads.
+                session.execute(delete(FacilityCapacityDisclosure).where(FacilityCapacityDisclosure.facility_id == facility["id"]))
+                session.execute(delete(FacilityAlias).where(FacilityAlias.facility_id == facility["id"]))
+                session.flush()
+
+                for alias in facility.get("aliases", []):
+                    normalized_alias = canonical_text(alias["alias"])
+                    session.add(FacilityAlias(
+                        id=deterministic_id("alias", f"{facility['id']}:{normalized_alias}"),
+                        facility_id=facility["id"], alias=alias["alias"],
+                        normalized_alias=normalized_alias, alias_type=alias["aliasType"],
+                        created_at=stable_time,
+                    ))
+
                 for ordinal, capacity in enumerate(facility.get("capacityDisclosures", [])):
                     capacity_id = deterministic_id("capacity", f"{facility['id']}:{ordinal}")
                     _upsert(
@@ -219,24 +298,28 @@ def import_public_registry(database_path: Path, seed_path: Path = DEFAULT_SEED) 
                         },
                     )
 
-                source_key = f"{facility['id']}:{source['url']}:{source['retrievedAt']}"
-                source_id = deterministic_id("source", source_key)
-                _upsert(
-                    session,
-                    FacilitySource,
-                    source_id,
-                    {
-                        "facility_id": facility["id"],
-                        "title": source["title"],
-                        "publisher": source["publisher"],
-                        "url": source["url"],
-                        "source_class": source["sourceClass"],
-                        "retrieved_at": source["retrievedAt"],
-                        "evidence_class": "DOCUMENTED",
-                        "visibility": "PUBLIC",
-                        "created_at": stable_time,
-                    },
-                )
+                source_id = ""
+                for source_index, source_value in enumerate([source] + verification.get("supportingSources", [])):
+                    source_key = f"{facility['id']}:{source_value['url']}:{source_value['retrievedAt']}"
+                    imported_source_id = deterministic_id("source", source_key)
+                    _upsert(
+                        session,
+                        FacilitySource,
+                        imported_source_id,
+                        {
+                            "facility_id": facility["id"],
+                            "title": source_value["title"],
+                            "publisher": source_value["publisher"],
+                            "url": source_value["url"],
+                            "source_class": source_value["sourceClass"],
+                            "retrieved_at": source_value["retrievedAt"],
+                            "evidence_class": "DOCUMENTED",
+                            "visibility": "PUBLIC",
+                            "created_at": stable_time,
+                        },
+                    )
+                    if source_index == 0:
+                        source_id = imported_source_id
                 session.flush()
 
                 verification_key = f"{facility['id']}:{source_id}:{verification['verifiedAt']}:{verification['expiresAt']}"
@@ -256,7 +339,11 @@ def import_public_registry(database_path: Path, seed_path: Path = DEFAULT_SEED) 
                 )
                 session.flush()
 
-                snapshot_json = canonical_payload(facility)
+                snapshot_payload = dict(facility)
+                snapshot_payload.pop("aliases", None)
+                snapshot_payload["verification"] = dict(verification)
+                snapshot_payload["verification"].pop("supportingSources", None)
+                snapshot_json = canonical_payload(snapshot_payload)
                 snapshot_hash = hashlib.sha256(snapshot_json.encode("utf-8")).hexdigest()
                 snapshot_id = deterministic_id("snapshot", f"{facility['id']}:{registry_version}")
                 existing_snapshot = session.get(PublicFacilitySnapshot, snapshot_id)
@@ -266,7 +353,11 @@ def import_public_registry(database_path: Path, seed_path: Path = DEFAULT_SEED) 
                     )
                 session.execute(
                     update(PublicFacilitySnapshot)
-                    .where(PublicFacilitySnapshot.facility_id == facility["id"], PublicFacilitySnapshot.id != snapshot_id)
+                    .where(
+                        PublicFacilitySnapshot.facility_id == facility["id"],
+                        PublicFacilitySnapshot.id != snapshot_id,
+                        PublicFacilitySnapshot.approval_basis == "reviewed_public_seed",
+                    )
                     .values(is_current=False)
                 )
                 if existing_snapshot is None:

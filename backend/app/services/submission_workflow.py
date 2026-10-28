@@ -6,6 +6,10 @@ from datetime import datetime, timezone
 from typing import Any, Literal, Mapping, Protocol, Sequence
 from uuid import uuid4
 
+from shapely.geometry import Point
+
+from ..state_scope import FOCUS_STATES, StateScopeUnavailable, load_focus_states
+
 
 Role = Literal["operator", "ministry_reviewer"]
 SubmissionStatus = Literal["draft", "submitted", "information_requested", "resubmitted", "approved", "rejected", "withdrawn"]
@@ -16,6 +20,10 @@ class SubmissionNotFound(LookupError): pass
 class WorkflowForbidden(PermissionError): pass
 class RevisionConflict(RuntimeError): pass
 class InvalidTransition(ValueError): pass
+class IncompleteSubmission(InvalidTransition):
+    def __init__(self, fields: Sequence[Mapping[str, str]]) -> None:
+        super().__init__("Submission is incomplete and cannot enter ministry review")
+        self.fields = tuple(fields)
 class WorkflowStorageError(RuntimeError): pass
 
 
@@ -35,6 +43,8 @@ class SubmissionDraft:
     city: str
     locality: str
     exact_geometry: Mapping[str, Any]
+    capacity_disclosures: tuple[Mapping[str, Any], ...] = ()
+    evidence: tuple[Mapping[str, Any], ...] = ()
     ownership_category: str = "private"
     operational_since: int | None = None
 
@@ -122,7 +132,7 @@ class SubmissionWorkflowService:
         submission = FacilitySubmission(
             self._id_factory(), "draft", 1, draft.facility_name, draft.operator_organisation_id,
             draft.facility_type, draft.state_code, draft.city, draft.locality,
-            dict(draft.exact_geometry), (), (), now, now,
+            dict(draft.exact_geometry), tuple(draft.capacity_disclosures), tuple(draft.evidence), now, now,
             ownership_category=draft.ownership_category,
             operational_since=draft.operational_since,
         )
@@ -157,6 +167,32 @@ class SubmissionWorkflowService:
         transitions = {"draft": "submitted", "information_requested": "resubmitted"}
         if current.status not in transitions:
             raise InvalidTransition("Submission cannot enter review from its current status")
+        missing: list[Mapping[str, str]] = []
+        for field, value in (
+            ("facilityName", current.facility_name), ("facilityType", current.facility_type),
+            ("stateCode", current.state_code), ("city", current.city), ("locality", current.locality),
+        ):
+            if not str(value).strip():
+                missing.append({"path": field, "message": "This field is required before submission."})
+        geometry = current.exact_geometry
+        coordinates = geometry.get("coordinates") if isinstance(geometry, Mapping) else None
+        if geometry.get("type") != "Point" or not isinstance(coordinates, (list, tuple)) or len(coordinates) != 2:
+            missing.append({"path": "exactGeometry", "message": "A restricted point location is required before submission."})
+        elif current.state_code not in FOCUS_STATES:
+            missing.append({"path": "stateCode", "message": "Select one of the four supported states."})
+        else:
+            try:
+                point = Point(float(coordinates[0]), float(coordinates[1]))
+                if not load_focus_states()[current.state_code].buffer(1e-7).covers(point):
+                    missing.append({"path": "exactGeometry", "message": "The point must lie inside the declared supported state."})
+            except (StateScopeUnavailable, TypeError, ValueError):
+                missing.append({"path": "exactGeometry", "message": "The restricted point could not be verified against the supported states."})
+        if not current.capacity_disclosures:
+            missing.append({"path": "capacityDisclosures", "message": "Add at least one typed capacity disclosure."})
+        if not current.evidence:
+            missing.append({"path": "evidence", "message": "Add at least one traceable evidence reference."})
+        if missing:
+            raise IncompleteSubmission(missing)
         now = self._clock()
         status = transitions[current.status]
         updated = replace(current, status=status, revision=current.revision + 1, updated_at=now, submitted_at=now)

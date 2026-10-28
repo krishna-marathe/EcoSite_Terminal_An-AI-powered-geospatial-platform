@@ -36,7 +36,7 @@ METHOD = "zonal_dem_statistics"
 EVIDENCE_CLASS = "REMOTE_SENSING_DERIVED"
 PERIOD_START = "2000-02-11"
 PERIOD_END = "2000-02-22"
-DEFAULT_BASE_URL = "https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL1.003/2000.02.11"
+DEFAULT_BASE_URL = "https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/SRTMGL1.003"
 NODATA = -32768
 
 
@@ -79,7 +79,11 @@ def _tile_origins(geometry: dict[str, Any], max_tiles: int) -> list[tuple[int, i
 
 
 def _tile_url(lat: int, lon: int) -> str:
-    return f"{_base_url()}/{_tile_label(lat, lon)}.SRTMGL1.hgt.zip"
+    base = _base_url()
+    label = _tile_label(lat, lon)
+    if "earthdatacloud.nasa.gov" in base:
+        return f"{base}/{label}.SRTMGL1.hgt/{label}.SRTMGL1.hgt.zip"
+    return f"{base}/{label}.SRTMGL1.hgt.zip"
 
 
 def _earthdata_headers() -> dict[str, str]:

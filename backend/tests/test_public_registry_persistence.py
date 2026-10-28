@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from backend.app import db
 from backend.app.models.public_registry import (
+    FacilityAlias,
     FacilityCapacityDisclosure,
     FacilityOperator,
     FacilitySource,
@@ -22,7 +23,7 @@ from backend.app.models.public_registry import (
     PublicFacilityRecord,
     PublicFacilitySnapshot,
 )
-from backend.scripts.import_public_registry import canonical_payload, import_public_registry
+from backend.scripts.import_public_registry import RegistryImportError, canonical_payload, import_public_registry, load_and_validate_seed
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -189,6 +190,115 @@ class PublicRegistryPersistenceTests(unittest.TestCase):
                     "snapshots": tuple(session.scalars(select(PublicFacilitySnapshot.id).order_by(PublicFacilitySnapshot.id))),
                 }
                 self.assertEqual(ids_after, ids_before)
+        finally:
+            engine.dispose()
+
+    def _write_seed(self, name: str, payload: dict) -> Path:
+        path = self.temp / name
+        path.write_text(json.dumps(payload), encoding="utf-8")
+        return path
+
+    def test_new_version_reconciles_current_seed_rows_and_preserves_history(self):
+        version_a = json.loads(json.dumps(self.seed))
+        version_a["registryVersion"] = "reconcile-a"
+        first = version_a["facilities"][0]
+        first["aliases"] = [{"alias": "Legacy Campus A", "aliasType": "former_name"}]
+        first["verification"]["supportingSources"] = [{
+            "title": "Government corroboration", "publisher": "State authority",
+            "url": "https://example.test/corroboration-a", "sourceClass": "government",
+            "retrievedAt": first["verification"]["source"]["retrievedAt"],
+        }]
+        path_a = self._write_seed("registry-a.json", version_a)
+        import_public_registry(self.path, path_a)
+
+        version_b = json.loads(json.dumps(version_a))
+        version_b["registryVersion"] = "reconcile-b"
+        removed = version_b["facilities"].pop()
+        first_b = version_b["facilities"][0]
+        first_b["capacityDisclosures"] = first_b["capacityDisclosures"][:1]
+        first_b["aliases"] = [{"alias": "Current Campus A", "aliasType": "campus_name"}]
+        path_b = self._write_seed("registry-b.json", version_b)
+        import_public_registry(self.path, path_b)
+
+        engine = db.make_engine(self.path)
+        try:
+            with Session(engine) as session:
+                current = session.scalars(
+                    select(PublicFacilitySnapshot).where(PublicFacilitySnapshot.is_current.is_(True))
+                ).all()
+                self.assertEqual({row.facility_id for row in current}, {row["id"] for row in version_b["facilities"]})
+                self.assertTrue(all(row.registry_version == "reconcile-b" for row in current))
+                self.assertEqual(
+                    session.scalars(select(PublicFacilitySnapshot).where(PublicFacilitySnapshot.facility_id == removed["id"])).all()[0].is_current,
+                    False,
+                )
+                self.assertEqual(
+                    session.scalars(select(FacilityCapacityDisclosure).where(FacilityCapacityDisclosure.facility_id == removed["id"])).all(),
+                    [],
+                )
+                capacities = session.scalars(
+                    select(FacilityCapacityDisclosure).where(FacilityCapacityDisclosure.facility_id == first_b["id"])
+                ).all()
+                self.assertEqual(len(capacities), len(first_b["capacityDisclosures"]))
+                aliases = session.scalars(select(FacilityAlias).where(FacilityAlias.facility_id == first_b["id"])).all()
+                self.assertEqual([(row.alias, row.alias_type) for row in aliases], [("Current Campus A", "campus_name")])
+                sources = session.scalars(select(FacilitySource).where(FacilitySource.facility_id == first_b["id"])).all()
+                self.assertEqual(len(sources), 2)
+                historical = session.scalars(
+                    select(PublicFacilitySnapshot).where(PublicFacilitySnapshot.facility_id == first_b["id"])
+                ).all()
+                self.assertEqual({row.registry_version for row in historical}, {"reconcile-a", "reconcile-b"})
+                self.assertNotIn("aliases", next(row for row in historical if row.is_current).payload)
+                self.assertNotIn("supportingSources", next(row for row in historical if row.is_current).payload["verification"])
+        finally:
+            engine.dispose()
+
+    def test_seed_rejects_duplicate_canonical_facility_and_cross_facility_alias(self):
+        duplicate = json.loads(json.dumps(self.seed))
+        duplicate["facilities"][1].update({
+            "operator": duplicate["facilities"][0]["operator"],
+            "name": duplicate["facilities"][0]["name"],
+            "stateCode": duplicate["facilities"][0]["stateCode"],
+            "city": duplicate["facilities"][0]["city"],
+        })
+        with self.assertRaisesRegex(RegistryImportError, "Duplicate canonical facility"):
+            load_and_validate_seed(self._write_seed("duplicate.json", duplicate))
+
+        aliases = json.loads(json.dumps(self.seed))
+        aliases["facilities"][0]["aliases"] = [{"alias": "Shared Campus", "aliasType": "campus_name"}]
+        aliases["facilities"][1]["aliases"] = [{"alias": " shared   campus ", "aliasType": "operator_name"}]
+        with self.assertRaisesRegex(RegistryImportError, "assigned to multiple facilities"):
+            load_and_validate_seed(self._write_seed("aliases.json", aliases))
+
+    def test_seed_import_refuses_to_supersede_current_ministry_publication(self):
+        import_public_registry(self.path)
+        facility_id = self.seed["facilities"][0]["id"]
+        engine = db.make_engine(self.path)
+        try:
+            with Session(engine) as session, session.begin():
+                current = session.scalar(select(PublicFacilitySnapshot).where(
+                    PublicFacilitySnapshot.facility_id == facility_id,
+                    PublicFacilitySnapshot.is_current.is_(True),
+                ))
+                current.approval_basis = "ministry_review"
+                current.approved_by = "ministry-reviewer"
+        finally:
+            engine.dispose()
+
+        newer = json.loads(json.dumps(self.seed))
+        newer["registryVersion"] = "must-not-overwrite-ministry"
+        with self.assertRaisesRegex(RegistryImportError, facility_id):
+            import_public_registry(self.path, self._write_seed("newer.json", newer))
+
+        engine = db.make_engine(self.path)
+        try:
+            with Session(engine) as session:
+                current = session.scalar(select(PublicFacilitySnapshot).where(
+                    PublicFacilitySnapshot.facility_id == facility_id,
+                    PublicFacilitySnapshot.is_current.is_(True),
+                ))
+                self.assertEqual(current.approval_basis, "ministry_review")
+                self.assertEqual(current.registry_version, self.seed["registryVersion"])
         finally:
             engine.dispose()
 

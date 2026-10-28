@@ -32,6 +32,7 @@ from ..services.ministry_operations import MinistryOperationsService
 from ..services.ministry_sqlalchemy import MinistryStorageError
 from ..services.submission_workflow import (
     FacilitySubmission,
+    IncompleteSubmission,
     InvalidTransition,
     RevisionConflict,
     SubmissionDraft,
@@ -86,6 +87,8 @@ class RestrictedContractRoute(APIRoute):
                 return _error(request, 403, "access_denied", "Access to this workflow is denied.")
             except RevisionConflict:
                 return _error(request, 409, "revision_conflict", "Submission changed; reload before retrying.")
+            except IncompleteSubmission as exc:
+                return _error(request, 409, "incomplete_submission", str(exc), {"fields": list(exc.fields)})
             except InvalidTransition as exc:
                 return _error(request, 409, "invalid_transition", str(exc))
             except (WorkflowStorageError, MinistryStorageError, RestrictedServiceUnavailable):
@@ -252,6 +255,8 @@ def create_submission(
         body.city,
         body.locality,
         body.exactGeometry.model_dump(mode="json"),
+        tuple(item.model_dump(mode="json") for item in body.capacityDisclosures),
+        tuple(item.model_dump(mode="json") for item in body.evidence),
     )
     return _submission(_workflow_service(request).create_draft(actor, draft))
 

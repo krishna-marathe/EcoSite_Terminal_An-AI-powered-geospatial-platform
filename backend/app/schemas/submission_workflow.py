@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, HttpUrl, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, HttpUrl, TypeAdapter, model_validator
 
 from .public_facilities import CapacityDisclosure, FacilityType, PublicVerification, StateCode
 
@@ -30,6 +30,12 @@ class SubmissionEvidence(BaseModel):
     reference: str = Field(min_length=1, max_length=1000)
     fileSha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
 
+    @model_validator(mode="after")
+    def traceable_reference(self):
+        if self.evidenceType == "source_url":
+            TypeAdapter(HttpUrl).validate_python(self.reference)
+        return self
+
 
 class SubmissionCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -41,6 +47,8 @@ class SubmissionCreate(BaseModel):
     city: str = Field(min_length=1, max_length=120)
     locality: str = Field(min_length=1, max_length=200)
     exactGeometry: ExactPointGeometry
+    capacityDisclosures: list[CapacityDisclosure] = Field(default_factory=list)
+    evidence: list[SubmissionEvidence] = Field(default_factory=list)
 
 
 class SubmissionPatch(BaseModel):

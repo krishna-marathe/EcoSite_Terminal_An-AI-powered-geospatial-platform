@@ -9,9 +9,9 @@ publicly disclosed data-centre facilities in Maharashtra, Telangana, Karnataka
 and Tamil Nadu. The platform includes a public registry, restricted operator
 registration, ministry review and sustainable new-site screening.
 
-Immediate milestone: public operational-facility registry and dashboard.
-Operator minimum-submission requirements are deferred until that milestone is
-working.
+The public operational-facility registry and dashboard milestone is complete.
+The operator minimum-submission gate, restricted location picker and honest
+ministry publication preview are also implemented.
 
 ## Research completed
 
@@ -26,6 +26,10 @@ working.
 - [x] Defined the proposed platform/API/database architecture.
 - [x] Replaced the original 5-6 hour scope with a one-day build plan.
 - [x] Completed public facility inventory research pass 1 using operator sources.
+- [x] Completed facility inventory gap audit pass 2 against current primary
+  operator material; identified 25 strong facility-level candidates absent from
+  the 19-record seed plus larger Nxtra/STT/Web Werks footprints needing
+  facility-level lifecycle and alias resolution.
 - [x] Established lifecycle and capacity-boundary rules for facility ingestion.
 - [x] Selected the frontend/backend/SQLite technology stack.
 - [x] Defined frontend versus backend responsibilities and API boundaries.
@@ -44,6 +48,11 @@ working.
 - [x] Audited frontend, backend/API and database workstreams for parallel delivery.
 - [x] Created exclusive file ownership, contract gates and copy-ready prompts for
   three implementation agents.
+- [x] Converted the authoritative-source catalogue into implementation-ready
+  collection contracts covering facility facts, AQI, weather, groundwater,
+  surface water/flood, grid, biodiversity and population for the four states.
+- [x] Recorded access method, cadence, licence/terms decision, quality caveat,
+  blocker and acceptance gate for each priority data family.
 
 ## Confirmed product decisions
 
@@ -85,7 +94,7 @@ working.
 - [ ] Decide whether to index or retain 110 currently unlinked raw gzip files
   (30 CGWB, 34 Copernicus and 46 JRC); no files were deleted or moved.
 - [ ] Repair project evidence isolation and persistence defects.
-- [ ] Restore a green frontend lint baseline in touched feature areas.
+- [x] Restore a green frontend lint baseline in touched feature areas.
 
 ## Research artifacts
 
@@ -104,8 +113,9 @@ working.
 ## Open decisions
 
 - [ ] Select India-map opening view or fitted four-state opening view.
-- [ ] Complete the second-pass facility inventory and deduplication across all
-  major operators in the four states.
+- [ ] Review and stage the 25 strong pass-2 candidates, resolve conflicting
+  capacity disclosures, and complete facility-level alias/deduplication for
+  Nxtra, STT, Web Werks/Iron Mountain and PDG.
 - [ ] Confirm continued use of the EcoSite name and dark visual identity.
 
 ## Implementation status
@@ -152,7 +162,7 @@ registration and ministry review routes.
 - [x] Backend end-to-end, migration, privacy, restart and live smoke verification
 - [x] SQLite integrity, backup/restore and dry-run retention tooling/runbook
 - [x] Frontend contract clients for registry, environmental, ministry and workflow APIs
-- [x] Frontend full suite passes (204/204), ESLint passes and production build passes
+- [x] Frontend full suite passes (220/220), ESLint passes and production build passes
 - [x] End-to-end runtime smoke: FastAPI and Vite start together; registry,
   environmental and ministry APIs return 200; all new frontend routes serve the app.
 - [x] Keep `/dashboard` as the default full-map command view, remove the
@@ -163,10 +173,38 @@ registration and ministry review routes.
   source-backed facility dossier without exposing exact coordinates.
 - [x] Restrict dashboard controls to data centres and clearly label retained
   environmental, water, biodiversity, climate and grid layers as context.
+- [x] Add dashboard integration coverage for map/grid/split modes, real facility
+  selection and partial environmental-summary failure.
+- [x] Make the global status bar data-centre-only on public/government routes,
+  remove the synthetic-mode badge there and hard-lock site analysis to data centres.
+- [x] Make `/projects` the primary four-state data-centre planning workspace,
+  restrict candidate states to IN-MH/IN-TG/IN-KA/IN-TN and redirect the legacy
+  `/site-analysis` route.
+- [x] Refresh README around the real FastAPI/SQLite registry, environmental,
+  operator/ministry and four-state planning architecture.
+- [x] Add the minimum operator-registration disclosure gate: restricted four-state
+  point, typed capacity, traceable evidence and field-specific incomplete errors.
+- [x] Preserve capacity/evidence through revisions and reloads while keeping exact
+  geometry out of public snapshots.
+- [x] Replace the operator map placeholder with a restricted point picker and
+  retain numeric/keyboard coordinate entry.
+- [x] Remove fabricated operating year/localhost source metadata from ministry
+  publication previews and visibly block approval when publishable evidence is missing.
+- [x] Backend full suite passes (184/184) under Python 3.11 with optional provider
+  credentials unset.
 
-Inventory status: research pass 1 is sufficient for a prototype seed but is not
-an exhaustive four-state census. Additional operators and aliases still require
-second-pass verification before any claim of completeness.
+Inventory status: the 19-record seed is suitable only as a prototype. Pass 2
+found 25 strong facility-level candidates absent from the seed and additional
+operator footprints that require facility-level lifecycle/alias resolution.
+No new candidate is public until it passes deduplication, capacity-boundary,
+generalised-geometry and ministry review gates. See
+`data/research/10-public-facility-inventory-gap-audit.md`.
+
+Active data priority: complete the second-pass operating-facility inventory,
+then contract-test CPCB through the OGD API and NWDP station/resource catalogues.
+Do not enable IMD polling until account authorization, quotas, caching and
+attribution terms are verified. CEA data is state/region grid context only;
+utility headroom and operator telemetry remain restricted integrations.
 
 ## Update rule
 

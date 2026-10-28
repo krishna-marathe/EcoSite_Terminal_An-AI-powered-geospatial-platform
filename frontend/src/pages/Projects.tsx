@@ -8,7 +8,7 @@ import { SitePassport } from '../components/projects/SitePassport';
 import { evidenceService } from '../services/evidence';
 import { getPhases } from '../services/phases';
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getProjects, createProject, getSites, saveSite, archiveSite, projectError, type Project, type CandidateSite, type PolygonGeometry } from '../services/projects';
 import { PolygonEditor } from '../components/site-analysis/PolygonEditor';
@@ -32,9 +32,8 @@ export function Projects() {
   const [busy, setBusy] = useState(false);
   const projectId = params.get('project') || '';
   const project = projects.data?.items.find(item => item.id === projectId);
-  return <PageShell><PageHeader title="Project candidate polygons" purpose="Local single-user API records. Separate from synthetic demo comparisons; no readiness assessment." eyebrow="Projects" />
-    <Link to="/site-analysis">Legacy point screening</Link>
-    <p>Project records are always stored in the local backend, independent of the global Demo/API display setting.</p>
+  return <PageShell><PageHeader title="Four-state data-centre site planning" purpose="Create and compare candidate polygons in Maharashtra, Telangana, Karnataka and Tamil Nadu. Screening evidence supports planning; it is not a legal clearance." eyebrow="Projects" />
+    <p>Candidate projects are stored in the local backend and remain separate from the public operating-facility registry.</p>
     {projects.isPending && <p>Loading projects…</p>}{projects.error && <p role="alert">{projectError(projects.error)}</p>}
     <label>Project<select aria-label="Project" value={projectId} disabled={busy} onChange={e => setParams({ project: e.target.value })}><option value="">Select a project</option>{projects.data?.items.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
     {projects.data && projects.data.total > projects.data.items.length && <p>Showing the first 100 projects.</p>}
@@ -187,7 +186,12 @@ function LoadedProjectSites({ project, onBusy, initialSite, data, selectId, quer
     </div>)}
   </Card><Card title={selected ? 'Edit candidate polygon' : 'New candidate polygon'}><form className="space-y-3" onSubmit={async e => { e.preventDefault(); if (!geometry) return; setBusy(true); setError(''); setMessage(''); try { const site = await saveSite(project.id, { name, state_code: state, district: district || null, geometry }, selected); if (!mounted.current) return; choose(site); await invalidate(); setMessage('Candidate saved to the local backend.'); } catch (err) { setError(projectError(err)); } finally { setBusy(false); } }}>
     <label className="block">Candidate name<input required maxLength={200} value={name} disabled={busy} onChange={e => setName(e.target.value)} /></label>
-    <label className="block">State code<input required pattern="IN-[A-Z]{2}" value={state} disabled={busy} onChange={e => setState(e.target.value)} /></label>
+    <label className="block">State<select aria-label="State" required value={state} disabled={busy} onChange={e => setState(e.target.value)}>
+      <option value="IN-MH">Maharashtra</option>
+      <option value="IN-TG">Telangana</option>
+      <option value="IN-KA">Karnataka</option>
+      <option value="IN-TN">Tamil Nadu</option>
+    </select></label>
     <label className="block">District (optional)<input maxLength={100} value={district} disabled={busy} onChange={e => setDistrict(e.target.value)} /></label>
     <PolygonEditor key={editorVersion} value={geometry} disabled={busy} onChange={value => { setGeometry(value); setMessage(''); }} />
     <Button disabled={busy || !geometry || (!selected && data.length >= 3)}>{busy ? 'Saving…' : 'Save candidate polygon'}</Button>

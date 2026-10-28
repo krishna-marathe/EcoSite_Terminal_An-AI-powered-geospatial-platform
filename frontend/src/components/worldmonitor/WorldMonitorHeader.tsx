@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   ClipboardCheck,
   UserPlus,
+  Newspaper,
 } from 'lucide-react';
 import { useDashboardStore } from '../../stores/dashboardStore';
 import { ApiKeyModal } from '../ui/ApiKeyModal';
@@ -29,8 +30,9 @@ const NAV_MODULES = [
   { to: '/ministry', label: 'Ministry', icon: <ShieldCheck className="h-3.5 w-3.5" /> },
   { to: '/operator/register', label: 'Register', icon: <UserPlus className="h-3.5 w-3.5" /> },
   { to: '/ministry/review', label: 'Review', icon: <ClipboardCheck className="h-3.5 w-3.5" /> },
-  { to: '/site-analysis', label: 'DC site planning', icon: <MapPin className="h-3.5 w-3.5" /> },
+  { to: '/projects', label: 'DC site planning', icon: <MapPin className="h-3.5 w-3.5" /> },
   { to: '/data-sources', label: 'DC data sources', icon: <Database className="h-3.5 w-3.5" /> },
+  { to: '/news', label: 'News', icon: <Newspaper className="h-3.5 w-3.5" /> },
 ];
 
 const VIEW_MODES: Array<{ mode: DashboardViewMode; label: string; icon: React.ReactNode; title: string }> = [
@@ -88,7 +90,7 @@ export const WorldMonitorHeader: React.FC = () => {
   };
 
   const activeLayerCount = Object.values(wmLayers).filter(Boolean).length;
-  const showDashboardTools = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/site-analysis');
+  const showDashboardTools = location.pathname.startsWith('/dashboard');
 
   return (
     <header className="z-30 flex h-14 shrink-0 select-none items-center justify-between border-b border-eco-border bg-eco-bg/95 px-4 backdrop-blur-md">
@@ -210,7 +212,7 @@ export const WorldMonitorHeader: React.FC = () => {
           icon={<Compass className="h-4 w-4" />}
           onClick={() => {
             fitToIndia();
-            navigate('/site-analysis');
+            navigate('/dashboard');
           }}
         />
 

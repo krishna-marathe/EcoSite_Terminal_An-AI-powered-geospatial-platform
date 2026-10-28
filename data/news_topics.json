@@ -1,0 +1,95 @@
+{
+  "version": "2026-10-29",
+  "regions": ["india", "world"],
+  "topics": [
+    {
+      "key": "all",
+      "label": "All topics",
+      "india": [
+        "data centre India",
+        "data centre policy India",
+        "data centre power demand India"
+      ],
+      "world": [
+        "data centre policy",
+        "data centre energy demand",
+        "hyperscale data centre"
+      ]
+    },
+    {
+      "key": "dc_policy",
+      "label": "Policy & regulation",
+      "india": [
+        "Maharashtra data centre policy",
+        "Telangana data centre policy",
+        "Karnataka data centre policy",
+        "Tamil Nadu data centre policy"
+      ],
+      "world": [
+        "data centre regulation",
+        "data centre moratorium",
+        "AI infrastructure policy"
+      ]
+    },
+    {
+      "key": "energy_grid",
+      "label": "Power & grid",
+      "india": [
+        "data centre power demand grid India",
+        "data centre electricity India"
+      ],
+      "world": [
+        "data centre grid connection",
+        "data centre electricity demand"
+      ]
+    },
+    {
+      "key": "water_cooling",
+      "label": "Water & cooling",
+      "india": [
+        "data centre water use India",
+        "data centre cooling water"
+      ],
+      "world": [
+        "data centre water stress",
+        "data centre cooling"
+      ]
+    },
+    {
+      "key": "environment",
+      "label": "Environment",
+      "india": [
+        "data centre environmental clearance India",
+        "data centre air quality"
+      ],
+      "world": [
+        "data centre environmental impact",
+        "data centre emissions"
+      ]
+    },
+    {
+      "key": "investment",
+      "label": "Investment",
+      "india": [
+        "data centre investment India",
+        "hyperscale data centre India"
+      ],
+      "world": [
+        "data centre investment",
+        "sovereign AI infrastructure"
+      ]
+    },
+    {
+      "key": "benchmarks",
+      "label": "Global benchmarks",
+      "india": [
+        "data centre energy efficiency India"
+      ],
+      "world": [
+        "EU energy efficiency directive data centre",
+        "Singapore data centre rules",
+        "Ireland data centre grid"
+      ]
+    }
+  ]
+}

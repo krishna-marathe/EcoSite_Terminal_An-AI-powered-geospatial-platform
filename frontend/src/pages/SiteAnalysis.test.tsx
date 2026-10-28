@@ -26,9 +26,16 @@ function submit() { fireEvent.submit(screen.getByRole('button', { name: /Evaluat
 beforeEach(() => { useDashboardStore.setState(useDashboardStore.getInitialState(), true); });
 afterEach(() => { cleanup(); vi.resetAllMocks(); });
 
+it('locks candidate screening to data centres', () => {
+  render(<MemoryRouter><SiteAnalysis /></MemoryRouter>);
+
+  expect(screen.getByDisplayValue('Data centre')).toBeTruthy();
+  expect(screen.queryByRole('combobox', { name: 'Infrastructure type' })).toBeNull();
+});
+
 it.each([
   ['Capacity (MW)', '120'], ['Water demand (kL/day)', '25'], ['Power demand (MW)', '110'],
-  ['Latitude (°)', '18.55'], ['Longitude (°)', '73.82'], ['Project name', 'New candidate'], ['Infrastructure type', 'industrial'],
+  ['Latitude (°)', '18.55'], ['Longitude (°)', '73.82'], ['Project name', 'New candidate'],
   ['map', ''], ['preset', ''],
 ])('invalidates pending assessment on %s edit and clears loading immediately', async (label, value) => {
   const a = pending(); render(<MemoryRouter><SiteAnalysis /></MemoryRouter>); submit();
@@ -47,10 +54,9 @@ it.each([
 it('keeps B when B succeeds before A, and saves only the current snapshot', async () => {
   const a = pending(), b = pending(); render(<MemoryRouter><SiteAnalysis /></MemoryRouter>); submit();
   fireEvent.change(screen.getByLabelText('Project name', { exact: false }), { target: { value: 'Candidate B' } });
-  fireEvent.change(screen.getByLabelText('Infrastructure type'), { target: { value: 'industrial' } });
   submit();
   expect(assess.mock.calls[0][0].name).toBe('Pune candidate');
-  expect(assess.mock.calls[1][0]).toMatchObject({ name: 'Candidate B', type: 'industrial' });
+  expect(assess.mock.calls[1][0]).toMatchObject({ name: 'Candidate B', type: 'data_centre' });
   await act(async () => { b.resolve(result(1)); });
   await act(async () => { a.resolve(result(0)); });
   expect(screen.queryByText('Evidence for request 0')).toBeNull();

@@ -72,11 +72,14 @@ class SqlAlchemySubmissionRepository(SubmissionRepository):
             visibility="OPERATOR_PRIVATE", created_at=_iso(event.occurred_at),
         ))
         for item in submission.evidence:
+            evidence_type = str(item.get("evidenceType", "other"))
+            reference = item.get("reference")
             session.add(SubmissionEvidence(
                 id=str(uuid4()), revision_id=revision.id, title=str(item.get("title", "Evidence")),
-                evidence_type=str(item.get("evidenceType", "other")),
-                storage_path=item.get("storagePath"), external_url=item.get("externalUrl"),
-                sha256=item.get("sha256"), content_type=item.get("contentType"),
+                evidence_type=evidence_type,
+                storage_path=reference if evidence_type == "document_reference" else item.get("storagePath"),
+                external_url=reference if evidence_type == "source_url" else item.get("externalUrl"),
+                sha256=item.get("fileSha256") or item.get("sha256"), content_type=item.get("contentType"),
                 file_size_bytes=item.get("fileSizeBytes"), issuer=item.get("issuer"),
                 issued_at=item.get("issuedAt"), evidence_class=str(item.get("evidenceClass", "DECLARED")),
                 visibility=str(item.get("visibility", "OPERATOR_PRIVATE")),
@@ -123,9 +126,8 @@ class SqlAlchemySubmissionRepository(SubmissionRepository):
             revision.city, revision.locality, dict(geometry.geometry_json),
             tuple(revision.capacity_disclosures), tuple({
                 "title": item.title, "evidenceType": item.evidence_type,
-                "storagePath": item.storage_path, "externalUrl": item.external_url,
-                "sha256": item.sha256, "evidenceClass": item.evidence_class,
-                "visibility": item.visibility,
+                "reference": item.external_url or item.storage_path,
+                "fileSha256": item.sha256,
             } for item in evidence), _dt(header.created_at), _dt(header.updated_at),
             _dt(header.submitted_at), header.assigned_reviewer_id,
             revision.ownership_category, revision.operational_since,

@@ -35,10 +35,13 @@ authentication.
 
 ## Current delivery priority
 
-Build the public operational-facility registry first: credible-source records,
-90-day verification, generalized locations, public APIs, map, filters and
-facility profiles. Defer the final minimum operator-registration form until the
-public dashboard is working.
+Data collection and provenance are the active priority. Complete the second-pass
+operating-facility census, freeze an auditable source contract for every public
+connector, catalogue stations/layers before observations, and enable only feeds
+whose access, licence, schema and freshness rules have been verified. The
+dashboard and minimum operator-registration gate are complete enough to consume
+this work. Missing live coverage remains `NOT_COVERED`; it is never filled with
+synthetic values.
 
 Backend/database implementation used a two-track pipeline, with the database
 one schema wave ahead and integration controlled by contract gates. See
@@ -53,6 +56,10 @@ facility snapshots, and passes integrity/foreign-key checks. Public registry,
 cached environmental, ministry operations and restricted registration/review
 APIs are wired. Live environmental ingestion still requires verified provider
 access/configuration; missing coverage is returned explicitly rather than filled.
+Implementation-ready source contracts and collection order are recorded in
+`data/research/10-authoritative-collection-contracts.md`. CPCB through the OGD
+API and NWDP station/resource catalogues are the first public connector targets;
+IMD requires account/terms/quota verification before scheduled polling.
 
 ## Selected technology stack
 
@@ -130,6 +137,17 @@ phase dependencies and copy-ready prompts.
 
 - Implement the normalized public registry schema/API. (Complete.)
 - Deterministically import the reviewed file seed into SQLite. (Complete: 19.)
+- Treat those 19 records as a prototype seed, not a complete census. Research
+  pass 2 identified 25 strong missing facility-level candidates plus unresolved
+  operator footprints; see
+  `data/research/10-public-facility-inventory-gap-audit.md`.
+- Stage discoveries in a private candidate queue before public import. Capture
+  aliases, lifecycle wording, capacity type/boundary, retrieval timestamp and
+  source content hash; never write web discoveries directly to approved public
+  snapshots.
+- Review candidates in operator batches, resolving conflicting Sify/Yotta
+  capacity disclosures and separating live phase, building, campus-design and
+  combined-facility values.
 - Add monitoring stations, environmental observations and rollups. (Complete.)
 - Add operator registration, immutable revisions and evidence metadata. (Complete.)
 - Add ministry review, audit events and approved snapshots. (Complete.)
@@ -147,6 +165,8 @@ phase dependencies and copy-ready prompts.
 - Show unknown values instead of estimates.
 - Seed only credible-source-supported public facilities; keep government,
   operator, filing, certification, media and directory evidence distinct.
+- Keep the dashboard labelled as a prototype inventory until the pass-2 queue
+  is reviewed, deduplicated and published through the ministry gate.
 - Enforce a 90-day operational-verification expiry; stale records are withheld
   from public APIs until reviewed again.
 
@@ -175,9 +195,9 @@ phase dependencies and copy-ready prompts.
   current Python 3.15/Pydantic import failure as an application test result.
 
 Current verification: the isolated Python 3.11 environment passes the complete
-backend suite (181/181). The live database reports revision `04c_001`,
+backend suite (184/184). The live database reports revision `04c_001`,
 `PRAGMA integrity_check=ok`, no foreign-key violations and no Alembic drift.
-The frontend suite passes 204/204 tests, full ESLint passes and the production
+The frontend suite passes 220/220 tests, full ESLint passes and the production
 build succeeds. Vite still reports a non-blocking large-bundle warning; route
 code splitting remains a performance-hardening opportunity.
 
@@ -193,6 +213,18 @@ linking to the public profile. Split and grid modes now use real registry,
 environmental-coverage and ministry-operations API panels instead of synthetic
 telemetry, signal and hotspot panels. External AQI, water, climate,
 biodiversity and grid layers remain clearly labelled contextual evidence.
+Dashboard integration tests cover grid, split and map modes, real facility
+selection, dossier rendering and partial environmental-source failure. Global
+government/public workflows now show only the data-centre registry legend, and
+candidate site analysis is hard-locked to the data-centre facility type.
+`/projects` is now the primary candidate-planning route, with state selection
+restricted to Maharashtra, Telangana, Karnataka and Tamil Nadu; the legacy
+`/site-analysis` route redirects there.
+Operator registration now supports a restricted map point, typed capacity
+disclosures and traceable evidence. Incomplete drafts remain saveable, but the
+backend blocks ministry submission until the minimum disclosure is complete.
+Ministry publication previews use only submitted evidence and never fabricate
+an operating year or source metadata.
 
 ## Architectural guardrails
 

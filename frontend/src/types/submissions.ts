@@ -16,6 +16,10 @@ export interface SubmissionCreate {
   city: string;
   locality: string;
   exactGeometry: ExactPointGeometry;
+  /** Draft disclosures may be empty until the operator submits for review. */
+  capacityDisclosures?: PublicCapacityDisclosure[];
+  /** Draft evidence may be empty until the operator submits for review. */
+  evidence?: SubmissionEvidence[];
 }
 export interface SubmissionPatch {
   expectedRevision: number;

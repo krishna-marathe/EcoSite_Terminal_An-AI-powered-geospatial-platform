@@ -37,3 +37,11 @@ it('requires a decision reason before ministry actions are enabled', () => {
   expect(screen.getByRole('button', { name: 'Approve and publish' }).hasAttribute('disabled')).toBe(true);
   expect(screen.getByRole('button', { name: 'Reject' }).hasAttribute('disabled')).toBe(true);
 });
+
+it('explains why approval is blocked while keeping information requests available', () => {
+  render(<MinistryReview queue={queue} selected={selected} publicPreview={null} publicPreviewBlockReason="Publication is blocked until a traceable source URL is supplied." />);
+  expect(screen.getByText(/publication preview unavailable/i)).toBeTruthy();
+  expect(screen.getByText(/traceable source URL/i)).toBeTruthy();
+  expect(screen.getByRole('button', { name: /approve and publish/i }).hasAttribute('disabled')).toBe(true);
+  expect(screen.getByRole('button', { name: /request information/i })).toBeTruthy();
+});

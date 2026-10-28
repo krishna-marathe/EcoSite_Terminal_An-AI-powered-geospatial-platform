@@ -67,6 +67,17 @@ it('draws a polygon through actual map click callbacks and saves the current coo
   expect(map.removed).toBe(true);
 });
 
+it('limits candidate geography to the four target states', async () => {
+  mount();
+  const state = await screen.findByLabelText('State');
+  expect(Array.from((state as HTMLSelectElement).options).map(option => [option.value, option.text])).toEqual([
+    ['IN-MH', 'Maharashtra'],
+    ['IN-TG', 'Telangana'],
+    ['IN-KA', 'Karnataka'],
+    ['IN-TN', 'Tamil Nadu'],
+  ]);
+});
+
 it('restores the selected persisted polygon after reload and edits vertices without changing unrelated fields',async () => {
   records=[saved];const view=mount('/projects?project=p1&site=s1');
   await screen.findByDisplayValue('Saved parcel');

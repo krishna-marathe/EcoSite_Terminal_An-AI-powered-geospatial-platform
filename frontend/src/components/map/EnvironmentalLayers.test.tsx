@@ -132,8 +132,9 @@ it('sidebar disables unavailable geometry without erasing user toggle preference
   setMode('demo'); expect(groundwater.getAttribute('aria-pressed')).toBe('true');
 });
 
-it('banner and ribbon expose only the data-centre marker layer with the registry count', () => {
-  setMode('api');
+it('banner reports facility source status while the ribbon shows the registry count', () => {
+  const dataCentre = { ...PILOT_FACILITIES[0], type: 'data_centre' as const };
+  setMode('api'); useDashboardStore.getState().setFacilities([dataCentre]);
   render(<MemoryRouter><DataQualityBanner /><WorldMonitorLayerRibbon dataCentreCount={19} /></MemoryRouter>);
   expect(screen.getByText(environmentalMessage('api'))).toBeTruthy();
   expect(screen.getByText(/Sources:/).textContent).toContain('(synthetic)');

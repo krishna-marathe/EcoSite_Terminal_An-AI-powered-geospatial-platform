@@ -76,6 +76,8 @@ class RestrictedWorkflowPersistenceApiTests(unittest.TestCase):
                     "city": "Mumbai",
                     "locality": "Chandivali",
                     "exactGeometry": {"type": "Point", "coordinates": [72.889432, 19.112345]},
+                    "capacityDisclosures": [{"value": 10, "unit": "MW", "capacityType": "it_load", "scope": "campus"}],
+                    "evidence": [{"evidenceType": "source_url", "title": "Operator disclosure", "reference": "https://example.test/campus"}],
                 }
                 created = client.post("/api/v1/operator/facility-submissions", json=draft, headers=OPERATOR_HEADERS)
                 self.assertEqual(created.status_code, 201)

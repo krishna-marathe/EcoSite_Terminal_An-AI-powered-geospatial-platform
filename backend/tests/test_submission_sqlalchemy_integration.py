@@ -54,7 +54,9 @@ class SubmissionPersistenceTests(unittest.TestCase):
     def test_full_workflow_is_atomic_private_and_restart_persistent(self):
         item = self.service.create_draft(self.operator, SubmissionDraft(
             "Campus", "org-1", "colocation", "IN-MH", "Mumbai", "Locality",
-            {"type": "Point", "coordinates": [72.812345, 19.112345]},
+            {"type": "Point", "coordinates": [72.889432, 19.112345]},
+            ({"value": 10, "unit": "MW", "capacityType": "it_load", "scope": "campus"},),
+            ({"evidenceType": "source_url", "title": "Operator disclosure", "reference": "https://example.test/campus"},),
         ))
         item = self.service.submit(self.operator, item.id, item.revision)
         result = self.service.review(self.reviewer, item.id, item.revision, "request_information", "Need capacity", ["capacityDisclosures"])
@@ -73,7 +75,7 @@ class SubmissionPersistenceTests(unittest.TestCase):
         restarted = SqlAlchemySubmissionRepository(lambda: Session(self.engine, expire_on_commit=False), lambda *_: (_ for _ in ()).throw(AssertionError("not called")))
         persisted = restarted.get(item.id)
         self.assertEqual((persisted.status, persisted.revision), ("approved", 6))
-        self.assertEqual(persisted.exact_geometry["coordinates"], [72.812345, 19.112345])
+        self.assertEqual(persisted.exact_geometry["coordinates"], [72.889432, 19.112345])
         with Session(self.engine) as session:
             public = session.scalar(select(PublicFacilitySnapshot).where(PublicFacilitySnapshot.is_current.is_(True)))
             self.assertNotIn("exactGeometry", public.payload)
@@ -87,7 +89,9 @@ class SubmissionPersistenceTests(unittest.TestCase):
     def test_conflict_rolls_back_revision_and_audit(self):
         item = self.service.create_draft(self.operator, SubmissionDraft(
             "Campus", "org-1", "colocation", "IN-MH", "Mumbai", "Locality",
-            {"type": "Point", "coordinates": [72.8, 19.1]},
+            {"type": "Point", "coordinates": [72.889432, 19.112345]},
+            ({"value": 10, "unit": "MW", "capacityType": "it_load", "scope": "campus"},),
+            ({"evidenceType": "source_url", "title": "Operator disclosure", "reference": "https://example.test/campus"},),
         ))
         stale = item
         self.service.submit(self.operator, item.id, 1)
@@ -101,7 +105,9 @@ class SubmissionPersistenceTests(unittest.TestCase):
     def test_resolver_rejects_existing_public_id_without_overwrite(self):
         submission = self.service.create_draft(self.operator, SubmissionDraft(
             "Campus", "org-1", "colocation", "IN-MH", "Mumbai", "Locality",
-            {"type": "Point", "coordinates": [72.8, 19.1]},
+            {"type": "Point", "coordinates": [72.889432, 19.112345]},
+            ({"value": 10, "unit": "MW", "capacityType": "it_load", "scope": "campus"},),
+            ({"evidenceType": "source_url", "title": "Operator disclosure", "reference": "https://example.test/campus"},),
         ))
         payload = {
             "id": "duplicate", "name": "Campus", "operator": "Operator One",

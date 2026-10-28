@@ -122,7 +122,26 @@ class RestrictedWorkflowApiTests(unittest.TestCase):
             "city": "Mumbai",
             "locality": "Chandivali",
             "exactGeometry": {"type": "Point", "coordinates": [72.889432, 19.112345]},
+            "capacityDisclosures": [{"value": 10, "unit": "MW", "capacityType": "it_load", "scope": "campus"}],
+            "evidence": [{"evidenceType": "source_url", "title": "Operator disclosure", "reference": "https://example.test/campus"}],
         }
+
+    def test_incomplete_draft_is_saved_but_cannot_enter_review(self):
+        draft = self.draft()
+        draft["capacityDisclosures"] = []
+        draft["evidence"] = []
+        created = self.client.post("/api/v1/operator/facility-submissions", json=draft, headers=OPERATOR_HEADERS)
+        self.assertEqual(created.status_code, 201)
+        submitted = self.client.post(
+            "/api/v1/operator/facility-submissions/sub-1/submit",
+            json={"expectedRevision": 1}, headers=OPERATOR_HEADERS,
+        )
+        self.assertEqual(submitted.status_code, 409)
+        self.assertEqual(submitted.json()["error"]["code"], "incomplete_submission")
+        self.assertEqual(
+            {item["path"] for item in submitted.json()["error"]["details"]["fields"]},
+            {"capacityDisclosures", "evidence"},
+        )
 
     def create_and_submit(self):
         created = self.client.post("/api/v1/operator/facility-submissions", json=self.draft(), headers=OPERATOR_HEADERS)
