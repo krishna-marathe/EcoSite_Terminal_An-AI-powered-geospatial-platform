@@ -1,7 +1,9 @@
 import { PhaseEditor } from '../components/projects/PhaseEditor';
 import { EnvironmentalObservations } from '../components/projects/EnvironmentalObservations';
 import { EvidenceWorkspace } from '../components/projects/EvidenceWorkspace';
+import { ResourceReadinessTimeline } from '../components/projects/ResourceReadinessTimeline';
 import { evidenceService } from '../services/evidence';
+import { getPhases } from '../services/phases';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -81,15 +83,26 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
     }
   };
 
+  const phasesQuery = useQuery({
+    queryKey: ['project-phases', projectId],
+    queryFn: () => getPhases(projectId),
+  });
+
   return (
-    <EvidenceWorkspace
-      projectId={projectId}
-      artifacts={artifactsQuery.data || []}
-      assertions={assertionsQuery.data || []}
-      onUpload={handleUpload}
-      onReviewAssertion={handleReview}
-      busy={artifactsQuery.isFetching || assertionsQuery.isFetching}
-    />
+    <div className="space-y-4">
+      <ResourceReadinessTimeline
+        phases={phasesQuery.data || []}
+        assertions={assertionsQuery.data || []}
+      />
+      <EvidenceWorkspace
+        projectId={projectId}
+        artifacts={artifactsQuery.data || []}
+        assertions={assertionsQuery.data || []}
+        onUpload={handleUpload}
+        onReviewAssertion={handleReview}
+        busy={artifactsQuery.isFetching || assertionsQuery.isFetching}
+      />
+    </div>
   );
 }
 
