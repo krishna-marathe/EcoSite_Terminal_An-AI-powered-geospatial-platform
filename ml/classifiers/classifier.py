@@ -34,13 +34,20 @@ TAXONOMY_PROTOTYPES: Dict[DocumentSubtype, Dict[str, Any]] = {
             "pvvnl", "upptcl", "dhbvn", "uhbvn", "in-principle sanction", "memorandum"
         ],
         "mandatory_indicators": ["sanction", "power supply", "demand", "in-principle"],
+        "negative_indicators": [
+            "no spare firm capacity is sanctioned",
+            "preliminary feasibility intimation",
+            "no capacity is sanctioned",
+            "not determined in this document",
+        ],
         "weight": 1.2
     },
     DocumentSubtype.DISCOM_POWER_APPLICATION: {
         "primary_terms": [
             "application", "applied for", "form ht", "requisition", "feasibility", "connectivity",
+            "preliminary feasibility", "feasibility intimation", "feasibility study",
             "power supply application", "contract demand", "estimated peak", "load feasibility",
-            "undertaking", "applicant details"
+            "undertaking", "applicant details", "kptcl", "bescom", "msedcl", "tsspdcl", "pvvnl", "tangedco"
         ],
         "mandatory_indicators": ["application", "feasibility", "applied"],
         "weight": 1.1
@@ -116,7 +123,7 @@ class DocumentClassifier:
     def classify_text(self, text: str, document_id: str = "doc_eval") -> DocumentClassificationResult:
         """Classify raw text into a DocumentClassificationResult."""
         text_lower = text.lower()
-        words = re.findall(r"\b[a-z0-9_-]{3,}\b", text_lower)
+        words = re.findall(r"\b[a-z0-9]{3,}\b", text_lower)
         word_counts = Counter(words)
         total_words = max(len(words), 1)
         # 0. Check exclusion terms (e.g. residential lease, commercial catering/hardware invoice)
@@ -138,6 +145,12 @@ class DocumentClassifier:
             score = 0.0
             reasons = []
 
+            # 0. Check negative disqualifying indicators
+            neg_hits = [neg for neg in proto.get("negative_indicators", []) if neg in text_lower]
+            if neg_hits:
+                scores[subtype] = 0.0
+                continue
+
             # 1. Check mandatory indicator matches
             mandatory_hits = [ind for ind in proto["mandatory_indicators"] if ind in text_lower]
             if not mandatory_hits:
@@ -157,8 +170,10 @@ class DocumentClassifier:
                         score += count * 2.0
                         term_hits.append(f"'{term}' (x{count})")
                 else:
-                    # Single word
+                    # Single word: match exact token count or fallback substring in unspaced compound words
                     count = word_counts.get(term, 0)
+                    if count == 0 and len(term) >= 4 and term in text_lower:
+                        count = sum(1 for w in words if term in w)
                     if count > 0:
                         tf = count / total_words
                         score += count * 1.0

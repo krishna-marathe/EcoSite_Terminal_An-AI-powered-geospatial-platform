@@ -145,7 +145,7 @@ class CandidateExtractor:
 
             # 3. Supply Voltage (kV)
             m_kv = re.search(
-                r"(?:Supply\s+Voltage|Desired\s+Supply\s+Voltage|voltage\s+grade|interconnection\s+at|at)\s*:?\s*([\d\.,]+)\s*(kV|V)",
+                r"(?:Supply\s*Voltage|Desired\s*Supply\s*Voltage|voltage\s+grade|interconnection\s+at|at)\s*:?\s*([\d\.,]+)\s*(kV|V)",
                 line,
                 re.IGNORECASE
             )
@@ -399,7 +399,7 @@ class CandidateExtractor:
             is_prose_or_citation = bool(re.search(r"\b(?:with\s+reference|in\s+reference|your\s+(?:online\s+)?application)\b", line, re.IGNORECASE))
             if not is_prose_or_citation:
                 m_ref = re.search(
-                    r"\b(?:Ref|Order\s+No|Application\s+(?:ID|Reference)|NOC\s+No|Document\s+No|Allotment\s+Reference|Memorandum\s+No)\.?\s*:?\s*([A-Za-z0-9_/-]{6,})",
+                    r"\b(?:Ref|Order\s*No|Application\s*(?:ID|Reference)|NOC\s*No|Document\s*No|Allotment\s*Reference|Memorandum\s*No)\.?\s*:?\s*([A-Za-z0-9_/-]+?)(?=(?:---|\s|$|[;,]))",
                     line,
                     re.IGNORECASE
                 )
@@ -450,7 +450,7 @@ class CandidateExtractor:
 
             # Validity / Expiry Date
             m_val = re.search(
-                r"(?:Valid\s+until|Valid\s+up\s+to|Valid\s+for:?\s*10\s*years\s+expiring\s+on|to):?\s*(\d{1,2}[-/]\d{1,2}[-/]\d{4}|\d{4}-\d{2}-\d{2})",
+                r"(?:Valid\s*until|Valid\s*up\s*to|Valid\s*for:?\s*10\s*years\s+expiring\s+on|to)\s*:?\s*(\d{1,2}[-/]\d{1,2}[-/]\d{4}|\d{4}-\d{2}-\d{2})",
                 line,
                 re.IGNORECASE
             )

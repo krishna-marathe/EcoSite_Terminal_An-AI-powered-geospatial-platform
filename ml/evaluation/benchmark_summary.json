@@ -298,7 +298,7 @@
         "filename": "BESCOM_HT_Power_Application_Devanahalli.txt",
         "true_type": "UTILITY_APPLICATION",
         "predicted_type": "UTILITY_APPLICATION",
-        "confidence": 0.7895,
+        "confidence": 0.8401,
         "expected_count": 6,
         "extracted_count": 6,
         "matched_count": 6
@@ -339,28 +339,28 @@
     "format_evaluated": "txt",
     "classification_type_metrics": {
       "total_samples": 6,
-      "correct_predictions": 4,
-      "accuracy": 0.6667,
-      "macro_precision": 0.5417,
-      "macro_recall": 0.6667,
-      "macro_f1": 0.5833,
+      "correct_predictions": 6,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
       "per_class_metrics": {
         "OTHER": {
-          "precision": 0.5,
+          "precision": 1.0,
           "recall": 1.0,
-          "f1": 0.6667,
+          "f1": 1.0,
           "support": 1
         },
         "UTILITY_APPLICATION": {
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
           "support": 1
         },
         "UTILITY_SANCTION": {
-          "precision": 0.6667,
-          "recall": 0.6667,
-          "f1": 0.6667,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
           "support": 3
         },
         "WATER_ALLOCATION": {
@@ -379,14 +379,14 @@
         },
         "UTILITY_APPLICATION": {
           "OTHER": 0,
-          "UTILITY_APPLICATION": 0,
-          "UTILITY_SANCTION": 1,
+          "UTILITY_APPLICATION": 1,
+          "UTILITY_SANCTION": 0,
           "WATER_ALLOCATION": 0
         },
         "UTILITY_SANCTION": {
-          "OTHER": 1,
+          "OTHER": 0,
           "UTILITY_APPLICATION": 0,
-          "UTILITY_SANCTION": 2,
+          "UTILITY_SANCTION": 3,
           "WATER_ALLOCATION": 0
         },
         "WATER_ALLOCATION": {
@@ -399,28 +399,28 @@
     },
     "classification_subtype_metrics": {
       "total_samples": 6,
-      "correct_predictions": 4,
-      "accuracy": 0.6667,
-      "macro_precision": 0.5417,
-      "macro_recall": 0.6667,
-      "macro_f1": 0.5833,
+      "correct_predictions": 6,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
       "per_class_metrics": {
         "DISCOM_POWER_APPLICATION": {
-          "precision": 0.0,
-          "recall": 0.0,
-          "f1": 0.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
           "support": 1
         },
         "GRID_SANCTION_LETTER": {
-          "precision": 0.6667,
-          "recall": 0.6667,
-          "f1": 0.6667,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
           "support": 3
         },
         "MISCELLANEOUS": {
-          "precision": 0.5,
+          "precision": 1.0,
           "recall": 1.0,
-          "f1": 0.6667,
+          "f1": 1.0,
           "support": 1
         },
         "MUNICIPAL_BULK_WATER_ALLOCATION": {
@@ -432,15 +432,15 @@
       },
       "confusion_matrix": {
         "DISCOM_POWER_APPLICATION": {
-          "DISCOM_POWER_APPLICATION": 0,
-          "GRID_SANCTION_LETTER": 1,
+          "DISCOM_POWER_APPLICATION": 1,
+          "GRID_SANCTION_LETTER": 0,
           "MISCELLANEOUS": 0,
           "MUNICIPAL_BULK_WATER_ALLOCATION": 0
         },
         "GRID_SANCTION_LETTER": {
           "DISCOM_POWER_APPLICATION": 0,
-          "GRID_SANCTION_LETTER": 2,
-          "MISCELLANEOUS": 1,
+          "GRID_SANCTION_LETTER": 3,
+          "MISCELLANEOUS": 0,
           "MUNICIPAL_BULK_WATER_ALLOCATION": 0
         },
         "MISCELLANEOUS": {
@@ -459,19 +459,19 @@
     },
     "extraction_metrics": {
       "total_expected_fields": 27,
-      "total_extracted_candidates": 21,
-      "true_positives": 20,
-      "false_positives": 1,
-      "false_negatives": 7,
-      "precision": 0.9524,
-      "recall": 0.7407,
-      "f1_score": 0.8333,
+      "total_extracted_candidates": 27,
+      "true_positives": 27,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
       "page_accuracy": 1.0,
       "per_field_metrics": {
         "document_reference_number": {
           "expected": 5,
-          "matched": 4,
-          "extracted": 4
+          "matched": 5,
+          "extracted": 5
         },
         "contract_demand_mva": {
           "expected": 2,
@@ -480,22 +480,22 @@
         },
         "supply_voltage_kv": {
           "expected": 4,
-          "matched": 3,
-          "extracted": 3
+          "matched": 4,
+          "extracted": 4
         },
         "substation_name": {
           "expected": 4,
-          "matched": 3,
-          "extracted": 3
+          "matched": 4,
+          "extracted": 4
         },
         "validity_expiry_date": {
           "expected": 3,
-          "matched": 2,
-          "extracted": 2
+          "matched": 3,
+          "extracted": 3
         },
         "sanction_date": {
           "expected": 3,
-          "matched": 2,
+          "matched": 3,
           "extracted": 3
         },
         "water_allocation_kld": {
@@ -515,13 +515,13 @@
         },
         "application_date": {
           "expected": 1,
-          "matched": 0,
-          "extracted": 0
+          "matched": 1,
+          "extracted": 1
         },
         "sanctioned_grid_mw": {
           "expected": 2,
-          "matched": 1,
-          "extracted": 1
+          "matched": 2,
+          "extracted": 2
         }
       }
     },
@@ -550,11 +550,11 @@
         "document_id": "doc-held-003-missing-fields-feasibility",
         "filename": "KPTCL_Preliminary_Feasibility_Study.txt",
         "true_type": "UTILITY_APPLICATION",
-        "predicted_type": "UTILITY_SANCTION",
-        "confidence": 0.6501,
+        "predicted_type": "UTILITY_APPLICATION",
+        "confidence": 0.7472,
         "expected_count": 4,
         "extracted_count": 4,
-        "matched_count": 3
+        "matched_count": 4
       },
       {
         "document_id": "doc-held-004-conflicting-power-values",
@@ -570,11 +570,11 @@
         "document_id": "doc-held-005-malformed-ocr-text",
         "filename": "TSSPDCL_Degraded_OCR_Sanction.txt",
         "true_type": "UTILITY_SANCTION",
-        "predicted_type": "OTHER",
-        "confidence": 0.2953,
+        "predicted_type": "UTILITY_SANCTION",
+        "confidence": 0.478,
         "expected_count": 6,
-        "extracted_count": 0,
-        "matched_count": 0
+        "extracted_count": 6,
+        "matched_count": 6
       },
       {
         "document_id": "doc-held-006-out-of-domain-lease",
