@@ -2,6 +2,7 @@ import { ExternalLink, MapPin, Server } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { Card } from '../ui/Card';
 import type { CapacityType, PublicFacility } from '../../types/publicFacilities';
+import { DataCentreAiInsightsCard } from './DataCentreAiInsightsCard';
 
 const CAPACITY_LABELS: Record<CapacityType, string> = {
   it_load: 'IT load',
@@ -61,6 +62,8 @@ export function FacilityProfile({ facility }: FacilityProfileProps) {
           </div>
         ) : <p className="text-body text-eco-muted">Capacity has not been publicly disclosed.</p>}
       </Card>
+
+      <DataCentreAiInsightsCard facility={facility} />
 
       <Card title="Verification and provenance">
         <div className="flex flex-wrap items-start justify-between gap-4">

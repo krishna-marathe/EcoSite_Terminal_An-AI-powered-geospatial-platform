@@ -5,6 +5,7 @@ import type { CapacityType, PublicFacility } from '../../types/publicFacilities'
 import { Badge } from '../ui/Badge';
 import { Button, IconButton } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { DataCentreAiInsightsCard } from '../facilities/DataCentreAiInsightsCard';
 
 const CAPACITY_LABELS: Record<CapacityType, string> = {
   it_load: 'IT load',
@@ -146,6 +147,12 @@ export const DataCentreMapDossier: React.FC<DataCentreMapDossierProps> = ({
           Environmental context could not be loaded. Registry information remains available.
         </section>
       )}
+
+      <DataCentreAiInsightsCard
+        facility={facility}
+        environmentalCurrent={environmentalCurrent}
+        compact
+      />
 
       {onOpenProfile && (
         <Button variant="primary" className="w-full" onClick={() => onOpenProfile(facility)}>

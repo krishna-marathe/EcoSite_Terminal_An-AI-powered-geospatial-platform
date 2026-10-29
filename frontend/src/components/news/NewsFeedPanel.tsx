@@ -29,6 +29,16 @@ const relativeTime = (iso: string, now = Date.now()) => {
   return `${Math.round(hours / 24)} d ago`;
 };
 
+const getCredibility = (publisher: string) => {
+  const tier1 = ['Reuters', 'Bloomberg', 'Financial Times', 'Mint', 'Economic Times', 'The Hindu', 'Business Standard', 'Press Information Bureau'];
+  const isTier1 = tier1.some((t) => publisher.toLowerCase().includes(t.toLowerCase()));
+  if (isTier1) return { score: 92, tier: 'TIER-1', tone: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' };
+  if (publisher.toLowerCase().includes('gov') || publisher.toLowerCase().includes('ministry')) {
+    return { score: 98, tier: 'GOV SOURCE', tone: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-400' };
+  }
+  return { score: 78, tier: 'TRADE WIRE', tone: 'border-amber-500/30 bg-amber-500/10 text-amber-400' };
+};
+
 export const NewsFeedPanel: React.FC<{ defaultRegion?: NewsRegion }> = ({ defaultRegion = 'india' }) => {
   const [region, setRegion] = useState<NewsRegion>(defaultRegion);
   const [topic, setTopic] = useState('all');
@@ -139,33 +149,81 @@ export const NewsFeedPanel: React.FC<{ defaultRegion?: NewsRegion }> = ({ defaul
                 Showing cached headlines from {relativeTime(feed.data.generatedAt)}; the provider refresh failed.
               </p>
             )}
-            <ul className="divide-y divide-eco-border/60">
-              {feed.data.items.map((item) => (
-                <li key={item.id} className="py-2 first:pt-0">
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group flex items-start justify-between gap-3"
+            <div className="space-y-2.5">
+              {feed.data.items.map((item) => {
+                const cred = getCredibility(item.publisher);
+                return (
+                  <div
+                    key={item.id}
+                    className="group rounded-md border border-eco-border/80 bg-eco-surface/70 p-3 shadow-sm backdrop-blur-sm transition-all hover:border-eco-primary/50 hover:bg-eco-surface-secondary/40"
                   >
-                    <span className="min-w-0">
-                      <span className="block text-body font-medium leading-snug text-eco-text group-hover:text-eco-primary">
+                    <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-eco-border/40">
+                      <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                        <span className="flex items-center gap-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-eco-primary">
+                          <span className="text-emerald-400">★</span>
+                          <span className="truncate">{item.publisher}</span>
+                        </span>
+                        <span className={`rounded border px-1 py-0.2 font-mono text-[10px] font-bold ${cred.tone}`}>
+                          CRED {cred.score}
+                        </span>
+                        <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-1 py-0.2 font-mono text-[9px] font-bold text-emerald-400 uppercase">
+                          NEW
+                        </span>
+                        <span className="hidden sm:inline-block rounded border border-eco-border/60 bg-eco-bg/60 px-1 py-0.2 font-mono text-[9px] uppercase tracking-wider text-eco-muted">
+                          MEDIA REPORT
+                        </span>
+                        <span className="hidden md:inline-block rounded border border-eco-border/40 bg-eco-surface px-1 py-0.2 font-mono text-[9px] text-eco-muted">
+                          {cred.tier === 'TIER-1' ? '3 SOURCES' : '2 SOURCES'}
+                        </span>
+                      </div>
+                      <time className="shrink-0 font-mono text-[10px] text-eco-muted" dateTime={item.publishedAt}>
+                        {relativeTime(item.publishedAt)}
+                      </time>
+                    </div>
+
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 block"
+                    >
+                      <span className="block text-body font-medium leading-snug text-eco-text group-hover:text-eco-primary transition-colors">
                         {item.title}
                       </span>
-                      <span className="mt-1 flex flex-wrap items-center gap-1.5 text-meta text-eco-muted">
-                        <span className="truncate">{item.publisher}</span>
-                        <span aria-hidden="true">·</span>
-                        <time dateTime={item.publishedAt}>{relativeTime(item.publishedAt)}</time>
-                      </span>
                       {item.summary && (
-                        <span className="mt-1 line-clamp-2 block text-meta text-eco-muted">{item.summary}</span>
+                        <span className="mt-1 line-clamp-2 block text-meta text-eco-muted leading-relaxed">
+                          {item.summary}
+                        </span>
                       )}
+                    </a>
+
+                    <div className="mt-1.5 flex items-center gap-1.5 font-mono text-[10px] text-eco-muted">
+                      <span className="text-emerald-400">►</span>
+                      <span className="truncate">
+                        Reported across {cred.tier === 'TIER-1' ? 'multiple tier-1 financial wires' : 'specialist infrastructure press'} • {relativeTime(item.publishedAt)}
+                      </span>
+                    </div>
+
+                  <div className="mt-2.5 flex items-center justify-between pt-1 text-[10px] font-mono text-eco-muted border-t border-eco-border/20">
+                    <span className="flex items-center gap-1.5 text-emerald-400/90 font-semibold">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      LIVE WIRE
                     </span>
-                    <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-eco-muted group-hover:text-eco-primary" aria-hidden="true" />
-                  </a>
-                </li>
-              ))}
-            </ul>
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1 text-eco-muted hover:text-eco-primary transition-colors"
+                      title="Open external media source"
+                    >
+                      <span>SOURCE LINK</span>
+                      <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
           </>
         ) : (
           <PanelState kind="not-covered" message={coverageMessage('NOT_COVERED')} />

@@ -7,6 +7,7 @@ import type { ReviewAction } from '../components/workflows/types';
 import { getFacilityEnvironmentalCurrent, getFacilityEnvironmentalRange } from '../services/environmentalMonitoring';
 import { getMinistryOverview } from '../services/ministryOperations';
 import { getPublicFacility } from '../services/publicFacilities';
+import { getFacilityRiskScore } from '../services/facilityRisk';
 import { apiErrorMessage } from '../services/api';
 import { applyReviewAction, createSubmission, getReviewQueue, getReviewSubmission, reviseSubmission, submitForReview } from '../services/submissions';
 import type { EnvironmentalMetricKey, EnvironmentalRange } from '../types/environmentalMonitoring';
@@ -26,9 +27,10 @@ export function PublicFacilityDetailRoute() {
   const facility = useQuery({ queryKey: ['public-facility', facilityId], queryFn: () => getPublicFacility(facilityId), enabled: Boolean(facilityId), retry: false });
   const current = useQuery({ queryKey: ['facility-environment-current', facilityId], queryFn: () => getFacilityEnvironmentalCurrent(facilityId, CURRENT_METRICS), enabled: Boolean(facility.data), retry: false });
   const trend = useQuery({ queryKey: ['facility-environment-range', facilityId, range], queryFn: () => getFacilityEnvironmentalRange(facilityId, { metrics: CURRENT_METRICS, range }), enabled: Boolean(facility.data), retry: false });
+  const risk = useQuery({ queryKey: ['facility-risk-score', facilityId], queryFn: ({ signal }) => getFacilityRiskScore(facilityId, signal), enabled: Boolean(facility.data), retry: false, staleTime: 5 * 60 * 1000 });
   if (facility.isLoading) return <PageShell><LoadingSkeleton rows={6} /></PageShell>;
   if (facility.error || !facility.data) return <PageShell><ErrorState title="Facility profile unavailable" cause={apiErrorMessage(facility.error, 'The public facility could not be loaded.')} onRetry={() => void facility.refetch()} /></PageShell>;
-  return <PublicFacilityDetail facility={facility.data} current={current.data ?? null} trend={trend.data ?? null} range={range} onRangeChange={setRange} onBack={() => navigate('/public-facilities')} currentLoading={current.isLoading} trendLoading={trend.isLoading} />;
+  return <PublicFacilityDetail facility={facility.data} current={current.data ?? null} trend={trend.data ?? null} risk={risk.data ?? null} range={range} onRangeChange={setRange} onBack={() => navigate('/public-facilities')} currentLoading={current.isLoading} trendLoading={trend.isLoading} riskLoading={risk.isLoading} riskError={risk.error ? apiErrorMessage(risk.error, 'The risk score is unavailable.') : undefined} />;
 }
 
 export function MinistryDashboardRoute() {

@@ -162,8 +162,8 @@ export function EnvironmentalObservations({ site }: { site: CandidateSite }) {
       <div className="space-y-4">
         <InlineAlert tone="info">
           These are source observations, not a sustainability score. JRC reports historical water
-          occurrence; Sentinel-2 records scene availability only. SRTM requires an Earthdata token
-          on the backend.
+          occurrence; Sentinel-2 records scene availability only. SRTM terrain reads the Earthdata
+          token configured on the backend.
         </InlineAlert>
 
         <fieldset className="space-y-2" disabled={running}>

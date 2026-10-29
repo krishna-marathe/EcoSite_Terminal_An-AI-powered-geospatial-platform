@@ -236,7 +236,7 @@ class StacConnectorTests(unittest.TestCase):
         self.assertEqual(by_id["sentinel2_scene_count"].observed_at, "2026-10-25T05:00:00+00:00")
         self.assertIsNone(by_id["sentinel2_scene_count"].coverage_fraction)
         self.assertFalse(by_id["sentinel2_scene_count"].quality_flags["server_cloud_filter"])
-        self.assertIn("no NDVI", by_id["sentinel2_scene_count"].quality_flags["note"])
+        self.assertIn("pixel NDVI is reported separately", by_id["sentinel2_scene_count"].quality_flags["note"])
 
     def test_no_scenes_is_zero_and_not_missing(self):
         by_id = self.parse_features([])
@@ -338,7 +338,9 @@ class StacConnectorTests(unittest.TestCase):
             return (page_one if len(calls) == 1 else page_two), "application/geo+json", 200
 
         with patch("backend.app.data.connectors.copernicus_stac.http_post_json", side_effect=fake_post):
-            payloads = CopernicusStacConnector().fetch(request())
+            # Pagination is the subject here; the pixel stage is covered separately.
+            with patch.dict(os.environ, {"ECOSITE_S2_NDVI": "0"}, clear=False):
+                payloads = CopernicusStacConnector().fetch(request())
 
         self.assertEqual(len(payloads), 2)
         self.assertEqual(calls[0][0], "https://catalogue.dataspace.copernicus.eu/stac/search")
@@ -359,6 +361,199 @@ class StacConnectorTests(unittest.TestCase):
     def test_connector_is_registered(self):
         self.assertIn("copernicus_stac", CONNECTORS)
         self.assertEqual(CONNECTORS["copernicus_stac"].source_id, "copernicus_stac")
+
+
+class Sentinel2NdviTests(unittest.TestCase):
+    """Pixel NDVI: cloud masking, coverage and explicit missing values."""
+
+    def band_payloads(self, values, scl, scene_id="S2B_TEST_20240129_0_L2A", cloud=0.5, error=None):
+        geometry = PUNE
+        height, width = values.shape
+        transform = from_bounds(73.80, 18.45, 73.90, 18.60, width, height)
+        search = payload(
+            "copernicus_stac",
+            "cog-search-01.json",
+            json.dumps({"type": "FeatureCollection", "features": []}).encode("utf-8"),
+            "application/json",
+            metadata={
+                "role": "cog_search",
+                "geometry": geometry,
+                **({"ndvi_error": error} if error else {}),
+            },
+        )
+        if error:
+            return [search]
+        bands = [
+            (
+                "red",
+                values.astype("uint16"),
+            ),
+            (
+                "nir",
+                values.astype("uint16") * 3,
+            ),
+            ("scl", scl.astype("uint8")),
+        ]
+        pages = [search]
+        for name, array in bands:
+            from backend.app.data.connectors import sentinel2_ndvi as ndvi
+
+            pages.append(
+                payload(
+                    "copernicus_stac",
+                    f"ndvi-{scene_id}-{name}.tif",
+                    ndvi.window_geotiff_bytes(array, transform, "EPSG:4326"),
+                    "image/tiff",
+                    metadata={
+                        "role": "ndvi_band",
+                        "band": name,
+                        "scene_id": scene_id,
+                        "scene_datetime": "2024-01-29T05:30:59+00:00",
+                        "period_start": "2024-01-29",
+                        "scene_cloud_cover": cloud,
+                    },
+                )
+            )
+        return pages
+
+    def test_cloud_masked_median_and_coverage(self):
+        # Red 1000, NIR 3000 -> NDVI 0.5 on every kept pixel. Three quarters of
+        # the polygon is cloud, so coverage is 0.25 and the run is PARTIAL.
+        scl = np.full((40, 40), 4, dtype=np.uint8)
+        scl[:, 18:] = 9  # the polygon spans columns ~16-23; cloud covers all but the first quarter
+        values = np.full((40, 40), 1000, dtype=np.uint16)
+        records = CopernicusStacConnector().parse(self.band_payloads(values, scl), request())
+        by_id = {record.indicator: record for record in records}
+
+        median = by_id["sentinel2_ndvi_median"]
+        self.assertAlmostEqual(median.value, 0.5, places=4)
+        self.assertEqual(median.unit, "index")
+        self.assertEqual(median.status, "PARTIAL")
+        self.assertAlmostEqual(median.coverage_fraction, 0.25, places=3)
+        self.assertIn("Less than half", median.missing_reason)
+        self.assertEqual(median.evidence_class, "REMOTE_SENSING_DERIVED")
+        self.assertEqual(median.quality_flags["scene_id"], "S2B_TEST_20240129_0_L2A")
+        self.assertEqual(median.observed_at, "2024-01-29T05:30:59+00:00")
+        self.assertEqual(median.period_start, "2024-01-29")
+
+        self.assertAlmostEqual(by_id["sentinel2_ndvi_valid_pixel_fraction"].value, 0.25, places=3)
+        self.assertAlmostEqual(by_id["sentinel2_ndvi_cloud_masked_fraction"].value, 0.75, places=3)
+
+    def test_fully_clear_polygon_is_available(self):
+        scl = np.full((40, 40), 5, dtype=np.uint8)  # bare soil, kept
+        values = np.full((40, 40), 800, dtype=np.uint16)
+        records = CopernicusStacConnector().parse(self.band_payloads(values, scl), request())
+        by_id = {record.indicator: record for record in records}
+        median = by_id["sentinel2_ndvi_median"]
+        self.assertEqual(median.status, "AVAILABLE")
+        self.assertIsNone(median.missing_reason)
+        self.assertAlmostEqual(median.coverage_fraction, 1.0, places=6)
+
+    def test_cloud_only_polygon_is_unavailable_never_zero(self):
+        scl = np.full((40, 40), 9, dtype=np.uint8)
+        values = np.full((40, 40), 1000, dtype=np.uint16)
+        records = CopernicusStacConnector().parse(self.band_payloads(values, scl), request())
+        by_id = {record.indicator: record for record in records}
+        median = by_id["sentinel2_ndvi_median"]
+        self.assertIsNone(median.value)
+        self.assertEqual(median.status, "SOURCE_UNAVAILABLE")
+        self.assertIn("No cloud-free vegetation", median.missing_reason)
+
+    def test_pixel_failure_reason_reaches_the_records(self):
+        pages = self.band_payloads(
+            np.zeros((4, 4), dtype=np.uint16),
+            np.zeros((4, 4), dtype=np.uint8),
+            error="Sentinel-2 COG scene search failed: HTTP 503",
+        )
+        by_id = {
+            record.indicator: record
+            for record in CopernicusStacConnector().parse(pages, request())
+        }
+        for indicator in (
+            "sentinel2_ndvi_median",
+            "sentinel2_ndvi_valid_pixel_fraction",
+            "sentinel2_ndvi_cloud_masked_fraction",
+        ):
+            self.assertIsNone(by_id[indicator].value)
+            self.assertEqual(by_id[indicator].status, "SOURCE_UNAVAILABLE")
+            self.assertIn("HTTP 503", by_id[indicator].missing_reason)
+
+    def test_metadata_survives_a_failed_pixel_stage(self):
+        pages = [
+            payload(
+                "copernicus_stac",
+                "stac-search-01.json",
+                stac_bytes([stac_feature("scene-a", "2026-10-20T05:00:00Z", 5.0)]),
+                "application/geo+json",
+            )
+        ] + self.band_payloads(
+            np.zeros((4, 4), dtype=np.uint16),
+            np.zeros((4, 4), dtype=np.uint8),
+            error="tile unavailable",
+        )
+        records = CopernicusStacConnector().parse(pages, request())
+        by_id = {record.indicator: record for record in records}
+        self.assertEqual(by_id["sentinel2_scene_count"].value, 1.0)
+        self.assertEqual(by_id["sentinel2_scene_count"].status, "AVAILABLE")
+        self.assertEqual(by_id["sentinel2_ndvi_median"].status, "SOURCE_UNAVAILABLE")
+
+    def test_disabled_pixel_stage_is_labelled(self):
+        pages = [
+            payload(
+                "copernicus_stac",
+                "stac-search-01.json",
+                stac_bytes([stac_feature("scene-a", "2026-10-20T05:00:00Z", 5.0)]),
+                "application/geo+json",
+            )
+        ]
+        with patch.dict(os.environ, {"ECOSITE_S2_NDVI": "0"}, clear=False):
+            by_id = {
+                record.indicator: record
+                for record in CopernicusStacConnector().parse(pages, request())
+            }
+        self.assertEqual(by_id["sentinel2_ndvi_median"].status, "SOURCE_UNAVAILABLE")
+        self.assertIn("ECOSITE_S2_NDVI", by_id["sentinel2_ndvi_median"].missing_reason)
+
+    def test_utm_raster_is_masked_with_the_reprojected_polygon(self):
+        """Regression: a UTM window with a lon/lat mask selected nothing."""
+        from pyproj import Transformer
+
+        from backend.app.data.connectors import sentinel2_ndvi as ndvi
+
+        transformer = Transformer.from_crs("EPSG:4326", "EPSG:32643", always_xy=True)
+        xs, ys = transformer.transform([73.80, 73.90], [18.45, 18.60])
+        transform = from_bounds(min(xs), min(ys), max(xs), max(ys), 60, 60)
+        red = np.full((60, 60), 1000, dtype="uint16")
+        nir = np.full((60, 60), 3000, dtype="uint16")
+        scl = np.full((60, 60), 4, dtype="uint8")
+        stats = ndvi.ndvi_statistics(red, nir, scl, transform, PUNE, crs="EPSG:32643")
+        self.assertGreater(stats["inside_pixels"], 0)
+        self.assertAlmostEqual(stats["coverage_fraction"], 1.0, places=6)
+        self.assertAlmostEqual(stats["ndvi_median"], 0.5, places=4)
+
+    def test_scene_choice_prefers_clear_sky_and_requires_scl(self):
+        from backend.app.data.connectors import sentinel2_ndvi as ndvi
+
+        assets = {
+            name: {"href": f"https://example.test/{name}.tif"} for name in ndvi.REQUIRED_ASSETS
+        }
+        usable = lambda scene_id, cloud, moment: {
+            "id": scene_id,
+            "properties": {"datetime": moment, "eo:cloud_cover": cloud},
+            "assets": dict(assets),
+        }
+        no_scl = usable("no-scl", 0.0, "2024-01-30T05:00:00Z")
+        no_scl["assets"].pop("scl")
+        chosen = ndvi.pick_scene(
+            [
+                no_scl,
+                usable("cloudy", 40.0, "2024-01-20T05:00:00Z"),
+                usable("clear-old", 1.0, "2024-01-10T05:00:00Z"),
+                usable("clear-new", 1.0, "2024-01-25T05:00:00Z"),
+            ]
+        )
+        self.assertEqual(chosen["id"], "clear-new")
+        self.assertIsNone(ndvi.pick_scene([no_scl]))
 
 
 class FakeConnector:

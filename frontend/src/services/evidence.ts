@@ -209,10 +209,50 @@ export const INITIAL_MOCK_EXTRACTIONS: ExtractionCandidate[] = [
   },
 ];
 
-// In-memory state for development & tests
-let artifactsStore = [...INITIAL_MOCK_ARTIFACTS];
-let assertionsStore = [...INITIAL_MOCK_ASSERTIONS];
-let extractionsStore = [...INITIAL_MOCK_EXTRACTIONS];
+export const EVIDENCE_STORAGE_KEY = 'ecosite-project-evidence-v1';
+
+export interface EvidenceStoreData {
+  artifacts: EvidenceArtifact[];
+  assertions: Assertion[];
+  extractions: ExtractionCandidate[];
+}
+
+function loadStore(): EvidenceStoreData {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const raw = window.localStorage.getItem(EVIDENCE_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (
+          parsed &&
+          Array.isArray(parsed.artifacts) &&
+          Array.isArray(parsed.assertions) &&
+          Array.isArray(parsed.extractions)
+        ) {
+          return parsed as EvidenceStoreData;
+        }
+      }
+    }
+  } catch {
+    // Fall back to memory on localStorage error or corrupted JSON
+  }
+
+  return {
+    artifacts: [...INITIAL_MOCK_ARTIFACTS],
+    assertions: [...INITIAL_MOCK_ASSERTIONS],
+    extractions: [...INITIAL_MOCK_EXTRACTIONS],
+  };
+}
+
+function saveStore(data: EvidenceStoreData): void {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(EVIDENCE_STORAGE_KEY, JSON.stringify(data));
+    }
+  } catch {
+    // Silently ignore quota / access errors
+  }
+}
 
 export const evidenceService = {
   async getArtifacts(projectId: string): Promise<EvidenceArtifact[]> {
@@ -220,7 +260,9 @@ export const evidenceService = {
       const response = await apiClient.get<EvidenceArtifact[]>(`/projects/${projectId}/evidence`);
       return response.data;
     } catch {
-      return artifactsStore.filter((a) => !projectId || a.project_id === projectId || true);
+      const store = loadStore();
+      if (!projectId) return store.artifacts;
+      return store.artifacts.filter((a) => a.project_id === projectId);
     }
   },
 
@@ -237,7 +279,7 @@ export const evidenceService = {
     }
   ): Promise<EvidenceArtifact> {
     const newArtifact: EvidenceArtifact = {
-      id: `art-${Date.now().toString(36)}`,
+      id: `art-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
       project_id: projectId,
       site_id: metadata.site_id || null,
       document_type: metadata.document_type,
@@ -256,7 +298,9 @@ export const evidenceService = {
       notes: metadata.notes || null,
     };
 
-    artifactsStore = [newArtifact, ...artifactsStore];
+    const store = loadStore();
+    store.artifacts = [newArtifact, ...store.artifacts];
+    saveStore(store);
     return newArtifact;
   },
 
@@ -265,32 +309,48 @@ export const evidenceService = {
       const response = await apiClient.get<Assertion[]>(`/projects/${projectId}/assertions`);
       return response.data;
     } catch {
-      return assertionsStore;
+      const store = loadStore();
+      if (!projectId) return store.assertions;
+      return store.assertions.filter((a) => a.project_id === projectId);
     }
   },
 
   async reviewAssertion(review: AssertionReviewRequest): Promise<Assertion> {
-    const target = assertionsStore.find((a) => a.id === review.assertion_id);
+    const store = loadStore();
+    const target = store.assertions.find((a) => a.id === review.assertion_id);
     if (!target) throw new Error('Assertion not found');
 
-    const resolvedStatus: AssertionStatus = review.decision === 'FLAG_CONFLICT'
-      ? 'CONFLICTING'
-      : review.decision === 'VERIFIED_WITHIN_SCOPE'
-        ? 'VERIFIED_WITHIN_SCOPE'
-        : 'MISSING';
+    const resolvedStatus: AssertionStatus =
+      review.decision === 'FLAG_CONFLICT'
+        ? 'CONFLICTING'
+        : review.decision === 'VERIFIED_WITHIN_SCOPE'
+          ? 'VERIFIED_WITHIN_SCOPE'
+          : 'MISSING';
 
     const updated: Assertion = {
       ...target,
       status: resolvedStatus,
       revision: target.revision + 1,
     };
-    assertionsStore = assertionsStore.map((a) => (a.id === updated.id ? updated : a));
+
+    store.assertions = store.assertions.map((a) => (a.id === updated.id ? updated : a));
+    saveStore(store);
     return updated;
   },
 
-  async getExtractions(documentId?: string): Promise<ExtractionCandidate[]> {
-    if (!documentId) return extractionsStore;
-    return extractionsStore.filter((e) => e.document_id === documentId);
+  async getExtractions(scopeId?: string): Promise<ExtractionCandidate[]> {
+    const store = loadStore();
+    if (!scopeId) return store.extractions;
+
+    // Check if scopeId matches document_id directly
+    const directMatches = store.extractions.filter((e) => e.document_id === scopeId);
+    if (directMatches.length > 0) return directMatches;
+
+    // Otherwise treat scopeId as projectId: only return extractions whose document belongs to this project
+    const projectDocIds = new Set(
+      store.artifacts.filter((a) => a.project_id === scopeId).map((a) => a.id)
+    );
+    return store.extractions.filter((e) => projectDocIds.has(e.document_id));
   },
 
   async confirmExtraction(
@@ -298,7 +358,8 @@ export const evidenceService = {
     decision: 'ACCEPTED' | 'REJECTED',
     adjustedValue?: number | string
   ): Promise<ExtractionCandidate> {
-    const target = extractionsStore.find((e) => e.id === extractionId);
+    const store = loadStore();
+    const target = store.extractions.find((e) => e.id === extractionId);
     if (!target) throw new Error('Extraction not found');
 
     const updated: ExtractionCandidate = {
@@ -306,13 +367,25 @@ export const evidenceService = {
       review_status: decision,
       normalized_value: adjustedValue !== undefined ? adjustedValue : target.normalized_value,
     };
-    extractionsStore = extractionsStore.map((e) => (e.id === updated.id ? updated : e));
+
+    store.extractions = store.extractions.map((e) => (e.id === updated.id ? updated : e));
+    saveStore(store);
     return updated;
   },
 
   resetMocks() {
-    artifactsStore = [...INITIAL_MOCK_ARTIFACTS];
-    assertionsStore = [...INITIAL_MOCK_ASSERTIONS];
-    extractionsStore = [...INITIAL_MOCK_EXTRACTIONS];
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(EVIDENCE_STORAGE_KEY);
+      }
+    } catch {
+      // Ignore
+    }
+    const initial: EvidenceStoreData = {
+      artifacts: [...INITIAL_MOCK_ARTIFACTS],
+      assertions: [...INITIAL_MOCK_ASSERTIONS],
+      extractions: [...INITIAL_MOCK_EXTRACTIONS],
+    };
+    saveStore(initial);
   },
 };

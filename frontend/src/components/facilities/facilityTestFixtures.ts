@@ -1,5 +1,6 @@
 import type { EnvironmentalCurrentResponse, EnvironmentalRangeResponse } from '../../types/environmentalMonitoring';
 import type { PublicFacility } from '../../types/publicFacilities';
+import type { RiskScoreResponse } from '../../types/risk';
 
 export const publicFacilityFixture: PublicFacility = {
   id: 'facility-mumbai-1',
@@ -59,6 +60,29 @@ export const currentFixture: EnvironmentalCurrentResponse = {
       contextNotice: 'No suitable public groundwater station is linked to this facility.',
     },
   ],
+};
+
+export const riskFixture: RiskScoreResponse = {
+  facilityId: publicFacilityFixture.id,
+  score: 42.5,
+  band: 'moderate',
+  coverage: 0.78,
+  availableWeight: 0.78,
+  confidence: 'medium',
+  scoreVersion: 'risk-env-1.0.0',
+  generatedAt: '2026-10-29T09:00:00Z',
+  parameters: [
+    {
+      key: 'air.aqi_us', label: 'Air quality index', unit: 'AQI', weight: 0.16, value: 82, score: 27.8, status: 'AVAILABLE',
+      note: 'US EPA AQI bands.', reason: null, observedAt: '2026-10-29T09:00:00Z', provider: 'Open-Meteo', sourceUrl: 'https://air-quality-api.open-meteo.com/v1/air-quality', quality: 'modelled', detail: {},
+    },
+    {
+      key: 'water.groundwater_depth', label: 'Groundwater depth below ground', unit: 'm', weight: 0.12, value: null, score: null, status: 'UNAVAILABLE',
+      note: 'Deeper water tables increase pumping cost.', reason: 'No keyless groundwater feed is connected.', observedAt: null, provider: null, sourceUrl: null, quality: null, detail: {},
+    },
+  ],
+  notes: ['Screening risk from public provider context, not an on-site measurement.'],
+  providerErrors: [],
 };
 
 export const rangeFixture: EnvironmentalRangeResponse = {

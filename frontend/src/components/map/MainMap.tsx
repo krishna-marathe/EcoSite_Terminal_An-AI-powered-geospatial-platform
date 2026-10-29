@@ -14,7 +14,7 @@ import {
   TRANSMISSION_GRID_GEOJSON,
 } from '../../data/demo/environmentalOverlays';
 import { FACILITY_TYPE_COLORS, FACILITY_TYPE_LABELS, scoreColor } from '../../theme/tokens';
-import type { Facility, InfrastructureType } from '../../types';
+import type { Facility, InfrastructureType, TimeRange } from '../../types';
 import type { PublicFacility } from '../../types/publicFacilities';
 
 // Dynamic style generator: uses Mapbox HD tiles when a token is provided, otherwise falls back to Carto/ESRI
@@ -411,7 +411,41 @@ export const MainMap: React.FC<MainMapProps> = ({
     setViewport,
     fitToIndia,
     toggleLeftSidebar,
+    timeRange,
+    setTimeRange,
   } = useDashboardStore();
+
+  const [utcClock, setUtcClock] = useState('');
+  const [is3D, setIs3D] = useState(false);
+
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+      const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+      const dayName = days[now.getUTCDay()];
+      const day = String(now.getUTCDate()).padStart(2, '0');
+      const month = months[now.getUTCMonth()];
+      const year = now.getUTCFullYear();
+      const timeStr = now.toISOString().slice(11, 19);
+      setUtcClock(`${dayName}, ${day} ${month} ${year} ${timeStr} UTC`);
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const toggle3D = (enable3D: boolean) => {
+    setIs3D(enable3D);
+    if (!mapInstance) return;
+    if (typeof (mapInstance as any).easeTo === 'function') {
+      (mapInstance as any).easeTo({
+        pitch: enable3D ? 52 : 0,
+        bearing: enable3D ? -15 : 0,
+        duration: 900,
+      });
+    }
+  };
 
   const [hoveredFacility, setHoveredFacility] = useState<Facility | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
@@ -1072,22 +1106,94 @@ export const MainMap: React.FC<MainMapProps> = ({
         </div>
       )}
 
-      <div className="absolute top-14 left-4 z-20 max-w-sm rounded border border-eco-warning/30 bg-eco-surface/95 px-2 py-1 text-micro text-eco-warning">{environmentalMessage(dataMode)}</div>
+      {/* World Monitor Floating Tactical Map HUD */}
+      <div className="absolute top-3.5 left-4 z-20 flex flex-col gap-2 select-none pointer-events-auto">
+        <div className="flex flex-wrap items-center gap-2 rounded-md border border-eco-border/90 bg-eco-surface/90 px-3 py-1.5 shadow-2xl backdrop-blur-md font-mono text-[11px]">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+          </span>
+          <span className="font-semibold uppercase tracking-wider text-eco-text">
+            INDIAN DC SITUATION
+          </span>
+          <span className="text-eco-border">|</span>
+          <span className="text-emerald-400 font-bold tracking-tight">
+            {utcClock || 'LIVE'}
+          </span>
+          <span className="hidden sm:inline-block text-eco-border">|</span>
+          <span className="hidden sm:inline-block rounded bg-eco-primary/10 border border-eco-primary/30 px-1 py-0.2 text-[10px] text-eco-primary font-bold">
+            {filteredFacilities.length} DCS
+          </span>
 
-      {/* Facility type legend */}
-      <div className="absolute bottom-4 left-4 z-20 hidden lg:flex flex-wrap items-center gap-x-3 gap-y-1 max-w-[75%] px-3 py-2 bg-eco-surface/90 border border-eco-border rounded-lg shadow-2xl backdrop-blur-md text-xs text-eco-text select-none">
-        <span className="text-micro uppercase tracking-wider text-eco-muted font-mono">
-          Legend
-        </span>
-        {Array.from(new Set(filteredFacilities.map(facility => facility.type))).map((type) => (
-          <div key={type} className="flex items-center gap-1.5">
-            <span
-              className="w-2.5 h-2.5 rounded-full border border-eco-bg shadow"
-              style={{ backgroundColor: FACILITY_TYPE_COLORS[type] }}
-            />
-            <span>{FACILITY_TYPE_LABELS[type]}</span>
+          <div className="ml-auto flex items-center rounded border border-eco-border/80 bg-eco-bg/80 p-0.5">
+            <button
+              type="button"
+              onClick={() => toggle3D(false)}
+              className={`px-1.5 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-all ${
+                !is3D
+                  ? 'bg-emerald-400 text-black shadow-sm'
+                  : 'text-eco-muted hover:text-eco-text'
+              }`}
+              title="2D Planar Orthographic View"
+            >
+              2D
+            </button>
+            <button
+              type="button"
+              onClick={() => toggle3D(true)}
+              className={`px-1.5 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-all ${
+                is3D
+                  ? 'bg-emerald-400 text-black shadow-sm'
+                  : 'text-eco-muted hover:text-eco-text'
+              }`}
+              title="3D Tactical Perspective with Elevation Contours"
+            >
+              3D
+            </button>
           </div>
-        ))}
+        </div>
+
+        <div className="flex items-center gap-1 rounded-md border border-eco-border/80 bg-eco-surface/90 p-1 shadow-2xl backdrop-blur-md w-fit">
+          {(['1h', '24h', '7d', '30d', 'all'] as TimeRange[]).map((tr) => (
+            <button
+              key={tr}
+              type="button"
+              onClick={() => setTimeRange(tr)}
+              className={`px-2 py-0.5 rounded font-mono text-[11px] uppercase transition-all cursor-pointer ${
+                timeRange === tr
+                  ? 'bg-emerald-400 font-bold text-black shadow-md shadow-emerald-500/20'
+                  : 'text-eco-muted hover:text-eco-text hover:bg-eco-surface-secondary/60'
+              }`}
+            >
+              {tr}
+            </button>
+          ))}
+        </div>
+
+        <div className="max-w-xs rounded border border-eco-warning/30 bg-eco-surface/95 px-2.5 py-1 text-micro text-eco-warning backdrop-blur-md shadow-lg">
+          {environmentalMessage(dataMode)}
+        </div>
+      </div>
+
+      {/* World Monitor Floating Tactical Legend */}
+      <div className="absolute bottom-4 left-4 z-20 hidden sm:flex items-center gap-3 px-3 py-1.5 bg-black/85 border border-eco-border/80 rounded-md shadow-2xl backdrop-blur-md font-mono text-[11px] text-eco-text select-none">
+        <span className="text-micro uppercase tracking-wider text-eco-muted font-bold">
+          LEGEND
+        </span>
+        <div className="flex items-center gap-1.5 rounded bg-purple-500/10 border border-purple-500/30 px-1.5 py-0.5">
+          <span className="w-2 h-2 rounded-xs bg-[#8b5cf6]" />
+          <span className="text-purple-300 font-bold text-[10px]">
+            DATACENTER ({filteredFacilities.length})
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 text-eco-muted text-[10px]">
+          <span className="w-2 h-2 rounded-full bg-amber-400" />
+          <span>SLOPE &gt;15° (SRTM)</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-eco-muted text-[10px]">
+          <span className="w-2 h-2 rounded-full bg-cyan-400" />
+          <span>SURFACE WATER (GSW)</span>
+        </div>
       </div>
 
       {/* Hover tooltip */}

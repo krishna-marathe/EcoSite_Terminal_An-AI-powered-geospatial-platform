@@ -28,6 +28,7 @@ from .routers.data_sources import router as data_sources_router
 from .routers.environmental import router as environmental_router
 from .routers.public_facilities import router as public_facilities_router
 from .routers.public_environmental import router as public_environmental_router
+from .routers.risk import router as risk_router
 from .routers.news import router as news_router
 from .routers.restricted_workflows import router as restricted_workflows_router
 from .services.public_facilities import PublicFacilityService
@@ -312,6 +313,7 @@ app.include_router(data_sources_router, prefix=API_PREFIX)
 app.include_router(environmental_router, prefix=API_PREFIX)
 app.include_router(public_facilities_router, prefix=API_PREFIX)
 app.include_router(public_environmental_router, prefix=API_PREFIX)
+app.include_router(risk_router, prefix=API_PREFIX)
 app.include_router(restricted_workflows_router, prefix=API_PREFIX)
 app.include_router(news_router, prefix=API_PREFIX)
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS or ["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])

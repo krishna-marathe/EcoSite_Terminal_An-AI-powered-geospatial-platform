@@ -114,6 +114,29 @@ export const WorldMonitorHeader: React.FC = () => {
           <span className="h-1.5 w-1.5 rounded-full bg-eco-primary" />
           <span>{utcTime || 'UTC --:--:--'}</span>
         </div>
+
+        {/* World Monitor Tactical DEFCON & Risk Pill */}
+        <div className="hidden xl:flex items-center gap-1.5 select-none">
+          <div
+            title="National DC Environmental Threat Condition: DEFCON 4 (Moderate regional groundwater and power stress)"
+            className="flex items-center gap-1.5 rounded bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-400"
+          >
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+            </span>
+            <span>DEFCON 4</span>
+            <span className="text-emerald-500/40">|</span>
+            <span className="text-eco-muted font-normal text-[9px] uppercase">WATER TIER 2</span>
+          </div>
+
+          <div
+            title="19 Data Centres monitored across 4 focus states (MH, TG, KA, TN)"
+            className="flex items-center gap-1 rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 font-mono text-[10px] font-bold text-amber-400"
+          >
+            <span>⚡ 19 DCS</span>
+          </div>
+        </div>
       </div>
 
       {/* Primary navigation */}

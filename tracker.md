@@ -93,7 +93,7 @@ ministry publication preview are also implemented.
   rows have exact path/hash matches and require no repair.
 - [ ] Decide whether to index or retain 110 currently unlinked raw gzip files
   (30 CGWB, 34 Copernicus and 46 JRC); no files were deleted or moved.
-- [ ] Repair project evidence isolation and persistence defects.
+- [x] Repair project evidence isolation and persistence defects.
 - [x] Restore a green frontend lint baseline in touched feature areas.
 
 ## Research artifacts
@@ -192,6 +192,11 @@ registration and ministry review routes.
   publication previews and visibly block approval when publishable evidence is missing.
 - [x] Backend full suite passes (184/184) under Python 3.11 with optional provider
   credentials unset.
+- [x] Built deterministic Grounded AI Situational Briefing & Advisory Engine (`dataCentreInsights.ts`)
+  mapping facility disclosures, state grids, water stress and environmental observations
+  into prioritized interventions, statutory citations (CGWB, CEA, BEE, CPCB) and compliance checklists.
+- [x] Mounted `DataCentreAiInsightsCard` with animated criticality indicators into map dossier
+  and facility profile views. Full frontend test suite (49/49 files, 236/236 tests) and production build clean.
 
 Inventory status: the 19-record seed is suitable only as a prototype. Pass 2
 found 25 strong facility-level candidates absent from the seed and additional

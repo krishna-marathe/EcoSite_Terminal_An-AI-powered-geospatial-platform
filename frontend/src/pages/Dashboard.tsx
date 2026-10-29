@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { WorldMonitorLayerRibbon } from '../components/worldmonitor/WorldMonitorLayerRibbon';
+import { InfrastructurePredictionsPanel } from '../components/worldmonitor/InfrastructurePredictionsPanel';
 import { LeftSidebar } from '../components/layout/LeftSidebar';
 import { MainMap } from '../components/map/MainMap';
 import { EnvironmentalCoveragePanel, MinistryOperationsPanel, RegistryDistribution, RegistryKpiSummary } from '../components/data-centre-dashboard';
@@ -57,6 +58,7 @@ export const Dashboard: React.FC = () => {
       warning={environmentalData.length > 0 && failedEnvironmentalStates > 0 ? `${failedEnvironmentalStates} state summary could not be loaded; available states are shown.` : undefined}
     />
     <MinistryOperationsPanel overview={ministryOverview.data} isLoading={ministryOverview.isLoading} error={errorMessage(ministryOverview.error)} />
+    <InfrastructurePredictionsPanel />
     <div className="xl:col-span-2"><NewsFeedPanel /></div>
   </>;
   const facilitiesStatus = facilities.isLoading ? 'loading' as const : facilities.error ? 'error' as const : 'ready' as const;

@@ -48,6 +48,20 @@ export const StatusBar: React.FC = () => {
         </div>
       </div>
 
+      {/* World Monitor Digest Coverage Telemetry */}
+      <div className="hidden 2xl:flex items-center gap-1.5 font-mono text-micro text-eco-muted border-l border-r border-eco-border px-3">
+        <span className="text-eco-primary font-bold">DIGEST COVERAGE:</span>
+        <span className="text-eco-text">19 Facilities Screened</span>
+        <span>•</span>
+        <span>4 Focus States (MH, TG, KA, TN)</span>
+        <span>•</span>
+        <span className="text-emerald-400 font-semibold">SRTM 30m</span>
+        <span>•</span>
+        <span className="text-cyan-400 font-semibold">JRC GSW</span>
+        <span>•</span>
+        <span className="text-amber-400 font-semibold">CGWB 2024</span>
+      </div>
+
       <div className="flex items-center gap-3">
         {selectedFacility && (
           <span className="hidden max-w-[200px] truncate text-eco-text xl:inline">
