@@ -6,6 +6,7 @@ import { ExtractionReviewDrawer } from '../components/projects/ExtractionReviewD
 import { SiteComparisonMatrix } from '../components/projects/SiteComparisonMatrix';
 import { SitePassport } from '../components/projects/SitePassport';
 import { evidenceService } from '../services/evidence';
+import { readinessService, formatReadinessError } from '../services/readiness';
 import type { EvidenceUploadMetadata } from '../types/evidence';
 import { getPhases } from '../services/phases';
 import { useEffect, useRef, useState } from 'react';
@@ -65,6 +66,11 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
     queryKey: ['evidence-extractions', projectId],
     queryFn: () => evidenceService.getExtractions(projectId),
   });
+  const readinessQuery = useQuery({
+    queryKey: ['project-readiness', projectId],
+    queryFn: ({ signal }) => readinessService.getProjectReadiness(projectId, undefined, signal),
+    enabled: Boolean(projectId),
+  });
 
   const handleUpload = async (file: File, metadata: EvidenceUploadMetadata) => {
     onBusy(true);
@@ -74,6 +80,8 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
         queryClient.invalidateQueries({ queryKey: ['evidence-artifacts', projectId] }),
         queryClient.invalidateQueries({ queryKey: ['evidence-assertions', projectId] }),
         queryClient.invalidateQueries({ queryKey: ['evidence-extractions', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['project-readiness', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['project-comparisons', projectId] }),
       ]);
     } finally {
       onBusy(false);
@@ -88,7 +96,11 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
         decision,
         reviewer_role: 'CONSULTANT',
       });
-      await queryClient.invalidateQueries({ queryKey: ['evidence-assertions', projectId] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['evidence-assertions', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['project-readiness', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['project-comparisons', projectId] }),
+      ]);
     } finally {
       onBusy(false);
     }
@@ -101,6 +113,8 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['evidence-extractions', projectId] }),
         queryClient.invalidateQueries({ queryKey: ['evidence-assertions', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['project-readiness', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['project-comparisons', projectId] }),
       ]);
     } finally {
       onBusy(false);
@@ -117,6 +131,9 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
       <ResourceReadinessTimeline
         phases={phasesQuery.data || []}
         assertions={assertionsQuery.data || []}
+        readinessReport={readinessQuery.data}
+        loading={readinessQuery.isPending && phasesQuery.isPending}
+        error={readinessQuery.error ? formatReadinessError(readinessQuery.error) : null}
       />
       <EvidenceWorkspace
         projectId={projectId}
@@ -162,7 +179,11 @@ function LoadedProjectSites({ project, onBusy, initialSite, data, selectId, quer
   const setBusy = (value: boolean) => { updateBusy(value); onBusy(value); };
   const [editorVersion, setEditorVersion] = useState(0);
   const choose = (site?: CandidateSite) => { selectId(site?.id); setEditorVersion(n => n + 1); setSelected(site); setName(site?.name || ''); setState(site?.state_code || 'IN-MH'); setDistrict(site?.district || ''); setGeometry(site?.geometry || null); setError(''); setMessage(''); };
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['project-sites', project.id] });
+  const invalidate = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: ['project-sites', project.id] }),
+    queryClient.invalidateQueries({ queryKey: ['project-comparisons', project.id] }),
+    queryClient.invalidateQueries({ queryKey: ['project-readiness', project.id] }),
+  ]);
   const [passportSite, setPassportSite] = useState<CandidateSite | null>(null);
 
   const phasesQuery = useQuery({
@@ -176,6 +197,16 @@ function LoadedProjectSites({ project, onBusy, initialSite, data, selectId, quer
   const artifactsQuery = useQuery({
     queryKey: ['evidence-artifacts', project.id],
     queryFn: () => evidenceService.getArtifacts(project.id),
+  });
+  const comparisonsQuery = useQuery({
+    queryKey: ['project-comparisons', project.id],
+    queryFn: ({ signal }) => readinessService.getProjectComparisons(project.id, signal),
+    enabled: Boolean(project.id),
+  });
+  const passportQuery = useQuery({
+    queryKey: ['site-passport', project.id, passportSite?.id],
+    queryFn: ({ signal }) => readinessService.getSitePassport(project.id, passportSite!.id, signal),
+    enabled: Boolean(passportSite?.id),
   });
 
   return <div className="space-y-4">
@@ -194,11 +225,14 @@ function LoadedProjectSites({ project, onBusy, initialSite, data, selectId, quer
     {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
     <p>Invalid or out-of-boundary polygons are rejected by the backend. Unsaved drafts are not restored after reload.</p>
   </form></Card></div>
-  {data.length > 1 && (
+  {data.length > 0 && (
     <SiteComparisonMatrix
       sites={data}
       phases={phasesQuery.data || []}
       assertions={assertionsQuery.data || []}
+      comparisonData={comparisonsQuery.data}
+      loading={comparisonsQuery.isPending}
+      error={comparisonsQuery.error ? formatReadinessError(comparisonsQuery.error) : null}
       onGeneratePassport={(id) => {
         const s = data.find(item => item.id === id);
         if (s) setPassportSite(s);
@@ -213,6 +247,9 @@ function LoadedProjectSites({ project, onBusy, initialSite, data, selectId, quer
       phases={phasesQuery.data || []}
       assertions={assertionsQuery.data || []}
       artifacts={artifactsQuery.data || []}
+      passportData={passportQuery.data}
+      loading={passportQuery.isPending}
+      error={passportQuery.error ? formatReadinessError(passportQuery.error) : null}
       onClose={() => setPassportSite(null)}
     />
   )}
