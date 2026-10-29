@@ -1,7 +1,7 @@
 # Data connector verification record
 
 Status: live-verification log.
-Date: 2026-10-27.
+Date: 2026-10-29.
 Product scope: **sustainability score dashboard only**.
 Geographic scope: **Telangana, Maharashtra, Karnataka and Tamil Nadu only**.
 Registry: [`data/data-sources.json`](../../data/data-sources.json),
@@ -25,8 +25,8 @@ Two different questions are kept separate:
 | `runtime_status` | Is this deployment currently using it? | `NOT_CONNECTED`, `CONNECTED`, `STALE`, `SOURCE_UNAVAILABLE` |
 
 A connector can be `PROCESSING_TESTED` and still `NOT_CONNECTED` in a given deployment.
-`nasa_srtmgl1` is in that state. `jrc_gsw` and `copernicus_stac` were run on demand against a
-Pune candidate in the seeded development database, which set their `runtime_status` to
+`jrc_gsw`, `copernicus_stac` and `nasa_srtmgl1` were each run on demand against a Pune
+candidate in the seeded development database, which set their `runtime_status` to
 `CONNECTED`; no refresh schedule exists. The Projects page can fetch a source on demand and
 displays every stored observation with its provenance.
 
@@ -241,40 +241,77 @@ statistics with a hashed raw snapshot.
 
 ---
 
-## 4. NASA SRTMGL1 — blocked (NOT VERIFIED)
+## 4. NASA SRTMGL1 — live verification (PASSED)
 
-**Source:** `nasa_srtmgl1` — NASA Shuttle Radar Topography Mission Global 1 arc-second.
-**Status:** `DISCOVERED` / `NOT_CONNECTED`.
-**Blocker:** no Earthdata bearer token is available in this environment. The connector
-requires `ECOSITE_EARTHDATA_TOKEN`; without it the authenticated tile request cannot run.
+**Source:** `nasa_srtmgl1` — NASA Shuttle Radar Topography Mission Global 1 arc-second
+(SRTMGL1 v003).
+**Run:** `91ea76f9-054c-4a53-be9e-81199b7c7b1c`.
+**Retrieved:** `2026-10-29T00:20:26+00:00`.
+**Status:** `success`; registry advanced to `PROCESSING_TESTED` / `CONNECTED`.
 
-The connector, tile selection and HGT parser are covered by fixture tests, including
-big-endian `int16` decoding, `-32768` void handling and 3601 × 3601 / 1201 × 1201 tile
-sizes. Fixture tests do not satisfy the processing gate.
+### 4.1 Request
 
-To verify, set the token, start the local API and repeat the §2.1 request with
-`"sources": ["nasa_srtmgl1"]`:
+`POST /api/v1/sites/{site_id}/environmental-analysis` with:
 
-```powershell
-$env:ECOSITE_EARTHDATA_TOKEN = "<earthdata bearer token>"
-backend\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8010
+```json
+{
+  "sources": ["nasa_srtmgl1"],
+  "buffer_m": 500,
+  "max_tiles": 2
+}
 ```
 
-The endpoint is local-only, so the request must come from `127.0.0.1`. Expected
-observations (names only; values must come from the real tile):
+Candidate `83bee74e-1291-417e-875c-52938613f7d3` ("Pune dashboard verification"), the same
+467.50 ha polygon used in §2 and §3, declared as Maharashtra (`IN-MH`), district Pune,
+`geometry_hash` `8c9230f4…cbef128`. The request came from `127.0.0.1`; the endpoint is
+local-only.
 
-- `terrain_elevation_mean_m`
-- `terrain_elevation_min_m`
-- `terrain_elevation_max_m`
-- `terrain_relief_m`
-- `terrain_slope_mean_deg`
-- `terrain_slope_max_deg`
-- `terrain_void_pixel_fraction`
+### 4.2 Payload identity
 
-The tile is labelled by its **south-west** corner, e.g. `N18E073` covers 18–19°N and
-73–74°E. Do not advance `nasa_srtmgl1` beyond `DISCOVERED` until a real authenticated tile
-produces stored observations. Record the tile name, byte count, SHA-256, values and void
-fraction here when that happens.
+| Field | Value |
+| --- | --- |
+| Tile file | `N18E073.SRTMGL1.hgt.zip` (south-west corner 18°N, 73°E) |
+| URL | `https://data.lpdaac.earthdatacloud.nasa.gov/lp-prod-protected/SRTMGL1.003/N18E073.SRTMGL1.hgt/N18E073.SRTMGL1.hgt.zip` |
+| Auth | Earthdata bearer token in `ECOSITE_EARTHDATA_TOKEN` (not in version control) |
+| HTTP status | `200` after the LP DAAC `303` redirect to its CloudFront distribution |
+| Content type | `binary/octet-stream` |
+| Bytes | `12,646,090` |
+| SHA-256 | `b81a85f6a92905fa5bb4291c6e44627a749be036d4ca641be5cc9b1eed302d1a` |
+| Dataset version | `SRTMGL1 v003`, period `2000-02-11` to `2000-02-22` |
+| Resolution / method | `30 m (1 arc-second)` / `zonal_dem_statistics`, parser `1.0.0` |
+
+### 4.3 Stored observations (7, all `AVAILABLE`)
+
+| Indicator | Value | Unit | `coverage_fraction` |
+| --- | --- | --- | --- |
+| `terrain_elevation_mean_m` | 559.10 | m | 1.0 |
+| `terrain_elevation_min_m` | 533 | m | 1.0 |
+| `terrain_elevation_max_m` | 574 | m | 1.0 |
+| `terrain_relief_m` | 41 | m | 1.0 |
+| `terrain_slope_mean_deg` | 3.07 | deg | 1.0 |
+| `terrain_slope_max_deg` | 15.21 | deg | 1.0 |
+| `terrain_void_pixel_fraction` | 0 | fraction | 1.0 |
+
+Void accounting: 5,184 of 5,184 pixels inside the polygon plus buffer were valid; there were
+no `-32768` voids. Nothing was interpolated across a gap.
+
+**Does not prove:**
+
+- That the elevation values are independently correct. This is `PROCESSING_TESTED`, not
+  `VALIDATED`.
+- Ground truth at the site. SRTM is a 2000 radar surface model at 30 m; it is screening
+  terrain context, not a site survey, and not a hydrological or geotechnical study.
+- That the polygon is free of canopy/built bias. SRTM measures a reflective surface, not bare
+  earth, and a single lush or built-up tile can read several metres high.
+- Any refresh schedule. The run was on demand; there is none.
+
+### 4.4 Reproducing
+
+Set `ECOSITE_EARTHDATA_TOKEN` (the backend also reads it from `backend/.env`), start the
+local API and repeat the §4.1 request. The connector, tile selection and HGT parser are
+additionally covered by fixture tests: big-endian `int16` decoding, `-32768` void handling
+and 3601 × 3601 / 1201 × 1201 tile sizes. A re-run upserts on the dedupe key, so repeating
+the request does not duplicate observations.
 
 ---
 
@@ -285,7 +322,7 @@ fraction here when that happens.
 | All other registry sources | `DISCOVERED` | Metadata only. No live access or processing run. |
 
 No source may claim `PROCESSING_TESTED` on the strength of a fixture test alone. JRC and
-Copernicus STAC have live evidence in §2 and §3; SRTM does not.
+Copernicus STAC have live evidence in §2 and §3; SRTM has live evidence in §4.
 
 The bundled `/api/v1/data-sources/environmental` payload (CGWB, CPCB, CEA and water-tariff
 context) is reference material, not a connector output. Top-level provenance remains

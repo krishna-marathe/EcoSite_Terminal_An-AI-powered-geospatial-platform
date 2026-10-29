@@ -194,10 +194,21 @@ in `frontend/.env.local`.
   work without it.
 - all `VITE_*` values are browser-visible; never place private credentials in
   frontend configuration.
-- backend environment variables are read from the process. The service does not
-  automatically load `.env` files.
+- backend environment variables are read from the process first. On startup the
+  service also loads `backend/.env`, then the repository-root `.env`, when
+  `python-dotenv` is installed and the file exists. A value already set in the
+  process wins, and a variable added to `.env` after the server started needs a
+  restart.
+- `ECOSITE_EARTHDATA_TOKEN` is the NASA Earthdata bearer token used by the SRTM
+  connector. Without it, SRTM analysis returns "token is not configured"; the
+  token is read server-side only. Create one at
+  <https://urs.earthdata.nasa.gov/> and keep it out of version control.
 - `ECOSITE_DB_PATH` may override the application-relative
   `backend/data/ecosite.db` path. Prefer an absolute override when needed.
+
+Both `.env` files are ignored by Git. Never commit real tokens or paste them
+into tracked files; `backend/.env.example` and `frontend/.env.example` document
+the variable names only.
 
 Production hosting must provide API routing or an explicit API URL with matching
 CORS configuration.

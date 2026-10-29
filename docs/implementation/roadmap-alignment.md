@@ -88,7 +88,7 @@ Endpoints:
 | --- | --- | --- | --- |
 | `jrc_gsw` | `PROCESSING_TESTED` | `CONNECTED` | Live Pune runs on 2026-10-27 produced five observations from the 70E/20N tile with 100% valid-pixel coverage. The dev database now holds a Pune candidate with these observations; no refresh schedule exists. |
 | `copernicus_stac` | `PROCESSING_TESTED` | `CONNECTED` | Live Pune searches returned 90 Sentinel-2 L2A scenes and stored seven scene-metadata observations. No pixels or NDVI were processed. On-demand only; no schedule. |
-| `nasa_srtmgl1` | `DISCOVERED` | `NOT_CONNECTED` | Connector and fixture tests exist, but no Earthdata token was available for a live tile request. |
+| `nasa_srtmgl1` | `PROCESSING_TESTED` | `CONNECTED` | Live Pune run on 2026-10-29 fetched the authenticated `N18E073` tile (12,646,090 bytes) and stored seven terrain observations with 100% valid-pixel coverage and no voids. Screening terrain context, not a site survey; on demand only. |
 | Everything else | `DISCOVERED` | `NOT_CONNECTED` | No live access or processing run. |
 
 The live JRC run is recorded in [`docs/data/VERIFICATION.md`](../data/VERIFICATION.md) with

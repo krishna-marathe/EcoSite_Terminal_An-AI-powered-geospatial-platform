@@ -81,8 +81,10 @@ The P2 statement that "no source-backed environmental geometry exists" now appli
 - A Copernicus STAC connector has been live-verified against the same polygon: 90 Sentinel-2
   L2A scenes and seven scene-metadata observations. It is `PROCESSING_TESTED` / `CONNECTED`;
   no pixels or NDVI were processed.
-- An SRTM connector is implemented and fixture-tested, but no live tile has been fetched
-  because `ECOSITE_EARTHDATA_TOKEN` is unavailable. It remains `DISCOVERED`.
+- An SRTM connector has been live-verified against the same polygon: the authenticated
+  `N18E073` tile produced seven terrain observations (mean elevation 559.10 m, relief 41 m,
+  mean slope 3.07°, no voids). It is `PROCESSING_TESTED` / `CONNECTED`, on demand only, and
+  screening terrain context rather than a site survey.
 - Candidate polygons are now limited to Telangana, Maharashtra, Karnataka and Tamil Nadu by
   a pinned ADM1 screening layer. The boundary is screening-only, not a legal determination.
 - No connector writes a score. The Projects page reads stored observations with provenance,

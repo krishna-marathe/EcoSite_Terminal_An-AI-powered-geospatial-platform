@@ -135,12 +135,19 @@ DATA_SOURCES: list[dict[str, Any]] = [
         latest_release="v003",
         update_frequency="Static",
         join_key_or_geometry="Raster tile request by candidate polygon bounds plus buffer",
-        test_status="DISCOVERED",
+        test_status="PROCESSING_TESTED",
+        runtime_status="NOT_CONNECTED",
+        last_checked_at="2026-10-29T00:20:26Z",
+        last_success_at="2026-10-29T00:20:26Z",
         fallback="Copernicus DEM GLO-30 via CDSE; manual tile upload",
-        next_action="Run an authenticated tile request for a test polygon and compute elevation, slope and relief with a void fraction.",
+        next_action="Add independent validation of the elevation and slope values; keep the source on demand and label it screening terrain context.",
         quality_notes=(
             "Screening-level elevation, not a detailed site survey or hydrological model. SRTM has voids in steep terrain. "
-            "Report the void fraction and do not interpolate across large gaps without labelling the method."
+            "Report the void fraction and do not interpolate across large gaps without labelling the method. "
+            "Live verification 2026-10-29: an authenticated request for the Pune candidate returned tile N18E073 "
+            "(HTTP 200 after the LP DAAC 303 redirect, 12,646,090 bytes, SHA-256 b81a85f6...) and stored seven observations: "
+            "mean elevation 559.10 m, relief 41 m, mean slope 3.07 degrees, mean slope max 15.21 degrees, "
+            "5,184 of 5,184 pixels valid and no voids. Run on demand only; no refresh schedule exists."
         ),
     ),
     _source(

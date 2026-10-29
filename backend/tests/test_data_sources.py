@@ -68,13 +68,15 @@ class DataSourceTests(unittest.TestCase):
     def test_no_source_overstates_its_maturity(self):
         items = {source["id"]: source for source in self.registry()["items"]}
         # JRC and STAC were each verified against a real Pune polygon on 2026-10-27,
-        # so they may claim PROCESSING_TESTED. This deployment has not scheduled
-        # either connector, so runtime_status remains NOT_CONNECTED.
-        for source_id in ("jrc_gsw", "copernicus_stac"):
+        # and SRTM against the same polygon with an authenticated Earthdata tile on
+        # 2026-10-29, so they may claim PROCESSING_TESTED. This deployment has not
+        # scheduled any of them, so runtime_status remains NOT_CONNECTED.
+        verified = {"jrc_gsw", "copernicus_stac", "nasa_srtmgl1"}
+        for source_id in verified:
             self.assertEqual(items[source_id]["test_status"], "PROCESSING_TESTED")
             self.assertEqual(items[source_id]["runtime_status"], "NOT_CONNECTED")
         for source_id, source in items.items():
-            if source_id in {"jrc_gsw", "copernicus_stac"}:
+            if source_id in verified:
                 continue
             self.assertNotIn(source["test_status"], {"PROCESSING_TESTED", "VALIDATED", "INTEGRATED"})
         for source in items.values():
