@@ -48,6 +48,15 @@ export interface EvidenceArtifact {
   notes?: string | null;
 }
 
+export interface EvidenceUploadMetadata {
+  document_type: DocumentType;
+  issuer?: string;
+  reference?: string;
+  valid_until?: string;
+  site_id?: string;
+  notes?: string;
+}
+
 export interface Assertion {
   id: string;
   project_id: string;

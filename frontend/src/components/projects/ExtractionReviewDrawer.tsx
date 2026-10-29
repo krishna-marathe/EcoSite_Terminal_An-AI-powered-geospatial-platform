@@ -36,8 +36,8 @@ export function ExtractionReviewDrawer({
       if (selectedIndex < extractions.length - 1) {
         setSelectedIndex(selectedIndex + 1);
       }
-    } catch (err: any) {
-      setActionError(err?.message || 'Failed to record extraction review decision.');
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : 'Failed to record extraction review decision.');
     }
   };
 

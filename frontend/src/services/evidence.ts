@@ -12,8 +12,7 @@ import type {
   AssertionStatus,
   ExtractionCandidate,
   AssertionReviewRequest,
-  PowerCommitment,
-  WaterCommitment,
+  EvidenceUploadMetadata,
 } from '../types/evidence';
 
 // Mock initial data fixtures for offline/demo/contract testing
@@ -228,20 +227,13 @@ export const evidenceService = {
   async uploadArtifact(
     projectId: string,
     file: File,
-    metadata: {
-      document_type: string;
-      issuer?: string;
-      reference?: string;
-      valid_until?: string;
-      site_id?: string;
-      notes?: string;
-    }
+    metadata: EvidenceUploadMetadata
   ): Promise<EvidenceArtifact> {
     const newArtifact: EvidenceArtifact = {
       id: `art-${Date.now().toString(36)}`,
       project_id: projectId,
       site_id: metadata.site_id || null,
-      document_type: metadata.document_type as any,
+      document_type: metadata.document_type,
       filename: file.name,
       mime_type: file.type || 'application/pdf',
       file_size_bytes: file.size,
@@ -274,7 +266,7 @@ export const evidenceService = {
     const target = assertionsStore.find((a) => a.id === review.assertion_id);
     if (!target) throw new Error('Assertion not found');
 
-    let resolvedStatus: AssertionStatus = 'DOCUMENTED';
+    let resolvedStatus: AssertionStatus;
     if (review.decision === 'FLAG_CONFLICT') {
       resolvedStatus = 'CONFLICTING';
     } else if (review.decision === 'VERIFIED_WITHIN_SCOPE') {

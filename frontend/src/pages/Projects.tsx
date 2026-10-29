@@ -6,6 +6,7 @@ import { ExtractionReviewDrawer } from '../components/projects/ExtractionReviewD
 import { SiteComparisonMatrix } from '../components/projects/SiteComparisonMatrix';
 import { SitePassport } from '../components/projects/SitePassport';
 import { evidenceService } from '../services/evidence';
+import type { EvidenceUploadMetadata } from '../types/evidence';
 import { getPhases } from '../services/phases';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
@@ -65,7 +66,7 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
     queryFn: () => evidenceService.getExtractions(projectId),
   });
 
-  const handleUpload = async (file: File, metadata: any) => {
+  const handleUpload = async (file: File, metadata: EvidenceUploadMetadata) => {
     onBusy(true);
     try {
       await evidenceService.uploadArtifact(projectId, file, metadata);
