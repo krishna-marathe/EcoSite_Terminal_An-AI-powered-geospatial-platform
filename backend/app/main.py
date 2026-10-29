@@ -29,6 +29,7 @@ from .routers.evidence import router as evidence_router
 from .routers.extraction import router as extraction_router
 from .routers.commitments import router as commitments_router
 from .routers.comparison import router as comparison_router
+from .routers.benchmarks import router as benchmarks_router
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -277,6 +278,7 @@ app.include_router(evidence_router, prefix=API_PREFIX)
 app.include_router(extraction_router, prefix=API_PREFIX)
 app.include_router(commitments_router, prefix=API_PREFIX)
 app.include_router(comparison_router, prefix=API_PREFIX)
+app.include_router(benchmarks_router, prefix=API_PREFIX)
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS or ["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 

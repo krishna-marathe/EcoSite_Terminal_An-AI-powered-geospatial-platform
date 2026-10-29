@@ -152,8 +152,8 @@ DATA_SOURCES: list[dict[str, Any]] = [
         priority="P0",
         access_method="stac",
         authentication="Anonymous STAC search confirmed; downloading assets requires a CDSE account",
-        base_url="https://catalogue.dataspace.copernicus.eu/stac",
-        exact_endpoint="https://catalogue.dataspace.copernicus.eu/stac/search",
+        base_url="https://stac.opensearch.dataspace.copernicus.eu/v1",
+        exact_endpoint="https://stac.opensearch.dataspace.copernicus.eu/v1/search",
         licence="Copernicus open data; free, full and open",
         licence_url="https://dataspace.copernicus.eu/terms-and-conditions",
         attribution="Contains modified Copernicus Sentinel data",
@@ -439,6 +439,40 @@ DATA_SOURCES: list[dict[str, Any]] = [
         quality_notes=(
             "Crowd-sourced; completeness varies. Proximity to a substation is not grid capacity or a connection sanction. "
             "Never convert distance into available MW."
+        ),
+    ),
+    _source(
+        id="nasa_power",
+        provider="NASA Langley Research Center",
+        dataset_name="Prediction of Worldwide Energy Resources (POWER) Daily Meteorology",
+        dataset_version="POWER v2.0 (MERRA-2)",
+        data_category="GIS",
+        priority="P1",
+        access_method="api",
+        authentication="none; public API",
+        base_url="https://power.larc.nasa.gov/api/temporal/daily/point",
+        exact_endpoint="https://power.larc.nasa.gov/api/temporal/daily/point?latitude={lat}&longitude={lon}&parameters=T2M,T2M_MAX,T2M_MIN,RH2M,ALLSKY_SFC_SW_DWN&community=RE&format=JSON",
+        licence="NASA Open Data Policy (public domain / free reuse)",
+        licence_url="https://www.earthdata.nasa.gov/engage/open-data-services-and-software/data-and-information-policy",
+        attribution="NASA POWER Project, NASA Langley Research Center",
+        can_cache=True,
+        can_redistribute=True,
+        commercial_use=True,
+        resolution="0.5 x 0.625 degree reanalysis grid",
+        temporal_resolution="Daily",
+        coverage="Global",
+        observation_period="1981-01-01 to near-real-time",
+        latest_release="Release 2.0",
+        update_frequency="Daily",
+        join_key_or_geometry="Centroid query with latitude and longitude",
+        test_status="PROCESSING_TESTED",
+        runtime_status="NOT_CONNECTED",
+        fallback="IMD weather station observations (official ground stations); ERA5 reanalysis",
+        owner="Siddharth",
+        next_action="Provide automated climate screening (mean/max temperature, humidity, solar GHI) for candidate polygon centroids.",
+        quality_notes=(
+            "Modelled MERRA-2 global reanalysis, not an on-site weather station. Useful for screening-level cooling degree days, "
+            "ambient temperature ceilings and solar PV sizing. Clearly distinguish modelled reanalysis from ground station observations."
         ),
     ),
     # ------------------------------------------------------------------ P2

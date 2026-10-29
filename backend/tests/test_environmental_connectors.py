@@ -30,6 +30,7 @@ from backend.app.data.connectors.base import ConnectorUnavailable, FetchRequest,
 from backend.app.data.connectors.copernicus_stac import CopernicusStacConnector
 from backend.app.data.connectors.jrc_gsw import JrcGswConnector, _tile_origins as jrc_tiles
 from backend.app.data.connectors.srtm import SrtmGl1Connector, _tile_origins as srtm_tiles
+from backend.app.data.connectors.nasa_power import NasaPowerConnector
 from backend.app.data.ingest import run_ingestion
 from backend.app.data.models import DataSource, IngestionRun, Observation, RawSnapshot
 from backend.app.data.registry import seed_data_sources
@@ -355,7 +356,7 @@ class StacConnectorTests(unittest.TestCase):
             payloads = CopernicusStacConnector().fetch(request())
 
         self.assertEqual(len(payloads), 2)
-        self.assertEqual(calls[0][0], "https://catalogue.dataspace.copernicus.eu/stac/search")
+        self.assertEqual(calls[0][0], "https://stac.opensearch.dataspace.copernicus.eu/v1/search")
         self.assertEqual(calls[1][0], "https://stac.example.test/v1/search")
         self.assertEqual(calls[1][1]["token"], "next-token")
         self.assertEqual(payloads[0].filename, "stac-search-01.json")
@@ -363,7 +364,7 @@ class StacConnectorTests(unittest.TestCase):
         # Every page carries the exact window that produced the search, so a
         # zero-scene result stays reproducible after pagination.
         for page in payloads:
-            self.assertEqual(page.metadata["search_url"], "https://catalogue.dataspace.copernicus.eu/stac/search")
+            self.assertEqual(page.metadata["search_url"], "https://stac.opensearch.dataspace.copernicus.eu/v1/search")
             self.assertEqual(page.metadata["lookback_days"], 365)
             start, _, end = page.metadata["search_datetime"].partition("/")
             self.assertTrue(start.endswith("T00:00:00Z"))
@@ -591,6 +592,77 @@ class EnvironmentalApiTests(unittest.TestCase):
                 connection.execute("SELECT runtime_status FROM data_sources WHERE id='jrc_gsw'").fetchone()[0],
                 "SOURCE_UNAVAILABLE",
             )
+
+
+class NasaPowerConnectorTests(unittest.TestCase):
+    def test_connector_is_registered(self):
+        self.assertIn("nasa_power", CONNECTORS)
+        self.assertIsInstance(CONNECTORS["nasa_power"], NasaPowerConnector)
+
+    def test_parse_daily_meteorology_and_cdd(self):
+        payload_data = {
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [73.85, 18.52, 560.0]},
+            "properties": {
+                "parameter": {
+                    "T2M": {"20260101": 22.0, "20260102": 26.0, "20260103": 17.0},
+                    "T2M_MAX": {"20260101": 28.0, "20260102": 32.0, "20260103": 24.0},
+                    "T2M_MIN": {"20260101": 16.0, "20260102": 18.0, "20260103": 12.0},
+                    "RH2M": {"20260101": 55.0, "20260102": 60.0, "20260103": 65.0},
+                    "ALLSKY_SFC_SW_DWN": {"20260101": 5.2, "20260102": 5.8, "20260103": 4.6},
+                }
+            },
+        }
+        raw = payload(
+            "nasa_power",
+            "nasa_power_daily.json",
+            json.dumps(payload_data).encode("utf-8"),
+            "application/json",
+            metadata={"latitude": 18.52, "longitude": 73.85, "start": "20260101", "end": "20260103"},
+        )
+        records = {r.indicator: r for r in NasaPowerConnector().parse([raw], request())}
+
+        # Indicators
+        self.assertEqual(records["ambient_temperature_mean_c"].value, 21.67)
+        self.assertEqual(records["ambient_temperature_max_c"].value, 32.0)
+        self.assertEqual(records["ambient_temperature_min_c"].value, 12.0)
+        self.assertEqual(records["relative_humidity_mean_percent"].value, 60.0)
+        self.assertEqual(records["solar_ghi_annual_mean_kwh_per_sqm_day"].value, 5.2)
+        # CDD: max(0, 22-18) + max(0, 26-18) + max(0, 17-18) = 4 + 8 + 0 = 12.0
+        self.assertEqual(records["cooling_degree_days_cdd_base_18c"].value, 12.0)
+
+        # Provenance
+        for r in records.values():
+            self.assertEqual(r.evidence_class, "MODELLED")
+            self.assertEqual(r.dataset_version, "POWER v2.0 (MERRA-2)")
+            self.assertEqual(r.period_start, "2026-01-01")
+            self.assertEqual(r.period_end, "2026-01-03")
+
+    def test_empty_or_nodata_series_returns_unavailable(self):
+        payload_data = {
+            "type": "Feature",
+            "properties": {
+                "parameter": {
+                    "T2M": {"20260101": -999.0},
+                    "T2M_MAX": {"20260101": -999.0},
+                    "T2M_MIN": {"20260101": -999.0},
+                    "RH2M": {"20260101": -999.0},
+                    "ALLSKY_SFC_SW_DWN": {"20260101": -999.0},
+                }
+            },
+        }
+        raw = payload(
+            "nasa_power",
+            "nasa_power_daily.json",
+            json.dumps(payload_data).encode("utf-8"),
+            "application/json",
+            metadata={"latitude": 18.52, "longitude": 73.85, "start": "20260101", "end": "20260101"},
+        )
+        records = {r.indicator: r for r in NasaPowerConnector().parse([raw], request())}
+        for r in records.values():
+            self.assertEqual(r.status, "SOURCE_UNAVAILABLE")
+            self.assertIsNone(r.value)
+            self.assertTrue(r.missing_reason)
 
 
 if __name__ == "__main__":
