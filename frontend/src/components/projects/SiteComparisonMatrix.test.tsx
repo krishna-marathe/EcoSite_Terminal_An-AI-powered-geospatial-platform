@@ -251,5 +251,48 @@ describe('SiteComparisonMatrix Component', () => {
       expect(screen.getByText('Unable to load candidate site comparisons')).toBeInTheDocument();
       expect(screen.getByText('Failed to fetch candidate comparisons')).toBeInTheDocument();
     });
+
+    it('surfaces environmental observation summaries for each candidate site', () => {
+      const mockObsMap = {
+        'site-daund-01': [
+          {
+            id: 'obs-1',
+            source_id: 'jrc_gsw',
+            site_id: 'site-daund-01',
+            geometry_hash: 'gh-1',
+            indicator: 'historical_water_occurrence_overlap_fraction',
+            value: 0.015,
+            unit: 'fraction',
+            status: 'AVAILABLE' as const,
+            evidence_class: 'REMOTE_SENSING_DERIVED' as const,
+            dataset_version: 'GSW v1.5',
+            period_start: '1984-01-01',
+            period_end: '2024-12-31',
+            observed_at: null,
+            published_at: null,
+            retrieved_at: '2026-10-27T00:00:00Z',
+            resolution: '30 m',
+            method: 'zonal',
+            processing_version: '1.0.0',
+            coverage_fraction: 1.0,
+            quality_flags: {},
+            missing_reason: null,
+            raw_snapshot_id: null,
+          },
+        ],
+      };
+
+      render(
+        <SiteComparisonMatrix
+          comparisonData={MOCK_BACKEND_COMPARISONS}
+          siteObservations={mockObsMap}
+        />
+      );
+
+      expect(screen.getByText('Environmental Observations')).toBeInTheDocument();
+      expect(screen.getByText('1.50%')).toBeInTheDocument();
+      expect(screen.getByText('1 records')).toBeInTheDocument();
+      expect(screen.getByText('No observations run yet')).toBeInTheDocument();
+    });
   });
 });

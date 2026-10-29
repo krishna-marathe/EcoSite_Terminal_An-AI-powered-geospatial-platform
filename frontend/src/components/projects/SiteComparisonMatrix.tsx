@@ -6,6 +6,7 @@ import type {
   SiteComparisonResponse,
   DimensionStatus,
 } from '../../types/readiness';
+import type { Observation } from '../../services/observations';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 
@@ -14,6 +15,7 @@ interface SiteComparisonMatrixProps {
   phases?: ProjectPhase[];
   assertions?: Assertion[];
   comparisonData?: SiteComparisonResponse | null;
+  siteObservations?: Record<string, Observation[]>;
   loading?: boolean;
   error?: string | null;
   onGeneratePassport?: (selectedSiteId: string) => void;
@@ -59,6 +61,7 @@ export function SiteComparisonMatrix({
   phases = [],
   assertions = [],
   comparisonData,
+  siteObservations = {},
   loading = false,
   error = null,
   onGeneratePassport,
@@ -265,6 +268,114 @@ export function SiteComparisonMatrix({
                     </td>
                   );
                 })}
+              </tr>
+
+              <tr>
+
+                <td className="p-3 font-medium text-slate-300">
+
+                  <p>Environmental Observations</p>
+
+                  <span className="text-[10px] text-eco-muted">JRC / Sentinel-2 / NASA POWER</span>
+
+                </td>
+
+                {backendSites.map((site) => {
+
+                  const siteObs = siteObservations[site.site_id] || [];
+
+                  const waterObs = siteObs.find((o) => o.indicator.includes('water_occurrence_overlap'));
+
+                  const s2Obs = siteObs.find((o) => o.indicator.includes('sentinel2_usable_scene'));
+
+                  const tempObs = siteObs.find((o) => o.indicator === 'ambient_temperature_mean_c');
+
+
+
+                  return (
+
+                    <td key={site.site_id} className="p-3">
+
+                      {siteObs.length === 0 ? (
+
+                        <div className="text-[11px] text-eco-muted">
+
+                          <p className="italic">No observations run yet</p>
+
+                          <span className="text-[10px] text-eco-muted/80">(Use Environmental panel below)</span>
+
+                        </div>
+
+                      ) : (
+
+                        <div className="space-y-1 font-mono text-[11px]">
+
+                          {waterObs && (
+
+                            <div className="flex justify-between">
+
+                              <span className="text-eco-muted font-sans">Water Overlap:</span>
+
+                              <span className="text-slate-200">
+
+                                {waterObs.value !== null ? `${(waterObs.value * 100).toFixed(2)}%` : 'Unavailable'}
+
+                              </span>
+
+                            </div>
+
+                          )}
+
+                          {s2Obs && (
+
+                            <div className="flex justify-between">
+
+                              <span className="text-eco-muted font-sans">S2 Usable Scenes:</span>
+
+                              <span className="text-slate-200">
+
+                                {s2Obs.value !== null ? `${s2Obs.value} scenes` : 'None'}
+
+                              </span>
+
+                            </div>
+
+                          )}
+
+                          {tempObs && (
+
+                            <div className="flex justify-between">
+
+                              <span className="text-eco-muted font-sans">Mean Temp:</span>
+
+                              <span className="text-slate-200">
+
+                                {tempObs.value !== null ? `${tempObs.value.toFixed(1)}°C` : 'Unavailable'}
+
+                              </span>
+
+                            </div>
+
+                          )}
+
+                          <div className="border-t border-eco-border/40 pt-1 text-[10px] text-emerald-400 font-sans flex justify-between">
+
+                            <span>{siteObs.length} records</span>
+
+                            <span>Ground truth</span>
+
+                          </div>
+
+                        </div>
+
+                      )}
+
+                    </td>
+
+                  );
+
+                })}
+
               </tr>
 
               {/* Dimension 3: Regulatory Readiness */}

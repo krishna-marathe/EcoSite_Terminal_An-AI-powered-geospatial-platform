@@ -3,6 +3,7 @@ import type { Project, CandidateSite } from '../../services/projects';
 import type { ProjectPhase } from '../../services/phases';
 import type { Assertion, EvidenceArtifact } from '../../types/evidence';
 import type { SiteReadinessPassport } from '../../types/readiness';
+import type { Observation } from '../../services/observations';
 import { Button } from '../ui/Button';
 
 interface SitePassportProps {
@@ -11,6 +12,7 @@ interface SitePassportProps {
   phases?: ProjectPhase[];
   assertions?: Assertion[];
   artifacts?: EvidenceArtifact[];
+  observations?: Observation[];
   passportData?: SiteReadinessPassport | null;
   loading?: boolean;
   error?: string | null;
@@ -23,6 +25,7 @@ export function SitePassport({
   phases = [],
   assertions = [],
   artifacts = [],
+  observations = [],
   passportData,
   loading = false,
   error = null,
@@ -397,6 +400,76 @@ export function SitePassport({
             </div>
           </div>
 
+
+          {/* 6. Environmental Observations & Geospatial Screening */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center border-b border-eco-border pb-1 print:border-black">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-300 print:text-black">
+                6. Environmental Intelligence & Geospatial Screening ({observations.length} Observations)
+              </h2>
+              {observations.length > 0 && (
+                <span className="text-[11px] font-mono text-emerald-400 print:text-black">
+                  Public Geospatial / Reanalysis Grounding
+                </span>
+              )}
+            </div>
+
+            {observations.length === 0 ? (
+              <div className="rounded border border-eco-border/60 bg-eco-surface-2/20 p-3 text-xs text-eco-muted print:border-gray-300">
+                <p className="font-semibold text-slate-300 print:text-black">No local environmental observations run yet</p>
+                <p className="mt-1">
+                  Run local environmental analysis (JRC Global Surface Water, Copernicus Sentinel-2 STAC, NASA POWER) from the candidate site view to populate surface water occurrence and climate observations in this Passport.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="overflow-x-auto rounded border border-eco-border print:border-gray-300">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-eco-surface-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-eco-border print:bg-gray-100 print:text-black">
+                      <tr>
+                        <th className="p-2">Source</th>
+                        <th className="p-2">Indicator</th>
+                        <th className="p-2 text-right">Value</th>
+                        <th className="p-2">Unit</th>
+                        <th className="p-2">Status</th>
+                        <th className="p-2">Evidence Class</th>
+                        <th className="p-2">Period / Observed</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-eco-border/60 print:divide-gray-300">
+                      {observations.map((obs) => (
+                        <tr key={obs.id} className="text-slate-300 print:text-black">
+                          <td className="p-2 font-medium">{obs.source_id}</td>
+                          <td className="p-2">{obs.indicator.replace(/_/g, ' ')}</td>
+                          <td className="p-2 text-right font-mono font-medium">
+                            {obs.value === null ? (
+                              <span className="text-eco-muted italic">Unavailable</span>
+                            ) : (
+                              obs.value.toLocaleString(undefined, { maximumFractionDigits: 3 })
+                            )}
+                          </td>
+                          <td className="p-2 text-eco-muted print:text-gray-600">{obs.unit}</td>
+                          <td className="p-2">
+                            <span className={obs.status === 'AVAILABLE' ? 'text-emerald-400 font-mono text-[10px]' : 'text-amber-400 font-mono text-[10px]'}>
+                              {obs.status}
+                            </span>
+                          </td>
+                          <td className="p-2 font-mono text-[10px] text-eco-muted print:text-gray-600">{obs.evidence_class}</td>
+                          <td className="p-2 text-eco-muted font-mono text-[10px] print:text-gray-600">
+                            {obs.period_start || obs.observed_at || (obs.retrieved_at ? obs.retrieved_at.split('T')[0] : '—')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-[10px] text-eco-muted italic print:text-gray-600">
+                  Environmental observations provide preliminary screening data only. They do not constitute official Survey of India boundary certificates, statutory EIA clearances, or verified on-site geotechnical bore logs.
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Footer */}
           <div className="border-t border-eco-border pt-4 text-[10px] text-eco-muted flex flex-col sm:flex-row justify-between items-center gap-2 print:border-black print:text-gray-600">
             <p>EcoSite India Platform · One Earth Hackathon 2026 · Evaluated by Antigravity OS</p>
@@ -431,7 +504,7 @@ export function SitePassport({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm p-4 sm:p-6 flex justify-center print:p-0 print:bg-white print:static">
-      <div 
+      <div
         ref={passportRef}
         className="w-full max-w-4xl bg-eco-surface border border-eco-border rounded-lg shadow-2xl p-6 sm:p-8 space-y-6 print:border-none print:shadow-none print:text-black print:bg-white"
       >
@@ -694,6 +767,76 @@ export function SitePassport({
             </div>
           </div>
         </div>
+
+
+          {/* 6. Environmental Observations & Geospatial Screening */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center border-b border-eco-border pb-1 print:border-black">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-300 print:text-black">
+                6. Environmental Intelligence & Geospatial Screening ({observations.length} Observations)
+              </h2>
+              {observations.length > 0 && (
+                <span className="text-[11px] font-mono text-emerald-400 print:text-black">
+                  Public Geospatial / Reanalysis Grounding
+                </span>
+              )}
+            </div>
+
+            {observations.length === 0 ? (
+              <div className="rounded border border-eco-border/60 bg-eco-surface-2/20 p-3 text-xs text-eco-muted print:border-gray-300">
+                <p className="font-semibold text-slate-300 print:text-black">No local environmental observations run yet</p>
+                <p className="mt-1">
+                  Run local environmental analysis (JRC Global Surface Water, Copernicus Sentinel-2 STAC, NASA POWER) from the candidate site view to populate surface water occurrence and climate observations in this Passport.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="overflow-x-auto rounded border border-eco-border print:border-gray-300">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-eco-surface-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-eco-border print:bg-gray-100 print:text-black">
+                      <tr>
+                        <th className="p-2">Source</th>
+                        <th className="p-2">Indicator</th>
+                        <th className="p-2 text-right">Value</th>
+                        <th className="p-2">Unit</th>
+                        <th className="p-2">Status</th>
+                        <th className="p-2">Evidence Class</th>
+                        <th className="p-2">Period / Observed</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-eco-border/60 print:divide-gray-300">
+                      {observations.map((obs) => (
+                        <tr key={obs.id} className="text-slate-300 print:text-black">
+                          <td className="p-2 font-medium">{obs.source_id}</td>
+                          <td className="p-2">{obs.indicator.replace(/_/g, ' ')}</td>
+                          <td className="p-2 text-right font-mono font-medium">
+                            {obs.value === null ? (
+                              <span className="text-eco-muted italic">Unavailable</span>
+                            ) : (
+                              obs.value.toLocaleString(undefined, { maximumFractionDigits: 3 })
+                            )}
+                          </td>
+                          <td className="p-2 text-eco-muted print:text-gray-600">{obs.unit}</td>
+                          <td className="p-2">
+                            <span className={obs.status === 'AVAILABLE' ? 'text-emerald-400 font-mono text-[10px]' : 'text-amber-400 font-mono text-[10px]'}>
+                              {obs.status}
+                            </span>
+                          </td>
+                          <td className="p-2 font-mono text-[10px] text-eco-muted print:text-gray-600">{obs.evidence_class}</td>
+                          <td className="p-2 text-eco-muted font-mono text-[10px] print:text-gray-600">
+                            {obs.period_start || obs.observed_at || (obs.retrieved_at ? obs.retrieved_at.split('T')[0] : '—')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-[10px] text-eco-muted italic print:text-gray-600">
+                  Environmental observations provide preliminary screening data only. They do not constitute official Survey of India boundary certificates, statutory EIA clearances, or verified on-site geotechnical bore logs.
+                </p>
+              </div>
+            )}
+          </div>
 
         {/* Footer */}
         <div className="border-t border-eco-border pt-4 text-[10px] text-eco-muted flex flex-col sm:flex-row justify-between items-center gap-2 print:border-black print:text-gray-600">

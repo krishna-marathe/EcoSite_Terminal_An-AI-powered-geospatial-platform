@@ -688,7 +688,7 @@ describe('Projects Page Real End-to-End Demo Integration Flow', () => {
     renderProjectsPage();
 
     await screen.findByRole('heading', { name: /Project candidate polygons/i });
-    expect(screen.getByText('3 / 3 active candidates')).toBeInTheDocument();
+    expect(await screen.findByText('3 / 3 active candidates')).toBeInTheDocument();
     expect(screen.getByText('Chakan Greenfield Parcel A')).toBeInTheDocument();
     expect(screen.getByText('Talegaon MIDC Parcel B')).toBeInTheDocument();
     expect(screen.getByText('Ranjangaon Industrial Parcel C')).toBeInTheDocument();
@@ -700,7 +700,7 @@ describe('Projects Page Real End-to-End Demo Integration Flow', () => {
     await screen.findByText('Resource Readiness & Capacity Gap Timeline');
 
     // Capacity deficit and ceiling metrics
-    expect(screen.getByText('+64 MW Unbacked')).toBeInTheDocument();
+    expect(await screen.findByText('+64 MW Unbacked')).toBeInTheDocument();
     expect(screen.getByText('+1200 KLD Unbacked')).toBeInTheDocument();
     expect(screen.getByText(/Qualifying Firm Ceiling: 40 MW/i)).toBeInTheDocument();
     expect(screen.getByText(/Qualifying Firm Ceiling: 1000 KLD/i)).toBeInTheDocument();
@@ -723,7 +723,7 @@ describe('Projects Page Real End-to-End Demo Integration Flow', () => {
 
     // Epistemic disclaimer without black box scores
     expect(
-      screen.getByText(/Independent 4-dimension comparison. Does not compute a black-box composite score/i)
+      await screen.findByText(/Independent 4-dimension comparison. Does not compute a black-box composite score/i)
     ).toBeInTheDocument();
 
     // 4 dimensions present

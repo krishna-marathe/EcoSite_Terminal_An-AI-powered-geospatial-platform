@@ -322,5 +322,49 @@ describe('SitePassport', () => {
       expect(screen.getByText('Failed to load Site Readiness Passport')).toBeInTheDocument();
       expect(screen.getByText('Candidate site not found in project')).toBeInTheDocument();
     });
+
+    it('renders environmental intelligence and observations with provenance in passport', () => {
+      const mockObs = [
+        {
+          id: 'obs-jrc-1',
+          source_id: 'jrc_gsw',
+          site_id: 'site-1',
+          geometry_hash: 'hash-1234',
+          indicator: 'historical_water_occurrence_overlap_fraction',
+          value: 0.025,
+          unit: 'fraction',
+          status: 'AVAILABLE' as const,
+          evidence_class: 'REMOTE_SENSING_DERIVED' as const,
+          dataset_version: 'GSW v1.5 (1984-2024)',
+          period_start: '1984-01-01',
+          period_end: '2024-12-31',
+          observed_at: null,
+          published_at: null,
+          retrieved_at: '2026-10-27T00:00:00Z',
+          resolution: '30 m',
+          method: 'zonal_occurrence',
+          processing_version: '1.0.0',
+          coverage_fraction: 1.0,
+          quality_flags: {},
+          missing_reason: null,
+          raw_snapshot_id: null,
+        },
+      ];
+
+      render(
+        <SitePassport
+          project={mockProject}
+          site={mockSite}
+          passportData={mockBackendPassport}
+          observations={mockObs}
+        />
+      );
+
+      expect(screen.getByText(/6. Environmental Intelligence & Geospatial Screening \(1 Observations\)/i)).toBeInTheDocument();
+      expect(screen.getByText('historical water occurrence overlap fraction')).toBeInTheDocument();
+      expect(screen.getByText('0.025')).toBeInTheDocument();
+      expect(screen.getByText('REMOTE_SENSING_DERIVED')).toBeInTheDocument();
+      expect(screen.getByText(/Public Geospatial \/ Reanalysis Grounding/i)).toBeInTheDocument();
+    });
   });
 });

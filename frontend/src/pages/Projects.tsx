@@ -5,6 +5,8 @@ import { ResourceReadinessTimeline } from '../components/projects/ResourceReadin
 import { ExtractionReviewDrawer } from '../components/projects/ExtractionReviewDrawer';
 import { SiteComparisonMatrix } from '../components/projects/SiteComparisonMatrix';
 import { SitePassport } from '../components/projects/SitePassport';
+import { IndustryBenchmarksSection } from '../components/projects/IndustryBenchmarksSection';
+import { getSiteObservations, type Observation } from '../services/observations';
 import { evidenceService } from '../services/evidence';
 import { readinessService, formatReadinessError } from '../services/readiness';
 import type { EvidenceUploadMetadata } from '../types/evidence';
@@ -208,6 +210,24 @@ function LoadedProjectSites({ project, onBusy, initialSite, data, selectId, quer
     queryFn: ({ signal }) => readinessService.getSitePassport(project.id, passportSite!.id, signal),
     enabled: Boolean(passportSite?.id),
   });
+  const siteObservationsQuery = useQuery({
+    queryKey: ['candidate-observations-map', data.map((s) => s.id).join(',')],
+    queryFn: async () => {
+      const map: Record<string, Observation[]> = {};
+      await Promise.all(
+        data.map(async (s) => {
+          try {
+            const res = await getSiteObservations(s.id);
+            map[s.id] = res.items;
+          } catch {
+            map[s.id] = [];
+          }
+        })
+      );
+      return map;
+    },
+    enabled: data.length > 0,
+  });
 
   return <div className="space-y-4">
     <div className="grid gap-4 lg:grid-cols-2"><Card title="Saved candidate polygons">
@@ -231,6 +251,7 @@ function LoadedProjectSites({ project, onBusy, initialSite, data, selectId, quer
       phases={phasesQuery.data || []}
       assertions={assertionsQuery.data || []}
       comparisonData={comparisonsQuery.data}
+      siteObservations={siteObservationsQuery.data || {}}
       loading={comparisonsQuery.isPending}
       error={comparisonsQuery.error ? formatReadinessError(comparisonsQuery.error) : null}
       onGeneratePassport={(id) => {
@@ -239,6 +260,7 @@ function LoadedProjectSites({ project, onBusy, initialSite, data, selectId, quer
       }}
     />
   )}
+  <IndustryBenchmarksSection />
   {selected && <EnvironmentalObservations key={selected.id} site={selected} />}
   {passportSite && (
     <SitePassport
@@ -247,6 +269,7 @@ function LoadedProjectSites({ project, onBusy, initialSite, data, selectId, quer
       phases={phasesQuery.data || []}
       assertions={assertionsQuery.data || []}
       artifacts={artifactsQuery.data || []}
+      observations={passportSite ? (siteObservationsQuery.data?.[passportSite.id] || []) : undefined}
       passportData={passportQuery.data}
       loading={passportQuery.isPending}
       error={passportQuery.error ? formatReadinessError(passportQuery.error) : null}
