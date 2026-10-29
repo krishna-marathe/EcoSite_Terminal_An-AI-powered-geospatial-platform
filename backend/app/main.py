@@ -30,6 +30,7 @@ from .routers.public_facilities import router as public_facilities_router
 from .routers.public_environmental import router as public_environmental_router
 from .routers.risk import router as risk_router
 from .routers.news import router as news_router
+from .routers.ai_assist import router as ai_assist_router
 from .routers.restricted_workflows import router as restricted_workflows_router
 from .services.public_facilities import PublicFacilityService
 from .services.public_facility_sqlalchemy import SqlAlchemyPublicFacilityRepository
@@ -316,6 +317,7 @@ app.include_router(public_environmental_router, prefix=API_PREFIX)
 app.include_router(risk_router, prefix=API_PREFIX)
 app.include_router(restricted_workflows_router, prefix=API_PREFIX)
 app.include_router(news_router, prefix=API_PREFIX)
+app.include_router(ai_assist_router, prefix=API_PREFIX)
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS or ["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 

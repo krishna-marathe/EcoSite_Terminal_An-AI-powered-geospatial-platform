@@ -1,5 +1,8 @@
 """Public operational-facility API backed by a persistence-neutral service."""
 from __future__ import annotations
+from ..schemas.ai_assist import FacilityAiAssistRequest, FacilityAiAssistResponse
+from ..services.facility_context import collect as collect_environmental_context
+from ..services.gemini_ai import generate_facility_ai_insights
 
 from datetime import date
 from functools import lru_cache
@@ -197,3 +200,47 @@ def public_facility_detail(
             code="facility_not_found",
             message="Public facility not found.",
         )
+
+
+@router.post("/{facility_id}/ai-assist", response_model=FacilityAiAssistResponse, responses=ERROR_RESPONSES)
+def public_facility_ai_assist(
+    request: Request,
+    facility_id: str = ApiPath(pattern=r"^[a-z0-9-]+$", min_length=3, max_length=100),
+    body: FacilityAiAssistRequest | None = None,
+):
+    try:
+        facility = get_public_facility_service(request).get_facility(facility_id)
+    except PublicFacilityNotFound:
+        return _error_response(
+            request,
+            status_code=404,
+            code="facility_not_found",
+            message="Public facility not found.",
+        )
+    if hasattr(facility, "model_dump"):
+        facility_dict = facility.model_dump(mode="json")
+    else:
+        facility_dict = dict(facility)
+    coords = facility_dict.get("publicCoordinates") or [73.0, 19.0]
+    lon, lat = coords[0], coords[1]
+    env_data = {}
+    try:
+        env_result = collect_environmental_context(latitude=lat, longitude=lon)
+        for key, item in env_result.readings.items():
+            if hasattr(item, "value"):
+                env_data[key] = {
+                    "value": item.value,
+                    "quality": getattr(item, "quality", "modelled"),
+                    "provider": getattr(item, "provider", "Open-Meteo"),
+                }
+    except Exception:
+        pass
+    req_body = body or FacilityAiAssistRequest()
+    return generate_facility_ai_insights(
+        facility=facility_dict,
+        environmental_data=env_data,
+        focus_area=req_body.focus_area,
+        custom_prompt=req_body.custom_prompt,
+        force_model=req_body.force_model,
+        inspection_mode=req_body.inspection_mode,
+    )

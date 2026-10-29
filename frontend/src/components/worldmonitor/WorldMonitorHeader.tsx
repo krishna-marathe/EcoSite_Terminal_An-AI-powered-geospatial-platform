@@ -62,13 +62,20 @@ export const WorldMonitorHeader: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
 
-  // Live ticking UTC clock
-  const [utcTime, setUtcTime] = useState('');
+  // Live ticking IST clock (UTC+5:30)
+  const [istTime, setIstTime] = useState('');
 
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      setUtcTime(`UTC ${now.toUTCString().slice(17, 25)}`);
+      const timeStr = now.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      setIstTime(`IST ${timeStr} (+5:30)`);
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
@@ -112,7 +119,7 @@ export const WorldMonitorHeader: React.FC = () => {
 
         <div className="hidden items-center gap-1.5 rounded-sm border border-eco-border bg-eco-surface px-2 py-0.5 font-mono text-micro text-eco-muted 2xl:flex">
           <span className="h-1.5 w-1.5 rounded-full bg-eco-primary" />
-          <span>{utcTime || 'UTC --:--:--'}</span>
+          <span>{istTime || 'IST --:--:-- (+5:30)'}</span>
         </div>
 
         {/* World Monitor Tactical DEFCON & Risk Pill */}

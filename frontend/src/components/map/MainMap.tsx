@@ -345,20 +345,20 @@ const syncEnvironmentalLayers = (map: maplibregl.Map, styleLoadEvent = false) =>
 const getFacilityIconSvg = (type: InfrastructureType): string => {
   switch (type) {
     case 'data_centre':
-      return `<svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>`;
+      return `<svg style="width:10px;height:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>`;
     case 'thermal_power':
-      return `<svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
+      return `<svg style="width:10px;height:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
     case 'solar_farm':
-      return `<svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>`;
+      return `<svg style="width:10px;height:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>`;
     case 'wind_farm':
-      return `<svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>`;
+      return `<svg style="width:10px;height:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>`;
     case 'hydro_power':
-      return `<svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`;
+      return `<svg style="width:10px;height:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`;
     case 'substation':
-      return `<svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`;
+      return `<svg style="width:10px;height:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`;
     case 'industrial':
     default:
-      return `<svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>`;
+      return `<svg style="width:10px;height:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>`;
   }
 };
 
@@ -415,20 +415,27 @@ export const MainMap: React.FC<MainMapProps> = ({
     setTimeRange,
   } = useDashboardStore();
 
-  const [utcClock, setUtcClock] = useState('');
+  const [istClock, setIstClock] = useState('');
   const [is3D, setIs3D] = useState(false);
 
   useEffect(() => {
     const update = () => {
       const now = new Date();
-      const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-      const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-      const dayName = days[now.getUTCDay()];
-      const day = String(now.getUTCDate()).padStart(2, '0');
-      const month = months[now.getUTCMonth()];
-      const year = now.getUTCFullYear();
-      const timeStr = now.toISOString().slice(11, 19);
-      setUtcClock(`${dayName}, ${day} ${month} ${year} ${timeStr} UTC`);
+      const dateParts = new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      }).formatToParts(now);
+
+      const p = Object.fromEntries(dateParts.map((item) => [item.type, item.value]));
+      const formatted = `${p.weekday?.toUpperCase()}, ${p.day} ${p.month?.toUpperCase()} ${p.year} ${p.hour}:${p.minute}:${p.second} IST (+5:30)`;
+      setIstClock(formatted);
     };
     update();
     const id = setInterval(update, 1000);
@@ -847,17 +854,17 @@ export const MainMap: React.FC<MainMapProps> = ({
       // Do not set position:relative here as it forces relative document flow, which stacks sibling
       // markers into a vertical line and causes them to drift across the map during zoom operations.
       element.style.cssText = [
-        `width:${isSelected ? '42px' : '34px'}`,
-        `height:${isSelected ? '42px' : '34px'}`,
+        `width:${isSelected ? '28px' : '22px'}`,
+        `height:${isSelected ? '28px' : '22px'}`,
         'display:flex',
         'align-items:center',
         'justify-content:center',
-        'border-radius:8px',
-        `border:${isSelected ? '3px solid #f8fafc' : '2px solid #08110d'}`,
+        'border-radius:5px',
+        `border:${isSelected ? '2px solid #f8fafc' : '1.5px solid #08110d'}`,
         'background:#39f58b',
         'color:#08110d',
-        'font:900 11px/1 ui-monospace,monospace',
-        'box-shadow:0 0 0 2px rgba(57,245,139,.45),0 5px 18px rgba(0,0,0,.8)',
+        'font:900 10px/1 ui-monospace,monospace',
+        'box-shadow:0 0 0 1.5px rgba(57,245,139,.45),0 4px 12px rgba(0,0,0,.75)',
         'cursor:pointer',
         'transition:width .15s,height .15s,box-shadow .15s',
         `z-index:${isSelected ? '120' : '60'}`,
@@ -866,7 +873,7 @@ export const MainMap: React.FC<MainMapProps> = ({
       const glyph = document.createElement('span');
       glyph.setAttribute('aria-hidden', 'true');
       // Server-rack SVG (two rack units + status LED) — matches the facility type icon
-      glyph.innerHTML = '<svg style="width:16px;height:16px;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>';
+      glyph.innerHTML = '<svg style="width:11px;height:11px;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>';
       element.append(glyph);
 
       const label = document.createElement('span');
@@ -945,32 +952,98 @@ export const MainMap: React.FC<MainMapProps> = ({
         className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"
       />
 
-      {/* Top-left floating controls */}
-      <div className="absolute top-3.5 left-3.5 z-20 flex items-center gap-2 select-none">
-        <button
-          type="button"
-          onClick={toggleLeftSidebar}
-          className="flex items-center gap-2 px-3 py-1.5 bg-eco-surface/90 hover:bg-eco-surface-secondary border border-eco-border text-eco-text rounded-lg shadow-lg backdrop-blur-md text-xs font-medium transition-colors cursor-pointer"
-        >
-          <Layers className="w-3.5 h-3.5 text-eco-primary" />
-          <span>Layers &amp; filters</span>
-        </button>
+      {/* Top-left floating controls & World Monitor Tactical HUD */}
+      <div className="absolute top-3.5 left-3.5 z-20 flex flex-col gap-2 select-none pointer-events-auto">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleLeftSidebar}
+            className="flex items-center gap-2 px-3 py-1.5 bg-eco-surface/90 hover:bg-eco-surface-secondary border border-eco-border text-eco-text rounded-lg shadow-lg backdrop-blur-md text-xs font-medium transition-colors cursor-pointer"
+          >
+            <Layers className="w-3.5 h-3.5 text-eco-primary" />
+            <span>Layers &amp; filters</span>
+          </button>
 
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-eco-surface/80 border border-eco-border text-eco-muted rounded-lg shadow-lg backdrop-blur-md text-xs">
-          <span className="w-2 h-2 rounded-full bg-eco-primary" />
-          <span className="font-semibold text-eco-text">
-            {publicDataCentresStatus === 'loading'
-              ? 'Loading data centres…'
-              : publicDataCentresStatus === 'error'
-                ? 'Data centres unavailable'
-                : `${publicDataCentres.length} operating data centre${publicDataCentres.length === 1 ? '' : 's'}`}
-          </span>
-          {mapboxToken && (
-            <span className="text-micro text-eco-primary bg-eco-primary/10 px-1.5 py-0.5 rounded border border-eco-primary/30 font-mono uppercase tracking-wide">
-              Mapbox HD
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-eco-surface/90 border border-eco-border text-eco-muted rounded-lg shadow-lg backdrop-blur-md text-xs">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-          )}
+            <span className="font-semibold text-eco-text">
+              {publicDataCentresStatus === 'loading'
+                ? 'Loading data centres…'
+                : publicDataCentresStatus === 'error'
+                  ? 'Data centres unavailable'
+                  : `${publicDataCentres.length} operating data centre${publicDataCentres.length === 1 ? '' : 's'}`}
+            </span>
+            {mapboxToken && (
+              <span className="text-micro text-eco-primary bg-eco-primary/10 px-1.5 py-0.5 rounded border border-eco-primary/30 font-mono uppercase tracking-wide">
+                Mapbox HD
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center rounded-lg border border-eco-border bg-eco-surface/90 p-0.5 shadow-lg backdrop-blur-md">
+            <button
+              type="button"
+              onClick={() => toggle3D(false)}
+              className={`px-2 py-1 rounded text-[11px] font-bold cursor-pointer transition-all ${
+                !is3D
+                  ? 'bg-emerald-400 text-black shadow-sm'
+                  : 'text-eco-muted hover:text-eco-text'
+              }`}
+              title="2D Planar Orthographic View"
+            >
+              2D
+            </button>
+            <button
+              type="button"
+              onClick={() => toggle3D(true)}
+              className={`px-2 py-1 rounded text-[11px] font-bold cursor-pointer transition-all ${
+                is3D
+                  ? 'bg-emerald-400 text-black shadow-sm'
+                  : 'text-eco-muted hover:text-eco-text'
+              }`}
+              title="3D Tactical Perspective with Elevation Contours"
+            >
+              3D
+            </button>
+          </div>
         </div>
+
+        {/* Live Clock & Time Range Bar */}
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-eco-border/90 bg-eco-surface/90 px-3 py-1.5 shadow-2xl backdrop-blur-md font-mono text-[11px] w-fit">
+          <span className="font-semibold uppercase tracking-wider text-eco-text">
+            DC SITUATION
+          </span>
+          <span className="text-eco-border">|</span>
+          <span className="text-emerald-400 font-bold tracking-tight">
+            {istClock || 'LIVE'}
+          </span>
+          <span className="text-eco-border">|</span>
+          <div className="flex items-center gap-1">
+            {(['1h', '24h', '7d', '30d', 'all'] as TimeRange[]).map((tr) => (
+              <button
+                key={tr}
+                type="button"
+                onClick={() => setTimeRange(tr)}
+                className={`px-1.5 py-0.5 rounded font-mono text-[10px] uppercase transition-all cursor-pointer ${
+                  timeRange === tr
+                    ? 'bg-emerald-400 font-bold text-black shadow-md shadow-emerald-500/20'
+                    : 'text-eco-muted hover:text-eco-text hover:bg-eco-surface-secondary/60'
+                }`}
+              >
+                {tr}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {environmentalMessage(dataMode) && (
+          <div className="max-w-xs rounded border border-eco-warning/30 bg-eco-surface/95 px-2.5 py-1 text-micro text-eco-warning backdrop-blur-md shadow-lg">
+            {environmentalMessage(dataMode)}
+          </div>
+        )}
       </div>
 
       {/* Floating map controls (top-right) */}
@@ -1105,75 +1178,6 @@ export const MainMap: React.FC<MainMapProps> = ({
           </button>
         </div>
       )}
-
-      {/* World Monitor Floating Tactical Map HUD */}
-      <div className="absolute top-3.5 left-4 z-20 flex flex-col gap-2 select-none pointer-events-auto">
-        <div className="flex flex-wrap items-center gap-2 rounded-md border border-eco-border/90 bg-eco-surface/90 px-3 py-1.5 shadow-2xl backdrop-blur-md font-mono text-[11px]">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-          </span>
-          <span className="font-semibold uppercase tracking-wider text-eco-text">
-            INDIAN DC SITUATION
-          </span>
-          <span className="text-eco-border">|</span>
-          <span className="text-emerald-400 font-bold tracking-tight">
-            {utcClock || 'LIVE'}
-          </span>
-          <span className="hidden sm:inline-block text-eco-border">|</span>
-          <span className="hidden sm:inline-block rounded bg-eco-primary/10 border border-eco-primary/30 px-1 py-0.2 text-[10px] text-eco-primary font-bold">
-            {filteredFacilities.length} DCS
-          </span>
-
-          <div className="ml-auto flex items-center rounded border border-eco-border/80 bg-eco-bg/80 p-0.5">
-            <button
-              type="button"
-              onClick={() => toggle3D(false)}
-              className={`px-1.5 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-all ${
-                !is3D
-                  ? 'bg-emerald-400 text-black shadow-sm'
-                  : 'text-eco-muted hover:text-eco-text'
-              }`}
-              title="2D Planar Orthographic View"
-            >
-              2D
-            </button>
-            <button
-              type="button"
-              onClick={() => toggle3D(true)}
-              className={`px-1.5 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-all ${
-                is3D
-                  ? 'bg-emerald-400 text-black shadow-sm'
-                  : 'text-eco-muted hover:text-eco-text'
-              }`}
-              title="3D Tactical Perspective with Elevation Contours"
-            >
-              3D
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1 rounded-md border border-eco-border/80 bg-eco-surface/90 p-1 shadow-2xl backdrop-blur-md w-fit">
-          {(['1h', '24h', '7d', '30d', 'all'] as TimeRange[]).map((tr) => (
-            <button
-              key={tr}
-              type="button"
-              onClick={() => setTimeRange(tr)}
-              className={`px-2 py-0.5 rounded font-mono text-[11px] uppercase transition-all cursor-pointer ${
-                timeRange === tr
-                  ? 'bg-emerald-400 font-bold text-black shadow-md shadow-emerald-500/20'
-                  : 'text-eco-muted hover:text-eco-text hover:bg-eco-surface-secondary/60'
-              }`}
-            >
-              {tr}
-            </button>
-          ))}
-        </div>
-
-        <div className="max-w-xs rounded border border-eco-warning/30 bg-eco-surface/95 px-2.5 py-1 text-micro text-eco-warning backdrop-blur-md shadow-lg">
-          {environmentalMessage(dataMode)}
-        </div>
-      </div>
 
       {/* World Monitor Floating Tactical Legend */}
       <div className="absolute bottom-4 left-4 z-20 hidden sm:flex items-center gap-3 px-3 py-1.5 bg-black/85 border border-eco-border/80 rounded-md shadow-2xl backdrop-blur-md font-mono text-[11px] text-eco-text select-none">

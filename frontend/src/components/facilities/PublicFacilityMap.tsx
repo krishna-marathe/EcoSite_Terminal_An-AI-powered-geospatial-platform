@@ -31,7 +31,7 @@ function createMarkerElement(facility: PublicFacility, selected: boolean): HTMLB
   marker.type = 'button';
   marker.className = [
     'public-facility-marker',
-    'flex h-7 w-7 items-center justify-center rounded-full border-2 border-eco-bg',
+    'flex h-5 w-5 items-center justify-center rounded-full border border-eco-bg',
     'bg-eco-primary text-eco-bg shadow-lg transition-transform hover:scale-110',
     selected ? 'ring-4 ring-eco-primary/30 scale-110' : '',
   ].join(' ');
@@ -41,7 +41,7 @@ function createMarkerElement(facility: PublicFacility, selected: boolean): HTMLB
   const icon = document.createElement('span');
   icon.setAttribute('aria-hidden', 'true');
   // Server-rack SVG — two rack units with status LED, consistent with map dashboard markers
-  icon.innerHTML = '<svg style="width:14px;height:14px;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>';
+  icon.innerHTML = '<svg style="width:10px;height:10px;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>';
   marker.append(icon);
   return marker;
 }
