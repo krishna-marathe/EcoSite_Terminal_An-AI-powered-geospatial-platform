@@ -97,7 +97,7 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
   const handleConfirmExtraction = async (extractionId: string, decision: 'ACCEPTED' | 'REJECTED', adjustedValue?: string | number) => {
     onBusy(true);
     try {
-      await evidenceService.confirmExtraction(extractionId, decision, adjustedValue);
+      await evidenceService.confirmExtraction(extractionId, decision, adjustedValue, undefined, projectId);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['evidence-extractions', projectId] }),
         queryClient.invalidateQueries({ queryKey: ['evidence-assertions', projectId] }),

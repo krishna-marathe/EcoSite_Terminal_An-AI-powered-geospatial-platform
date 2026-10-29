@@ -72,4 +72,19 @@ describe('EvidenceWorkspace Component', () => {
 
     expect(handleReview).toHaveBeenCalledWith(expect.any(String), 'VERIFIED_WITHIN_SCOPE');
   });
+
+  it('visibly labels simulated assertion reviews as SIMULATED with disclaimer', () => {
+    render(
+      <EvidenceWorkspace
+        projectId="proj-pune"
+        artifacts={INITIAL_MOCK_ARTIFACTS}
+        assertions={INITIAL_MOCK_ASSERTIONS}
+        onUpload={vi.fn()}
+      />
+    );
+
+    const simulatedBadges = screen.getAllByText(/\[SIMULATED\] Verified within Scope/i);
+    expect(simulatedBadges.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Simulated review · Not official utility capacity/i).length).toBeGreaterThanOrEqual(1);
+  });
 });

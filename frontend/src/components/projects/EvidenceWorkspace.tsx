@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Assertion, AssertionStatus, EvidenceArtifact, EvidenceUploadMetadata } from '../../types/evidence';
+import type { Assertion, EvidenceArtifact, EvidenceUploadMetadata } from '../../types/evidence';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { EvidenceUploadModal } from './EvidenceUploadModal';
@@ -25,19 +25,50 @@ export function EvidenceWorkspace({
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedArtifactId, setSelectedArtifactId] = useState<string | null>(null);
 
-  const statusBadge = (status: AssertionStatus) => {
-    switch (status) {
+  const statusBadge = (assertion: Assertion) => {
+    const isSimulated = Boolean(assertion.is_simulated || assertion.verification_method === 'SIMULATED_REVIEW');
+    switch (assertion.status) {
       case 'VERIFIED_WITHIN_SCOPE':
-        return <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-400 border border-emerald-500/30">✓ Verified within Scope</span>;
+        if (isSimulated) {
+          return (
+            <span
+              className="inline-flex items-center gap-1 rounded bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400 border border-amber-500/30"
+              title="Simulated review by local account. Does not constitute verified official utility capacity."
+            >
+              ⚡ [SIMULATED] Verified within Scope
+            </span>
+          );
+        }
+        return (
+          <span className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-400 border border-emerald-500/30">
+            ✓ Verified within Scope
+          </span>
+        );
       case 'DOCUMENTED':
-        return <span className="inline-flex items-center gap-1 rounded bg-sky-500/10 px-2 py-0.5 text-[11px] font-medium text-sky-400 border border-sky-500/30">📄 Documented</span>;
+        return (
+          <span className="inline-flex items-center gap-1 rounded bg-sky-500/10 px-2 py-0.5 text-[11px] font-medium text-sky-400 border border-sky-500/30">
+            📄 Documented
+          </span>
+        );
       case 'CONFLICTING':
-        return <span className="inline-flex items-center gap-1 rounded bg-rose-500/10 px-2 py-0.5 text-[11px] font-medium text-rose-400 border border-rose-500/30">⚠️ Conflicting</span>;
+        return (
+          <span className="inline-flex items-center gap-1 rounded bg-rose-500/10 px-2 py-0.5 text-[11px] font-medium text-rose-400 border border-rose-500/30">
+            ⚠️ Conflicting
+          </span>
+        );
       case 'EXPIRED':
-        return <span className="inline-flex items-center gap-1 rounded bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400 border border-amber-500/30">⌛ Expired</span>;
+        return (
+          <span className="inline-flex items-center gap-1 rounded bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400 border border-amber-500/30">
+            ⌛ Expired
+          </span>
+        );
       case 'DECLARED':
       default:
-        return <span className="inline-flex items-center gap-1 rounded bg-slate-500/10 px-2 py-0.5 text-[11px] font-medium text-slate-400 border border-slate-500/30">📝 Declared</span>;
+        return (
+          <span className="inline-flex items-center gap-1 rounded bg-slate-500/10 px-2 py-0.5 text-[11px] font-medium text-slate-400 border border-slate-500/30">
+            📝 Declared
+          </span>
+        );
     }
   };
 
@@ -77,7 +108,7 @@ export function EvidenceWorkspace({
           <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300 flex items-center justify-between">
             <span>Substantiated Resource Assertions ({assertions.length})</span>
             <span className="text-[11px] font-normal text-eco-muted">
-              {assertions.filter(a => a.status === 'VERIFIED_WITHIN_SCOPE').length} Verified · {assertions.filter(a => a.status === 'CONFLICTING').length} Conflicting
+              {assertions.filter(a => a.status === 'VERIFIED_WITHIN_SCOPE' && !(a.is_simulated || a.verification_method === 'SIMULATED_REVIEW')).length} Verified · {assertions.filter(a => a.status === 'VERIFIED_WITHIN_SCOPE' && (a.is_simulated || a.verification_method === 'SIMULATED_REVIEW')).length} Simulated · {assertions.filter(a => a.status === 'CONFLICTING').length} Conflicting
             </span>
           </h4>
 
@@ -117,7 +148,10 @@ export function EvidenceWorkspace({
                           {assertion.value} {assertion.unit}
                         </td>
                         <td className="p-2.5">
-                          {statusBadge(assertion.status)}
+                          {statusBadge(assertion)}
+                          {assertion.status === 'VERIFIED_WITHIN_SCOPE' && (assertion.is_simulated || assertion.verification_method === 'SIMULATED_REVIEW') && (
+                            <p className="text-[10px] text-amber-400/80 mt-0.5 font-mono">Simulated review · Not official utility capacity</p>
+                          )}
                           {assertion.status === 'CONFLICTING' && (
                             <p className="text-[10px] text-rose-300 mt-0.5">Discrepancy detected between DPR & Sanction</p>
                           )}

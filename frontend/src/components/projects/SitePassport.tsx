@@ -30,7 +30,7 @@ export function SitePassport({
 
   // Evidence verified sums
   const verifiedPowerAssertion = assertions.find(
-    a => a.field_key === 'power_sanctioned_mw' && a.status === 'VERIFIED_WITHIN_SCOPE'
+    a => (a.field_key === 'sanctioned_grid_mw' || a.field_key === 'power_sanctioned_mw') && a.status === 'VERIFIED_WITHIN_SCOPE'
   );
   const verifiedWaterAssertion = assertions.find(
     a => a.field_key === 'water_allocation_kld' && a.status === 'VERIFIED_WITHIN_SCOPE'
