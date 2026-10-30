@@ -370,6 +370,7 @@ export interface MainMapProps {
   selectedPublicFacilityId?: string | null;
   onSelectPublicFacility?: (facility: PublicFacility) => void;
   onOpenPublicFacility?: (facility: PublicFacility) => void;
+  hideEnvironmentalNotice?: boolean;
 }
 
 export const MainMap: React.FC<MainMapProps> = ({
@@ -379,6 +380,7 @@ export const MainMap: React.FC<MainMapProps> = ({
   selectedPublicFacilityId: controlledPublicFacilityId,
   onSelectPublicFacility,
   onOpenPublicFacility,
+  hideEnvironmentalNotice = false,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null);
@@ -1004,7 +1006,7 @@ export const MainMap: React.FC<MainMapProps> = ({
           </div>
         </div>
 
-        {environmentalMessage(dataMode) && (
+        {!hideEnvironmentalNotice && !suppressLegacyFacilities && environmentalMessage(dataMode) && (
           <div className="max-w-xs rounded border border-eco-warning/30 bg-eco-surface/95 px-2.5 py-1 text-micro text-eco-warning backdrop-blur-md shadow-lg">
             {environmentalMessage(dataMode)}
           </div>
@@ -1143,27 +1145,6 @@ export const MainMap: React.FC<MainMapProps> = ({
           </button>
         </div>
       )}
-
-      {/* World Monitor Floating Tactical Legend */}
-      <div className="absolute bottom-4 left-4 z-20 hidden sm:flex items-center gap-3 px-3 py-1.5 bg-black/85 border border-eco-border/80 rounded-md shadow-2xl backdrop-blur-md font-mono text-[11px] text-eco-text select-none">
-        <span className="text-micro uppercase tracking-wider text-eco-muted font-bold">
-          LEGEND
-        </span>
-        <div className="flex items-center gap-1.5 rounded bg-purple-500/10 border border-purple-500/30 px-1.5 py-0.5">
-          <span className="w-2 h-2 rounded-xs bg-[#8b5cf6]" />
-          <span className="text-purple-300 font-bold text-[10px]">
-            DATACENTER ({filteredFacilities.length})
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 text-eco-muted text-[10px]">
-          <span className="w-2 h-2 rounded-full bg-amber-400" />
-          <span>SLOPE &gt;15° (SRTM)</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-eco-muted text-[10px]">
-          <span className="w-2 h-2 rounded-full bg-cyan-400" />
-          <span>SURFACE WATER (GSW)</span>
-        </div>
-      </div>
 
       {/* Hover tooltip */}
       {hoveredFacility && tooltipPos && (
