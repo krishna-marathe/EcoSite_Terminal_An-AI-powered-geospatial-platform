@@ -7,6 +7,7 @@ import { Button, IconButton } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { DataCentreAiInsightsCard } from '../facilities/DataCentreAiInsightsCard';
 import { apiClient } from '../../services/api';
+import { mlService } from '@/services/mlService';
 
 const CAPACITY_LABELS: Record<CapacityType, string> = {
   it_load: 'IT load',
@@ -37,35 +38,62 @@ export interface DataCentreMapDossierProps {
   className?: string;
 }
 
-/**
- * Selection dossier for the public registry map. It deliberately renders only
- * the registry's generalised locality/district, never its coordinate tuple.
- */
 export const DataCentreMapDossier: React.FC<DataCentreMapDossierProps> = ({
   facility,
   environmentalCurrent,
   environmentalError,
   onClose,
   onOpenProfile,
-  className = '',
+  className,
 }) => {
   if (!facility) return null;
 
   const [aiInsights, setAiInsights] = useState<any>(null);
   const [insightsError, setInsightsError] = useState<string | null>(null);
+  const [mlPredictions, setMlPredictions] = useState<any>(null);
+  const [mlLoading, setMlLoading] = useState(false);
+  const [mlError, setMlError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!facility) return;
     let cancelled = false;
+
+    // Fetch AI insights
     apiClient
-      .get<{ infrastructureTelemetry: { population: any } }>(`/public-facilities/${facility.id}/ai-assist`)
+      .get<{ infrastructureTelemetry: { population: any } }>(
+        `/public-facilities/${facility.id}/ai-assist`
+      )
       .then((res) => {
         if (!cancelled) setAiInsights(res.data);
       })
       .catch((err) => {
         if (!cancelled) setInsightsError(err.message);
       });
-    return () => { cancelled = true; };
+
+    // Fetch ML predictions for 6, 9, 12 months
+    const primaryCapacity = facility.capacityDisclosures?.[0]?.value ?? 40;
+    const estimatedPowerMw = primaryCapacity * 1.35;
+    const estimatedWaterKld = primaryCapacity * 1.6 * 24;
+
+    setMlLoading(true);
+    mlService
+      .getMultiMonthPredictions({
+        capacity_mw: primaryCapacity,
+        water_demand_kl_day: estimatedWaterKld,
+        power_demand_mw: estimatedPowerMw,
+        location: facility.stateCode ?? "IN-MH",
+        model_version: "ML-F2.1",
+      })
+      .then((res) => {
+        if (!cancelled) setMlPredictions(res);
+      })
+      .catch((err) => {
+        if (!cancelled) setMlError(err.message);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [facility?.id]);
 
   const source = facility.verification.source;
@@ -80,6 +108,23 @@ export const DataCentreMapDossier: React.FC<DataCentreMapDossierProps> = ({
   const band = popTelemetry?.densityBand ?? 'LOW';
   const bufferAlert = popTelemetry?.bufferAlert ?? '';
   const dataSource = popTelemetry?.dataSource ?? 'Data unavailable';
+
+  // Helper to format prediction
+  const formatPrediction = (
+    pred: any
+  ): {
+    power: string;
+    water: string;
+    capacity: string;
+    confidence: string;
+    horizon: string;
+  } => ({
+    power: `${pred.power_demand_mw_pred?.toFixed(1) || 0} MW`,
+    water: `${pred.water_demand_kl_day_pred?.toFixed(1) || 0} kL/day`,
+    capacity: `${pred.capacity_mw_pred?.toFixed(1) || 0} MW`,
+    confidence: `${(pred.confidence_score ?? 0.85) * 100}%`,
+    horizon: `${pred.prediction_horizon_months} months`,
+  });
 
   return (
     <Card
@@ -133,13 +178,13 @@ export const DataCentreMapDossier: React.FC<DataCentreMapDossierProps> = ({
 
       <section aria-labelledby="dc-population-heading">
         <h4 id="dc-population-heading" className="mb-2 flex items-center justify-between text-meta font-semibold uppercase tracking-wide text-eco-muted">
-          <span className="flex items-center gap-1.5"><Users size={13} aria-hidden="true" /> Surrounding Population</span>
+          <Users size={13} aria-hidden="true" /> Surrounding Population
           {insightsError && <span className="font-mono text-meta text-eco-critical font-normal">Load failed</span>}
           {!insightsError && !aiInsights && <span className="font-mono text-meta text-eco-muted">Loading…</span>}
           {aiInsights && <span className="font-mono text-meta text-eco-primary font-normal">{dataSource}</span>}
         </h4>
         {aiInsights && (
-          <div className="grid grid-cols-2 gap-2 font-mono text-micro">
+          <div className="grid grid-cols-2 gap-2 font-micro">
             <div className="rounded-sm border border-eco-border bg-eco-surface-secondary/50 p-2">
               <span className="text-meta text-eco-muted uppercase block">1 km Immediate</span>
               <strong className="text-body text-eco-text">{pop1km.toLocaleString()}</strong> <span className="text-meta text-eco-muted">people</span>
@@ -168,6 +213,38 @@ export const DataCentreMapDossier: React.FC<DataCentreMapDossierProps> = ({
         <a className="mt-2 inline-flex items-center gap-1 text-body text-eco-primary hover:underline" href={source.url} target="_blank" rel="noreferrer">
           {source.title} · {source.publisher}<ExternalLink size={12} aria-hidden="true" />
         </a>
+      </section>
+
+      <section aria-labelledby="dc-verification-heading">
+        <h4 className="mb-2 text-meta font-semibold uppercase tracking-wide text-eco-muted">
+          <ShieldCheck size={13} aria-hidden="true" /> ML Forecast
+        </h4>
+        {mlLoading && <p className="text-meta text-eco-muted">Loading ML forecast…</p>}
+        {mlError && <p className="text-meta text-eco-critical">{mlError}</p>}
+        {!mlLoading && !mlError && mlPredictions && (
+          <div className="grid grid-cols-3 gap-4">
+            {[6, 9, 12].map((months) => {
+              const pred = mlPredictions[`month_${months}`];
+              if (!pred) return null;
+
+              const formatted = formatPrediction(pred);
+
+              return (
+                <div key={months} className="p-4 rounded bg-eco-surface/95 border border-eco-border text-center">
+                  <div className="text-2xl font-bold text-eco-primary">{formatted.power}</div>
+                  <p className="text-meta text-eco-muted">Power Forecast</p>
+                  <hr className="my-2 border border-eco-border/50" />
+                  <p className="text-sm text-eco-muted">{formatted.water}</p>
+                  <hr className="my-2 border border-eco-border/50" />
+                  <div className="mt-3">
+                    <p className="text-meta text-eco-muted">Confidence: {formatted.confidence}</p>
+                    <p className="text-micro text-eco-muted">Forecast horizon: {formatted.horizon}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {environmentalMetrics.length > 0 && (

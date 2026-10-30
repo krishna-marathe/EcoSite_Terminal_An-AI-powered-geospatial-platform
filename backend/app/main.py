@@ -38,6 +38,7 @@ from .routers.news import router as news_router
 from .routers.ai_assist import router as ai_assist_router
 from .routers.restricted_workflows import router as restricted_workflows_router
 from .routers.resource_outlook import router as resource_outlook_router
+from .routers.ml_predictions import router as ml_predictions_router
 from .services.public_facilities import PublicFacilityService
 from .services.public_facility_sqlalchemy import SqlAlchemyPublicFacilityRepository
 from .services.environmental_monitoring import EnvironmentalMonitoringService
@@ -330,6 +331,7 @@ app.include_router(restricted_workflows_router, prefix=API_PREFIX)
 app.include_router(news_router, prefix=API_PREFIX)
 app.include_router(ai_assist_router, prefix=API_PREFIX)
 app.include_router(resource_outlook_router, prefix=API_PREFIX)
+app.include_router(ml_predictions_router, prefix=API_PREFIX)
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS or ["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 

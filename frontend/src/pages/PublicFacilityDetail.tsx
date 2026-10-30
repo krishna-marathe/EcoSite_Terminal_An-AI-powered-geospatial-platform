@@ -9,6 +9,7 @@ import {
   ResourceOutlookPanel,
   RiskScorePanel,
 } from '../components/facilities';
+import { MLPredictionsDashboard } from '../components/dashboard/MLPredictionsDashboard';
 import type {
   EnvironmentalCurrentResponse,
   EnvironmentalRange,
@@ -77,6 +78,14 @@ export function PublicFacilityDetail({
         }
       />
       <FacilityProfile facility={facility} />
+      <MLPredictionsDashboard
+        facilityId={facility.id}
+        facilityName={facility.name}
+        initialCapacity={facility.capacityDisclosures?.[0]?.value ?? 40}
+        initialPowerMW={(facility.capacityDisclosures?.[0]?.value ?? 40) * 1.35}
+        initialWaterKL={(facility.capacityDisclosures?.[0]?.value ?? 40) * 1.6 * 24}
+        location={facility.stateCode}
+      />
       <ResourceOutlookPanel
         data={resourceOutlook ?? null}
         loading={resourceOutlookLoading}
