@@ -64,11 +64,17 @@ def _get_facility(request: Request, facility_id: str) -> PublicFacility:
     from ..services.public_facility_sqlalchemy import PublicRegistryDataError
     try:
         service = get_public_facility_service(request)
-        return service.get_facility(facility_id)
+        fac = service.get_facility(facility_id)
+        if isinstance(fac, dict):
+            return PublicFacility.model_validate(fac)
+        return fac
     except (PublicRegistryDataError, Exception):
         try:
             json_svc = _service()
-            return json_svc.get_facility(facility_id)
+            fac = json_svc.get_facility(facility_id)
+            if isinstance(fac, dict):
+                return PublicFacility.model_validate(fac)
+            return fac
         except Exception as e:
             if isinstance(e, PublicFacilityNotFound):
                 raise

@@ -334,9 +334,16 @@ export function ResourceOutlookPanel({
                 <Droplets className="h-4 w-4 text-blue-500" />
                 <span>Regional Reservoir Outlook</span>
               </div>
-              <Badge size="xs" variant={regional_reservoir.service_area_match ? 'primary' : 'outline'}>
-                {regional_reservoir.service_area_match ? 'Basin Matched' : 'Basin Mismatch'}
-              </Badge>
+              <div className="flex items-center gap-1.5">
+                <Badge size="xs" variant={STATUS_TONE[regional_reservoir.status]}>
+                  {STATUS_LABEL[regional_reservoir.status]}
+                </Badge>
+                {!regional_reservoir.service_area_match && (
+                  <Badge size="xs" variant="outline">
+                    Basin Mismatch
+                  </Badge>
+                )}
+              </div>
             </div>
 
             {regional_reservoir.service_area_match ? (
@@ -388,7 +395,7 @@ export function ResourceOutlookPanel({
                 <p>{regional_reservoir.service_basin_diagnostics}</p>
                 <p className="text-[11px] text-eco-muted">
                   Bhatsa reservoir drawdown cannot be used for this facility. Local basin monitoring is{' '}
-                  <span className="font-semibold">CURRENTLY UNAVAILABLE</span>.
+                  <span className="font-semibold">CURRENTLY UNAVAILABLE (SOURCE_UNAVAILABLE)</span>.
                 </p>
               </div>
             )}
