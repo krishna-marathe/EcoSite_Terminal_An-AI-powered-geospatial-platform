@@ -594,3 +594,35 @@ pm run test:frontend: Run full Vitest suite
 pm run build: Compile and verify TypeScript production build
 6. **Hardened Version Control Hygiene:**
    - Updated root .gitignore to prevent future tracking of virtual environments, test databases, .vitest-cache, and runtime logs.
+
+---
+
+## Phase 7: Branch Integration (`krishna_updated`) & Comprehensive Test Harmonization
+
+1. **Feature Merge from `origin/krishna_updated`:**
+   - **Backend Routers:** Mounted 6 new/updated endpoints in [backend/app/main.py](file:///c:/Users/Sid/eco-terminal/EcoTerminal/backend/app/main.py):
+     - `/resource_outlook`: Water and thermal stress projections via the pure-Python ML inference engine.
+     - `/benchmarks`: Target data-center PUE, WUE, renewable factor, and land footprint targets.
+     - `/commitments`: Developer commitments for clean power, water recycling, and environmental offsets.
+     - `/comparison`: Cross-site candidate comparison matrices.
+     - `/evidence`: Verification and documentation workspace.
+     - `/extraction`: LLM-assisted doc extractions with human review workflows.
+   - **ML Stress Engine:** Integrated pure-Python fallback inference engine in [ml/resource_outlook/stress_engine.py](file:///c:/Users/Sid/eco-terminal/EcoTerminal/ml/resource_outlook/stress_engine.py), operating completely without binary C++ or native LightGBM dependencies in production.
+   - **Frontend Components & Modals:**
+     - Integrated `SiteConstraintsModal` and `EnergyWaterScenarioCalculator` into [frontend/src/pages/Projects.tsx](file:///c:/Users/Sid/eco-terminal/EcoTerminal/frontend/src/pages/Projects.tsx).
+     - Integrated `ResourceOutlookPanel` into [frontend/src/pages/PublicFacilityDetail.tsx](file:///c:/Users/Sid/eco-terminal/EcoTerminal/frontend/src/pages/PublicFacilityDetail.tsx) and [frontend/src/pages/IntegratedRoutes.tsx](file:///c:/Users/Sid/eco-terminal/EcoTerminal/frontend/src/pages/IntegratedRoutes.tsx).
+     - Connected `SiteComparisonMatrix`, `SitePassport`, and `IndustryBenchmarksSection` for multi-site evaluation.
+
+2. **Repository Hygiene & Binary Pruning:**
+   - Purged 70+ raw PDF bulletins (`ml/resource_outlook/water/raw/*.pdf`), saving ~180 MB of git bloat.
+   - Added `ml/resource_outlook/water/raw/*.pdf` to `.gitignore`.
+   - Excluded accidental 40 MB database snapshot (`backend/data/backups/ecosite-accidental-migration-20261028-015940.db`).
+
+3. **Hermetic Test Suite Verification & Hardening:**
+   - **Backend:** 329 / 329 tests passing (`npm run test:backend`) in ~89s.
+     - Patched `ECOSITE_STAC_SEARCH_URL` in [backend/tests/test_environmental_connectors.py](file:///c:/Users/Sid/eco-terminal/EcoTerminal/backend/tests/test_environmental_connectors.py) to ensure fully hermetic connector tests independent of host environment variables.
+     - Synchronized STAC open data search URL in [data/data-sources.json](file:///c:/Users/Sid/eco-terminal/EcoTerminal/data/data-sources.json).
+   - **Frontend:** 61 / 61 test files (320 / 320 tests) passing (`npm run test:frontend`).
+     - Structured candidate polygon management into `ProjectSites` and `LoadedProjectSites` with reactive URL search parameter syncing (`?project=...&site=...`) and explicit `AbortSignal` forwarding.
+     - Maintained unified "Eco Terminal" branding across the entire UI and test assertions.
+   - **Production Build:** `npm run build` (`tsc -b && vite build`) executes cleanly with zero type errors.
