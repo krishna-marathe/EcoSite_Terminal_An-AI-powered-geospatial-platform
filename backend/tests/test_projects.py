@@ -214,6 +214,12 @@ class MigrationTests(unittest.TestCase):
                         "authority_evidence",
                         "score_runs",
                         "metric_results",
+                        "evidence_artifacts",
+                        "assertions",
+                        "assertion_evidence_links",
+                        "assertion_reviews",
+                        "power_commitments",
+                        "water_commitments",
                         "developer_evidence",
                         "facilities",
                         "facility_operators",
@@ -286,3 +292,104 @@ class MigrationTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             with db.project_session(path) as session:
                 self.assertEqual(session.scalar(text("SELECT COUNT(*) FROM projects")), 0)
+
+    def test_explicit_disposable_database_selection(self):
+        # 1. Via config.attributes["db_path"] as Path
+        path_a = Path(self.temp) / "explicit_a.db"
+        cfg_a = Config(str(ROOT / "backend/alembic.ini"))
+        cfg_a.attributes["db_path"] = path_a
+        self.assertEqual(db.resolve_migration_target(cfg_a), path_a.resolve())
+        command.upgrade(cfg_a, "head")
+        self.assertTrue(path_a.exists())
+
+        # 2. Via config.attributes["db_path"] as str
+        path_b = Path(self.temp) / "explicit_b.db"
+        cfg_b = Config(str(ROOT / "backend/alembic.ini"))
+        cfg_b.attributes["db_path"] = str(path_b)
+        self.assertEqual(db.resolve_migration_target(cfg_b), path_b.resolve())
+        command.upgrade(cfg_b, "head")
+        self.assertTrue(path_b.exists())
+
+        # 3. Via config.set_main_option("sqlalchemy.url", ...)
+        path_c = Path(self.temp) / "explicit_c.db"
+        cfg_c = Config(str(ROOT / "backend/alembic.ini"))
+        cfg_c.set_main_option("sqlalchemy.url", f"sqlite:///{path_c.as_posix()}")
+        self.assertEqual(db.resolve_migration_target(cfg_c), path_c.resolve())
+        command.upgrade(cfg_c, "head")
+        self.assertTrue(path_c.exists())
+
+        # 4. Matching db_path and sqlalchemy.url
+        path_d = Path(self.temp) / "explicit_d.db"
+        cfg_d = Config(str(ROOT / "backend/alembic.ini"))
+        cfg_d.attributes["db_path"] = path_d
+        cfg_d.set_main_option("sqlalchemy.url", f"sqlite:///{path_d.as_posix()}")
+        self.assertEqual(db.resolve_migration_target(cfg_d), path_d.resolve())
+        command.upgrade(cfg_d, "head")
+        self.assertTrue(path_d.exists())
+
+    def test_conflicting_migration_targets_rejected(self):
+        path_1 = Path(self.temp) / "one.db"
+        path_2 = Path(self.temp) / "two.db"
+        cfg = Config(str(ROOT / "backend/alembic.ini"))
+        cfg.attributes["db_path"] = path_1
+        cfg.set_main_option("sqlalchemy.url", f"sqlite:///{path_2.as_posix()}")
+        with self.assertRaises(ValueError) as ctx:
+            db.resolve_migration_target(cfg)
+        self.assertIn("Conflicting migration targets", str(ctx.exception))
+
+        with self.assertRaises(ValueError):
+            command.upgrade(cfg, "head")
+
+    def test_missing_targets_and_invalid_urls_rejected(self):
+        cfg = Config(str(ROOT / "backend/alembic.ini"))
+        with patch.dict(os.environ, {}, clear=True):
+            # No db_path, no sqlalchemy.url, no ECOSITE_DB_PATH
+            with self.assertRaises(ValueError) as ctx:
+                db.resolve_migration_target(cfg)
+            self.assertIn("No migration database target specified", str(ctx.exception))
+
+            # Empty string db_path
+            cfg.attributes["db_path"] = "   "
+            with self.assertRaises(ValueError) as ctx:
+                db.resolve_migration_target(cfg)
+            self.assertIn("cannot be empty", str(ctx.exception))
+            cfg.attributes.pop("db_path")
+
+            # Non-sqlite URL
+            cfg.set_main_option("sqlalchemy.url", "postgresql://user:pass@localhost/mydb")
+            with self.assertRaises(ValueError) as ctx:
+                db.resolve_migration_target(cfg)
+            self.assertIn("Unsupported database URL scheme", str(ctx.exception))
+
+            # In-memory SQLite URL
+            cfg.set_main_option("sqlalchemy.url", "sqlite:///:memory:")
+            with self.assertRaises(ValueError) as ctx:
+                db.resolve_migration_target(cfg)
+            self.assertIn("must specify a file path", str(ctx.exception))
+
+    def test_normal_database_and_backups_protection(self):
+        normal_path = (ROOT / "backend" / "data" / "ecosite.db").resolve()
+        cfg_normal = Config(str(ROOT / "backend/alembic.ini"))
+        cfg_normal.attributes["db_path"] = normal_path
+
+        # Direct migration of normal database must be blocked without explicit env var
+        with patch.dict(os.environ, {"ECOSITE_ALLOW_NORMAL_DB_MIGRATION": ""}):
+            with self.assertRaises(PermissionError) as ctx:
+                db.resolve_migration_target(cfg_normal)
+            self.assertIn("is protected", str(ctx.exception))
+
+            with self.assertRaises(PermissionError):
+                command.upgrade(cfg_normal, "head")
+
+        # Explicit confirmation permits resolution
+        with patch.dict(os.environ, {"ECOSITE_ALLOW_NORMAL_DB_MIGRATION": "1"}):
+            self.assertEqual(db.resolve_migration_target(cfg_normal), normal_path)
+
+        # Migration targeting any backup file is strictly prohibited
+        backup_path = (ROOT / "backend" / "data" / "backups" / "test_backup.db").resolve()
+        cfg_backup = Config(str(ROOT / "backend/alembic.ini"))
+        cfg_backup.attributes["db_path"] = backup_path
+        with patch.dict(os.environ, {"ECOSITE_ALLOW_NORMAL_DB_MIGRATION": "1"}):
+            with self.assertRaises(PermissionError) as ctx:
+                db.resolve_migration_target(cfg_backup)
+            self.assertIn("backups directory", str(ctx.exception))

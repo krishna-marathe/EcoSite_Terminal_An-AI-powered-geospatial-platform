@@ -1,0 +1,14 @@
+{
+  "nominal_interval": "80% (P10 to P90)",
+  "calibration_status": "UNBOUNDED_EMPIRICAL_QUANTILE (Uncalibrated on long horizons)",
+  "test_set_winter_summer": {
+    "evaluated_days": 176,
+    "observed_coverage_pct": 39.77,
+    "mean_interval_width_mw": 2455.7
+  },
+  "validation_set_monsoon": {
+    "evaluated_days": 183,
+    "observed_coverage_pct": 20.22,
+    "mean_interval_width_mw": 3070.3
+  }
+}

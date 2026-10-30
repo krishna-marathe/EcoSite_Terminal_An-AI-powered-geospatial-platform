@@ -1,0 +1,121 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [ 4 0 R 6 0 R 8 0 R ] /Count 3 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [ 0 0 595 842 ] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 858 >>
+stream
+BT
+/F1 11 Tf
+50 750 Td
+14 TL
+(DETAILED PROJECT REPORT \(DPR\)) Tj
+T*
+(PROJECT: CHENNAI ONE HYPERSCALE GREEN DATA CENTRE CAMPUS) Tj
+T*
+(SIPCOT IT Park, Siruseri, Chengalpattu District, Tamil Nadu) Tj
+T*
+(Document No: DPR-CHE-2026-REV3                                   Date: 05-04-2026) Tj
+T*
+() Tj
+T*
+(CHAPTER 1: EXECUTIVE SITE SUMMARY & MASTER PLAN) Tj
+T*
+(1.1 Campus Plot Area: 14.16 hectares \(35.0 acres allotted by SIPCOT\)) Tj
+T*
+(1.2 Total Permissible Built-up Area: 450,000 sq ft across 3 modular data halls) Tj
+T*
+(1.3 Master Plan Planned IT Capacity: 60.0 MW) Tj
+T*
+(1.4 Facility Peak Load: 78.0 MW) Tj
+T*
+(1.5 Design Power Usage Effectiveness \(Target PUE\): 1.30) Tj
+T*
+(1.6 Campus Development Schedule:) Tj
+T*
+(    - Phase 1 \(30 MW IT / 40 MW Grid\): CoD Q1 2027) Tj
+T*
+(    - Phase 2 \(Cumulative 60 MW IT / 78 MW Grid\): CoD Q4 2028) Tj
+T*
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [ 0 0 595 842 ] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 495 >>
+stream
+BT
+/F1 11 Tf
+50 750 Td
+14 TL
+(CHAPTER 2: POWER INFRASTRUCTURE & SUBSTATION HEADROOM) Tj
+T*
+(2.1 Grid Interconnection: TANGEDCO 230/33 kV Siruseri Auto-Substation) Tj
+T*
+(2.2 Phase 1 Power Sanction: 40.0 MW grid sanction at 230 kV) Tj
+T*
+(2.3 Phase 2 Power Requirement: Cumulative 78.0 MW grid capacity) Tj
+T*
+(2.4 Captive Renewable Energy Component: 15.0 MW dedicated on-site/near-site solar PV) Tj
+T*
+(2.5 Dual-feed Redundancy: 2N independent feeder lines from TANGEDCO 230 kV busbars) Tj
+T*
+ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [ 0 0 595 842 ] /Resources << /Font << /F1 3 0 R >> >> /Contents 9 0 R >>
+endobj
+9 0 obj
+<< /Length 569 >>
+stream
+BT
+/F1 11 Tf
+50 750 Td
+14 TL
+(CHAPTER 3: WATER RESOURCE ASSESSMENT & COOLING BALANCE) Tj
+T*
+(3.1 Cooling Architecture: Closed loop chilled water system with evaporative cooling assist) Tj
+T*
+(3.2 Baseline Average Water Demand: 950 KLD) Tj
+T*
+(3.3 Peak Summer Water Demand: 1500 KLD) Tj
+T*
+(3.4 Water Supply Source: CMWSSB Tertiary Treated Water pipeline \(TTRO Siruseri terminal\)) Tj
+T*
+(3.5 Evaporative Treated Wastewater Recycle Component: 900 KLD) Tj
+T*
+(3.6 Zero Liquid Discharge \(ZLD\): Internal STP treated effluent 150 KLD recycled for cooling towers) Tj
+T*
+ET
+endstream
+endobj
+xref
+0 10
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000135 00000 n 
+0000000205 00000 n 
+0000000333 00000 n 
+0000001242 00000 n 
+0000001370 00000 n 
+0000001916 00000 n 
+0000002044 00000 n 
+trailer
+<< /Size 10 /Root 1 0 R >>
+startxref
+2664
+%%EOF

@@ -1,0 +1,137 @@
+{
+  "project": "EcoSite Resource Outlook \u2014 ML-F1.5 Training Data Preparation & Integrity Verification",
+  "dataset_provenance": {
+    "demand_source": "Zenodo Record 14983362 (Kieran Hunt & Hannah Bloomfield, 2025; Environmental Research: Energy)",
+    "weather_source": "ECMWF Copernicus ERA5 Reanalysis (Maharashtra.csv)",
+    "state_identifier": "Maharashtra",
+    "units": {
+      "peak_met_mw": "MW (Megawatts)",
+      "energy_met_mu": "MU (Million Units = GWh)",
+      "peak_unmet_mw": "MW (Megawatts)",
+      "temperature": "Kelvin (K)",
+      "solar_radiation": "Joules per square meter (J/m^2)",
+      "wind": "m/s",
+      "cloud_cover": "fraction (0-1)",
+      "utci": "Kelvin (K)"
+    }
+  },
+  "duplicate_conflict_resolution": {
+    "method": "official_record_selection_without_averaging",
+    "rationale": "Never invent demand values. In all 5 conflicts, records represent separate daily reporting passes. Documented official values selected without fractional averaging.",
+    "resolved_conflicts": {
+      "2014-04-28": {
+        "peak_met_mw": 19370.0,
+        "energy_met_mu": 423.3,
+        "peak_unmet_mw": 183.0,
+        "rule": "chronological_first_entry"
+      },
+      "2016-05-26": {
+        "peak_met_mw": 19506.0,
+        "energy_met_mu": 434.3,
+        "peak_unmet_mw": 0.0,
+        "rule": "operational_unbroken_peak_reject_glitch"
+      },
+      "2016-10-01": {
+        "peak_met_mw": 16824.0,
+        "energy_met_mu": 349.7,
+        "peak_unmet_mw": 0.0,
+        "rule": "revised_complete_national_compilation"
+      },
+      "2017-04-14": {
+        "peak_met_mw": 22159.0,
+        "energy_met_mu": 495.4,
+        "peak_unmet_mw": 19.0,
+        "rule": "revised_official_log_entry"
+      },
+      "2019-02-25": {
+        "peak_met_mw": 20774.0,
+        "energy_met_mu": 433.9,
+        "peak_unmet_mw": 0.0,
+        "rule": "revised_official_log_entry"
+      }
+    }
+  },
+  "date_coverage": {
+    "earliest_date": "2013-01-01",
+    "latest_date": "2024-04-27",
+    "total_calendar_days": 4135,
+    "unique_days_recorded": 3899,
+    "missing_calendar_days": 236,
+    "completeness_pct": 94.3,
+    "demand_gap_2025_2026": "Demand observations end on 2024-04-28; 2024-04-29 to present (all of late 2024, 2025, and 2026) are missing."
+  },
+  "splits": {
+    "train": {
+      "start_date": "2013-01-01",
+      "end_date": "2022-12-31",
+      "row_count": 3417,
+      "percentage": 87.64,
+      "purpose": "Historical model training across diverse monsoon and economic cycles"
+    },
+    "validation": {
+      "start_date": "2023-01-01",
+      "end_date": "2023-10-31",
+      "row_count": 303,
+      "percentage": 7.77,
+      "purpose": "Hyperparameter optimization, feature pruning, and early stopping"
+    },
+    "test_6m_horizon": {
+      "start_date": "2023-11-01",
+      "end_date": "2024-04-27",
+      "row_count": 179,
+      "percentage": 4.59,
+      "purpose": "Out-of-sample forward evaluation for 6-month pre-investment planning horizon"
+    }
+  },
+  "baseline_metrics": {
+    "window_1_test_6m_winter_to_summer": {
+      "period": "2023-11-01 to 2024-04-27",
+      "days_evaluated": 173,
+      "weekday_aligned_364d": {
+        "mae_mw": 1211.32,
+        "rmse_mw": 1680.47,
+        "mape_pct": 4.53
+      },
+      "calendar_day_365d": {
+        "mae_mw": 1241.12,
+        "rmse_mw": 1728.51,
+        "mape_pct": 4.63
+      }
+    },
+    "window_2_val_6m_monsoon_to_postmonsoon": {
+      "period": "2023-05-01 to 2023-10-31",
+      "days_evaluated": 182,
+      "weekday_aligned_364d": {
+        "mae_mw": 3129.84,
+        "rmse_mw": 3775.7,
+        "mape_pct": 12.22
+      },
+      "calendar_day_365d": {
+        "mae_mw": 3111.84,
+        "rmse_mw": 3763.92,
+        "mape_pct": 12.15
+      }
+    },
+    "window_3_full_12m_holdout": {
+      "period": "2023-05-01 to 2024-04-27",
+      "days_evaluated": 355,
+      "weekday_aligned_364d": {
+        "mae_mw": 2194.9,
+        "rmse_mw": 2947.01,
+        "mape_pct": 8.47
+      },
+      "calendar_day_365d": {
+        "mae_mw": 2200.19,
+        "rmse_mw": 2952.82,
+        "mape_pct": 8.49
+      }
+    }
+  },
+  "ml_f2_readiness": {
+    "verdict": "PASS",
+    "primary_target": "peak_met_mw",
+    "secondary_target": "energy_met_mu",
+    "feature_count": 21,
+    "notes": "Verified genuine ground-truth demand without invented values. Leak-free chronological splits and robust multi-season baseline gates established."
+  }
+}

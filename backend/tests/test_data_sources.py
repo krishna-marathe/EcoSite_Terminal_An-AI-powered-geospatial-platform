@@ -37,8 +37,8 @@ class DataSourceTests(unittest.TestCase):
 
     def test_registry_lists_every_roadmap_source(self):
         body = self.registry()
-        self.assertEqual(body["total"], 14)
-        self.assertEqual(body["by_priority"], {"P0": 5, "P1": 6, "P2": 3})
+        self.assertEqual(body["total"], 15)
+        self.assertEqual(body["by_priority"], {"P0": 5, "P1": 7, "P2": 3})
         self.assertEqual({source["id"] for source in body["items"] if source["priority"] == "P0"}, P0_IDS)
 
     def test_every_source_carries_licence_resolution_and_maturity(self):
@@ -69,9 +69,9 @@ class DataSourceTests(unittest.TestCase):
         items = {source["id"]: source for source in self.registry()["items"]}
         # JRC and STAC were each verified against a real Pune polygon on 2026-10-27,
         # and SRTM against the same polygon with an authenticated Earthdata tile on
-        # 2026-10-29, so they may claim PROCESSING_TESTED. This deployment has not
-        # scheduled any of them, so runtime_status remains NOT_CONNECTED.
-        verified = {"jrc_gsw", "copernicus_stac", "nasa_srtmgl1"}
+        # 2026-10-29, and NASA POWER meteorology reanalysis, so they may claim PROCESSING_TESTED.
+        # This deployment has not scheduled any of them, so runtime_status remains NOT_CONNECTED.
+        verified = {"jrc_gsw", "copernicus_stac", "nasa_srtmgl1", "nasa_power"}
         for source_id in verified:
             self.assertEqual(items[source_id]["test_status"], "PROCESSING_TESTED")
             self.assertEqual(items[source_id]["runtime_status"], "NOT_CONNECTED")
@@ -121,15 +121,15 @@ class DataSourceTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         body = response.json()
         self.assertEqual(body["total"], 5)
-        self.assertEqual(body["by_priority"], {"P0": 5, "P1": 6, "P2": 3})
+        self.assertEqual(body["by_priority"], {"P0": 5, "P1": 7, "P2": 3})
         self.assertTrue(all(source["priority"] == "P0" for source in body["items"]))
 
     def test_seed_is_idempotent(self):
         api.startup()
         api.startup()
         with closing(sqlite3.connect(self.path)) as connection:
-            self.assertEqual(connection.execute("SELECT COUNT(*) FROM data_sources").fetchone()[0], 14)
-        self.assertEqual(self.registry()["total"], 14)
+            self.assertEqual(connection.execute("SELECT COUNT(*) FROM data_sources").fetchone()[0], 15)
+        self.assertEqual(self.registry()["total"], 15)
 
     def test_list_official_documents(self):
         response = self.client.get("/api/v1/data-sources/documents")

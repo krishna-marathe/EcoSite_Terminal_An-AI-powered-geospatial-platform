@@ -48,6 +48,17 @@ export interface EvidenceArtifact {
   notes?: string | null;
 }
 
+export interface EvidenceUploadMetadata {
+  document_type: DocumentType;
+  issuer?: string;
+  reference?: string;
+  valid_until?: string;
+  site_id?: string;
+  notes?: string;
+  synthetic_demo?: boolean;
+  uploaded_by?: string;
+}
+
 export interface Assertion {
   id: string;
   project_id: string;
@@ -60,6 +71,8 @@ export interface Assertion {
   scope_type: ScopeType;
   scope_detail?: string | null;
   status: AssertionStatus;
+  verification_method?: string | null;
+  is_simulated?: boolean;
   asserted_by: string;
   asserted_at: string;
   effective_from?: string | null;
@@ -95,6 +108,8 @@ export interface AssertionReviewRequest {
   reviewer_role: string;
   notes?: string;
   scope_limitation?: string;
+  is_simulated?: boolean;
+  reviewer_id?: string;
 }
 
 export interface PowerCommitment {

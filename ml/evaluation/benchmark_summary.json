@@ -1,0 +1,591 @@
+{
+  "synthetic_benchmark": {
+    "format_evaluated": "txt",
+    "classification_type_metrics": {
+      "total_samples": 6,
+      "correct_predictions": 6,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "per_class_metrics": {
+        "DPR": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "OTHER": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "UTILITY_APPLICATION": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "UTILITY_SANCTION": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "WATER_ALLOCATION": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 2
+        }
+      },
+      "confusion_matrix": {
+        "DPR": {
+          "DPR": 1,
+          "OTHER": 0,
+          "UTILITY_APPLICATION": 0,
+          "UTILITY_SANCTION": 0,
+          "WATER_ALLOCATION": 0
+        },
+        "OTHER": {
+          "DPR": 0,
+          "OTHER": 1,
+          "UTILITY_APPLICATION": 0,
+          "UTILITY_SANCTION": 0,
+          "WATER_ALLOCATION": 0
+        },
+        "UTILITY_APPLICATION": {
+          "DPR": 0,
+          "OTHER": 0,
+          "UTILITY_APPLICATION": 1,
+          "UTILITY_SANCTION": 0,
+          "WATER_ALLOCATION": 0
+        },
+        "UTILITY_SANCTION": {
+          "DPR": 0,
+          "OTHER": 0,
+          "UTILITY_APPLICATION": 0,
+          "UTILITY_SANCTION": 1,
+          "WATER_ALLOCATION": 0
+        },
+        "WATER_ALLOCATION": {
+          "DPR": 0,
+          "OTHER": 0,
+          "UTILITY_APPLICATION": 0,
+          "UTILITY_SANCTION": 0,
+          "WATER_ALLOCATION": 2
+        }
+      }
+    },
+    "classification_subtype_metrics": {
+      "total_samples": 6,
+      "correct_predictions": 6,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "per_class_metrics": {
+        "DETAILED_PROJECT_REPORT": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "DISCOM_POWER_APPLICATION": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "GRID_SANCTION_LETTER": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "GROUNDWATER_CGWA_NOC": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "MISCELLANEOUS": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "MUNICIPAL_BULK_WATER_ALLOCATION": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        }
+      },
+      "confusion_matrix": {
+        "DETAILED_PROJECT_REPORT": {
+          "DETAILED_PROJECT_REPORT": 1,
+          "DISCOM_POWER_APPLICATION": 0,
+          "GRID_SANCTION_LETTER": 0,
+          "GROUNDWATER_CGWA_NOC": 0,
+          "MISCELLANEOUS": 0,
+          "MUNICIPAL_BULK_WATER_ALLOCATION": 0
+        },
+        "DISCOM_POWER_APPLICATION": {
+          "DETAILED_PROJECT_REPORT": 0,
+          "DISCOM_POWER_APPLICATION": 1,
+          "GRID_SANCTION_LETTER": 0,
+          "GROUNDWATER_CGWA_NOC": 0,
+          "MISCELLANEOUS": 0,
+          "MUNICIPAL_BULK_WATER_ALLOCATION": 0
+        },
+        "GRID_SANCTION_LETTER": {
+          "DETAILED_PROJECT_REPORT": 0,
+          "DISCOM_POWER_APPLICATION": 0,
+          "GRID_SANCTION_LETTER": 1,
+          "GROUNDWATER_CGWA_NOC": 0,
+          "MISCELLANEOUS": 0,
+          "MUNICIPAL_BULK_WATER_ALLOCATION": 0
+        },
+        "GROUNDWATER_CGWA_NOC": {
+          "DETAILED_PROJECT_REPORT": 0,
+          "DISCOM_POWER_APPLICATION": 0,
+          "GRID_SANCTION_LETTER": 0,
+          "GROUNDWATER_CGWA_NOC": 1,
+          "MISCELLANEOUS": 0,
+          "MUNICIPAL_BULK_WATER_ALLOCATION": 0
+        },
+        "MISCELLANEOUS": {
+          "DETAILED_PROJECT_REPORT": 0,
+          "DISCOM_POWER_APPLICATION": 0,
+          "GRID_SANCTION_LETTER": 0,
+          "GROUNDWATER_CGWA_NOC": 0,
+          "MISCELLANEOUS": 1,
+          "MUNICIPAL_BULK_WATER_ALLOCATION": 0
+        },
+        "MUNICIPAL_BULK_WATER_ALLOCATION": {
+          "DETAILED_PROJECT_REPORT": 0,
+          "DISCOM_POWER_APPLICATION": 0,
+          "GRID_SANCTION_LETTER": 0,
+          "GROUNDWATER_CGWA_NOC": 0,
+          "MISCELLANEOUS": 0,
+          "MUNICIPAL_BULK_WATER_ALLOCATION": 1
+        }
+      }
+    },
+    "extraction_metrics": {
+      "total_expected_fields": 31,
+      "total_extracted_candidates": 33,
+      "true_positives": 31,
+      "false_positives": 2,
+      "false_negatives": 0,
+      "precision": 0.9394,
+      "recall": 1.0,
+      "f1_score": 0.9688,
+      "page_accuracy": 1.0,
+      "per_field_metrics": {
+        "document_reference_number": {
+          "expected": 4,
+          "matched": 4,
+          "extracted": 5
+        },
+        "sanction_date": {
+          "expected": 3,
+          "matched": 3,
+          "extracted": 3
+        },
+        "supply_voltage_kv": {
+          "expected": 2,
+          "matched": 2,
+          "extracted": 3
+        },
+        "sanctioned_grid_mw": {
+          "expected": 3,
+          "matched": 3,
+          "extracted": 3
+        },
+        "contract_demand_mva": {
+          "expected": 2,
+          "matched": 2,
+          "extracted": 2
+        },
+        "substation_name": {
+          "expected": 2,
+          "matched": 2,
+          "extracted": 2
+        },
+        "validity_expiry_date": {
+          "expected": 3,
+          "matched": 3,
+          "extracted": 3
+        },
+        "water_allocation_kld": {
+          "expected": 1,
+          "matched": 1,
+          "extracted": 1
+        },
+        "peak_summer_water_kld": {
+          "expected": 2,
+          "matched": 2,
+          "extracted": 2
+        },
+        "treated_wastewater_kld": {
+          "expected": 2,
+          "matched": 2,
+          "extracted": 2
+        },
+        "application_date": {
+          "expected": 1,
+          "matched": 1,
+          "extracted": 1
+        },
+        "site_area_hectares": {
+          "expected": 1,
+          "matched": 1,
+          "extracted": 1
+        },
+        "total_builtup_sqft": {
+          "expected": 1,
+          "matched": 1,
+          "extracted": 1
+        },
+        "planned_it_capacity_mw": {
+          "expected": 1,
+          "matched": 1,
+          "extracted": 1
+        },
+        "target_pue": {
+          "expected": 1,
+          "matched": 1,
+          "extracted": 1
+        },
+        "captive_re_mw": {
+          "expected": 1,
+          "matched": 1,
+          "extracted": 1
+        },
+        "groundwater_permitted_kld": {
+          "expected": 1,
+          "matched": 1,
+          "extracted": 1
+        }
+      }
+    },
+    "detailed_documents": [
+      {
+        "document_id": "doc-syn-001-ts-power-sanction",
+        "filename": "TSSPDCL_Grid_Sanction_FabCity_Phase1.txt",
+        "true_type": "UTILITY_SANCTION",
+        "predicted_type": "UTILITY_SANCTION",
+        "confidence": 0.9477,
+        "expected_count": 7,
+        "extracted_count": 7,
+        "matched_count": 7
+      },
+      {
+        "document_id": "doc-syn-002-mh-water-allocation",
+        "filename": "MIDC_Water_Allocation_Taloja_Campus.txt",
+        "true_type": "WATER_ALLOCATION",
+        "predicted_type": "WATER_ALLOCATION",
+        "confidence": 0.9683,
+        "expected_count": 6,
+        "extracted_count": 6,
+        "matched_count": 6
+      },
+      {
+        "document_id": "doc-syn-003-ka-grid-application",
+        "filename": "BESCOM_HT_Power_Application_Devanahalli.txt",
+        "true_type": "UTILITY_APPLICATION",
+        "predicted_type": "UTILITY_APPLICATION",
+        "confidence": 0.8401,
+        "expected_count": 6,
+        "extracted_count": 6,
+        "matched_count": 6
+      },
+      {
+        "document_id": "doc-syn-004-tn-campus-dpr",
+        "filename": "Siruseri_Hyperscale_Campus_DPR.txt",
+        "true_type": "DPR",
+        "predicted_type": "DPR",
+        "confidence": 0.98,
+        "expected_count": 8,
+        "extracted_count": 10,
+        "matched_count": 8
+      },
+      {
+        "document_id": "doc-syn-005-cgwa-groundwater-noc",
+        "filename": "CGWA_Groundwater_Extraction_NOC.txt",
+        "true_type": "WATER_ALLOCATION",
+        "predicted_type": "WATER_ALLOCATION",
+        "confidence": 0.9661,
+        "expected_count": 4,
+        "extracted_count": 4,
+        "matched_count": 4
+      },
+      {
+        "document_id": "doc-syn-006-negative-commercial-invoice",
+        "filename": "Vendor_Server_Procurement_Invoice.txt",
+        "true_type": "OTHER",
+        "predicted_type": "OTHER",
+        "confidence": 0.15,
+        "expected_count": 0,
+        "extracted_count": 0,
+        "matched_count": 0
+      }
+    ]
+  },
+  "held_out_benchmark": {
+    "format_evaluated": "txt",
+    "classification_type_metrics": {
+      "total_samples": 6,
+      "correct_predictions": 6,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "per_class_metrics": {
+        "OTHER": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "UTILITY_APPLICATION": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "UTILITY_SANCTION": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "WATER_ALLOCATION": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        }
+      },
+      "confusion_matrix": {
+        "OTHER": {
+          "OTHER": 1,
+          "UTILITY_APPLICATION": 0,
+          "UTILITY_SANCTION": 0,
+          "WATER_ALLOCATION": 0
+        },
+        "UTILITY_APPLICATION": {
+          "OTHER": 0,
+          "UTILITY_APPLICATION": 1,
+          "UTILITY_SANCTION": 0,
+          "WATER_ALLOCATION": 0
+        },
+        "UTILITY_SANCTION": {
+          "OTHER": 0,
+          "UTILITY_APPLICATION": 0,
+          "UTILITY_SANCTION": 3,
+          "WATER_ALLOCATION": 0
+        },
+        "WATER_ALLOCATION": {
+          "OTHER": 0,
+          "UTILITY_APPLICATION": 0,
+          "UTILITY_SANCTION": 0,
+          "WATER_ALLOCATION": 1
+        }
+      }
+    },
+    "classification_subtype_metrics": {
+      "total_samples": 6,
+      "correct_predictions": 6,
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "per_class_metrics": {
+        "DISCOM_POWER_APPLICATION": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "GRID_SANCTION_LETTER": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "MISCELLANEOUS": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "MUNICIPAL_BULK_WATER_ALLOCATION": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        }
+      },
+      "confusion_matrix": {
+        "DISCOM_POWER_APPLICATION": {
+          "DISCOM_POWER_APPLICATION": 1,
+          "GRID_SANCTION_LETTER": 0,
+          "MISCELLANEOUS": 0,
+          "MUNICIPAL_BULK_WATER_ALLOCATION": 0
+        },
+        "GRID_SANCTION_LETTER": {
+          "DISCOM_POWER_APPLICATION": 0,
+          "GRID_SANCTION_LETTER": 3,
+          "MISCELLANEOUS": 0,
+          "MUNICIPAL_BULK_WATER_ALLOCATION": 0
+        },
+        "MISCELLANEOUS": {
+          "DISCOM_POWER_APPLICATION": 0,
+          "GRID_SANCTION_LETTER": 0,
+          "MISCELLANEOUS": 1,
+          "MUNICIPAL_BULK_WATER_ALLOCATION": 0
+        },
+        "MUNICIPAL_BULK_WATER_ALLOCATION": {
+          "DISCOM_POWER_APPLICATION": 0,
+          "GRID_SANCTION_LETTER": 0,
+          "MISCELLANEOUS": 0,
+          "MUNICIPAL_BULK_WATER_ALLOCATION": 1
+        }
+      }
+    },
+    "extraction_metrics": {
+      "total_expected_fields": 27,
+      "total_extracted_candidates": 27,
+      "true_positives": 27,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "page_accuracy": 1.0,
+      "per_field_metrics": {
+        "document_reference_number": {
+          "expected": 5,
+          "matched": 5,
+          "extracted": 5
+        },
+        "contract_demand_mva": {
+          "expected": 2,
+          "matched": 2,
+          "extracted": 2
+        },
+        "supply_voltage_kv": {
+          "expected": 4,
+          "matched": 4,
+          "extracted": 4
+        },
+        "substation_name": {
+          "expected": 4,
+          "matched": 4,
+          "extracted": 4
+        },
+        "validity_expiry_date": {
+          "expected": 3,
+          "matched": 3,
+          "extracted": 3
+        },
+        "sanction_date": {
+          "expected": 3,
+          "matched": 3,
+          "extracted": 3
+        },
+        "water_allocation_kld": {
+          "expected": 1,
+          "matched": 1,
+          "extracted": 1
+        },
+        "peak_summer_water_kld": {
+          "expected": 1,
+          "matched": 1,
+          "extracted": 1
+        },
+        "treated_wastewater_kld": {
+          "expected": 1,
+          "matched": 1,
+          "extracted": 1
+        },
+        "application_date": {
+          "expected": 1,
+          "matched": 1,
+          "extracted": 1
+        },
+        "sanctioned_grid_mw": {
+          "expected": 2,
+          "matched": 2,
+          "extracted": 2
+        }
+      }
+    },
+    "detailed_documents": [
+      {
+        "document_id": "doc-held-001-up-power-sanction",
+        "filename": "PVVNL_InPrinciple_Grid_Sanction_Noida.txt",
+        "true_type": "UTILITY_SANCTION",
+        "predicted_type": "UTILITY_SANCTION",
+        "confidence": 0.8577,
+        "expected_count": 5,
+        "extracted_count": 5,
+        "matched_count": 5
+      },
+      {
+        "document_id": "doc-held-002-gj-water-allotment",
+        "filename": "DICDL_Water_Allotment_Dholera_SIR.txt",
+        "true_type": "WATER_ALLOCATION",
+        "predicted_type": "WATER_ALLOCATION",
+        "confidence": 0.8713,
+        "expected_count": 6,
+        "extracted_count": 6,
+        "matched_count": 6
+      },
+      {
+        "document_id": "doc-held-003-missing-fields-feasibility",
+        "filename": "KPTCL_Preliminary_Feasibility_Study.txt",
+        "true_type": "UTILITY_APPLICATION",
+        "predicted_type": "UTILITY_APPLICATION",
+        "confidence": 0.7472,
+        "expected_count": 4,
+        "extracted_count": 4,
+        "matched_count": 4
+      },
+      {
+        "document_id": "doc-held-004-conflicting-power-values",
+        "filename": "MSEDCL_Sanction_Phased_Contradiction.txt",
+        "true_type": "UTILITY_SANCTION",
+        "predicted_type": "UTILITY_SANCTION",
+        "confidence": 0.8428,
+        "expected_count": 6,
+        "extracted_count": 6,
+        "matched_count": 6
+      },
+      {
+        "document_id": "doc-held-005-malformed-ocr-text",
+        "filename": "TSSPDCL_Degraded_OCR_Sanction.txt",
+        "true_type": "UTILITY_SANCTION",
+        "predicted_type": "UTILITY_SANCTION",
+        "confidence": 0.478,
+        "expected_count": 6,
+        "extracted_count": 6,
+        "matched_count": 6
+      },
+      {
+        "document_id": "doc-held-006-out-of-domain-lease",
+        "filename": "Apartment_Residential_Lease_Agreement.txt",
+        "true_type": "OTHER",
+        "predicted_type": "OTHER",
+        "confidence": 0.15,
+        "expected_count": 0,
+        "extracted_count": 0,
+        "matched_count": 0
+      }
+    ]
+  }
+}

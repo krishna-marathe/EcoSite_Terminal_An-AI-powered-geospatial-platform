@@ -98,6 +98,12 @@ export const IMPLEMENTED_SOURCES = [
     note: 'Terrain, slope and void screening. Uses the Earthdata token configured on the backend.',
     requiresToken: true,
   },
+  {
+    id: 'nasa_power',
+    label: 'NASA POWER Daily Meteorology',
+    note: 'Ambient temperature, humidity, solar GHI and cooling degree days (MERRA-2 reanalysis).',
+    requiresToken: false,
+  },
 ] as const;
 
 export async function getSiteObservations(siteId: string, signal?: AbortSignal): Promise<ObservationPage> {
@@ -171,6 +177,12 @@ export const INDICATOR_LABELS: Record<string, string> = {
   sentinel2_cloud_cover_min_percent: 'Minimum cloud cover',
   sentinel2_latest_scene_age_days: 'Latest scene age',
   sentinel2_scene_date_span_days: 'Scene date span',
+  ambient_temperature_mean_c: 'Mean ambient temperature',
+  ambient_temperature_max_c: 'Maximum ambient temperature',
+  ambient_temperature_min_c: 'Minimum ambient temperature',
+  relative_humidity_mean_percent: 'Mean relative humidity',
+  solar_ghi_annual_mean_kwh_per_sqm_day: 'Solar GHI annual mean',
+  cooling_degree_days_cdd_base_18c: 'Cooling degree days (Base 18°C)',
 };
 
 export function indicatorLabel(indicator: string): string {

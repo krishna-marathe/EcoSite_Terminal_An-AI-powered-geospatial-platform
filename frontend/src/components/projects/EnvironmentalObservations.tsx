@@ -23,9 +23,30 @@ const DEFAULT_SOURCES = ['jrc_gsw', 'copernicus_stac'];
 const statusVariant = (status: ObservationStatus) => {
   if (status === 'AVAILABLE') return 'primary' as const;
   if (status === 'PARTIAL' || status === 'STALE') return 'warning' as const;
-  if (status === 'SOURCE_UNAVAILABLE') return 'outline' as const;
+  if (status === 'SOURCE_UNAVAILABLE') return 'critical' as const;
   return 'neutral' as const;
 };
+
+function evidenceBadge(evidenceClass: string) {
+  switch (evidenceClass) {
+    case 'OBSERVED':
+    case 'MEASURED':
+    case 'AUTHORITY_VERIFIED':
+    case 'REMOTE_SENSING_DERIVED':
+    case 'OFFICIAL_GEOSPATIAL':
+      return <Badge variant="primary" size="xs">OBSERVED</Badge>;
+    case 'MODELLED':
+      return <Badge variant="neutral" size="xs">MODELLED</Badge>;
+    case 'SYNTHETIC_DEMO':
+    case 'SYNTHETIC':
+      return <Badge variant="warning" size="xs">SYNTHETIC</Badge>;
+    case 'SOURCE_UNAVAILABLE':
+    case 'UNAVAILABLE':
+      return <Badge variant="outline" size="xs">UNAVAILABLE</Badge>;
+    default:
+      return <Badge variant="neutral" size="xs">{evidenceClass}</Badge>;
+  }
+}
 
 const runVariant = (status: AnalysisResponse['results'][number]['status']) => {
   if (status === 'success') return 'primary' as const;
@@ -148,7 +169,7 @@ export function EnvironmentalObservations({ site }: { site: CandidateSite }) {
     ) : (
       `${(observation.coverage_fraction * 100).toFixed(1)}%`
     ),
-    <span className="text-micro text-eco-muted">{observation.evidence_class}</span>,
+    evidenceBadge(observation.evidence_class),
     <Provenance observation={observation} />,
   ]);
 
@@ -211,6 +232,19 @@ export function EnvironmentalObservations({ site }: { site: CandidateSite }) {
           >
             {running ? 'Fetching sources…' : 'Run local analysis'}
           </Button>
+          {(error || (analysis && analysis.results.some(r => r.status === 'failed')) || (observations.data?.items.some(o => o.status === 'SOURCE_UNAVAILABLE'))) && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              loading={running}
+              disabled={running}
+              onClick={run}
+              title="Retry fetching observations for selected connectors"
+            >
+              🔄 Retry failed sources
+            </Button>
+          )}
         </div>
 
         {error && <InlineAlert tone="critical">{error}</InlineAlert>}

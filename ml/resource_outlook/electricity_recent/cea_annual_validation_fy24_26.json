@@ -1,0 +1,29 @@
+{
+  "source": "Central Electricity Authority (CEA), Ministry of Power, Government of India",
+  "document": "CEA Annual Report 2025-26 (Chapter 4: Power Supply Position)",
+  "document_path": "C:/Users/marat/Downloads/Datacentres_Data/Annual_Reports_of_CEA_12950.pdf",
+  "reporting_perimeter": "Maharashtra State Control Area (Western Region)",
+  "audited_annual_totals": {
+    "FY_2024_25": {
+      "period": "April 2024 - March 2025",
+      "energy_requirement_mu": 201816.0,
+      "energy_supplied_mu": 201757.0,
+      "energy_shortage_mu": 59.0,
+      "energy_shortage_pct": 0.03,
+      "peak_demand_mw": 30675.0,
+      "peak_met_mw": 30675.0,
+      "peak_shortage_mw": 0.0
+    },
+    "FY_2025_26": {
+      "period": "April 2025 - March 2026",
+      "energy_requirement_mu": 202867.0,
+      "energy_supplied_mu": 202854.0,
+      "energy_shortage_mu": 13.0,
+      "energy_shortage_pct": 0.01,
+      "peak_demand_mw": 31128.0,
+      "peak_met_mw": 31128.0,
+      "peak_shortage_mw": 0.0
+    }
+  },
+  "integration_policy": "KEPT SEPARATE from Zenodo 14983362 daily time series. Zenodo record concluded on 2024-04-27. These CEA figures provide independent annual benchmark validation and confirm annual maximum peak demand reached 30,675 MW in FY25 and 31,128 MW in FY26. Must not be concatenated into daily training arrays without daily PSP logs."
+}

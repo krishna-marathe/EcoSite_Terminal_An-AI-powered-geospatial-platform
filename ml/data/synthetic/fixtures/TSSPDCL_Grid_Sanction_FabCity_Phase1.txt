@@ -1,0 +1,36 @@
+SOUTHERN POWER DISTRIBUTION COMPANY OF TELANGANA LIMITED (TSSPDCL)
+Corporate Office: Mint Compound, Hyderabad - 500063
+OFFICE OF THE CHIEF GENERAL MANAGER (COMMERCIAL)
+
+Ref: TSSPDCL/CGM/COM/HT/2026/D-8841                                Date: 15-03-2026
+
+To:
+M/s Deccan Cloud Infrastructure Private Limited
+Survey No. 42/1 & 43, Fab City, Raviryal Village,
+Maheshwaram Mandal, Ranga Reddy District, Telangana.
+
+Sub: Electricity - Sanction of HT Power Supply of 50 MW (55.5 MVA) at 220 kV level
+     for Hyperscale Data Centre Campus (Phase 1) - Approval & Demand Note - Accorded.
+
+Ref: Your Online Application Ref: TSSPDCL/HT/APP/2026/0419 dated 10-01-2026.
+
+With reference to your application, technical feasibility report from TSTRANSCO, and approval
+of the competent authority, sanction is hereby accorded for High Tension Power Supply as detailed:
+
+1. Category: HT Category-I(A) Data Centre Industrial
+2. Sanctioned Grid Load: 50.0 MW
+3. Contracted Maximum Demand: 55.5 MVA
+4. Supply Voltage: 220 kV
+5. Interconnection Substation: Fab City 220/33kV GIS Substation (Dedicated Bay)
+6. Feeder Voltage: 220 kV (Double Circuit Overhead / UG Line)
+7. Power Redundancy Level: Dual Feed (2N Grid Redundancy from Two Independent Bus Sections)
+8. Scope of Sanction: Phase 1 Commercial Operations (Target CoD: 30-10-2027)
+
+CONDITIONS OF SANCTION:
+a) The consumer shall execute HT Agreement within 30 days of receipt of this letter.
+b) The sanction is valid for 24 months from the date of issue (Valid until: 14-03-2028).
+c) Dedicated 220 kV metering terminal bay equipment shall be erected at consumer cost.
+
+Yours faithfully,
+Chief General Manager (Commercial)
+TSSPDCL, Hyderabad

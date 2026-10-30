@@ -25,3 +25,4 @@ __pycache__/
 frontend/dist/
 *.log
 .vitest-cache/
+ml/resource_outlook/water/raw/*.pdf

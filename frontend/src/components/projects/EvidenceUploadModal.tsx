@@ -1,17 +1,11 @@
 import React, { useState } from 'react';
-import type { DocumentType } from '../../types/evidence';
+import type { DocumentType, EvidenceUploadMetadata } from '../../types/evidence';
 import { Button } from '../ui/Button';
 
 interface EvidenceUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpload: (file: File, metadata: {
-    document_type: DocumentType;
-    issuer?: string;
-    reference?: string;
-    valid_until?: string;
-    notes?: string;
-  }) => Promise<void>;
+  onUpload: (file: File, metadata: EvidenceUploadMetadata) => Promise<void>;
   busy?: boolean;
 }
 
@@ -84,13 +78,13 @@ export function EvidenceUploadModal({ isOpen, onClose, onUpload, busy }: Evidenc
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
             <label className="block text-xs font-medium text-slate-300 mb-1">
-              Select Document File (.pdf, .docx, .png, .jpg) *
+              Select Document File (.pdf, .docx, .doc, .txt, .md) *
             </label>
             <input
               type="file"
               required
               disabled={busy}
-              accept=".pdf,.docx,.doc,.png,.jpg,.jpeg"
+              accept=".pdf,.docx,.doc,.txt,.md"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
               className="w-full rounded border border-eco-border bg-eco-surface-2 p-2 text-xs text-slate-200 file:mr-3 file:rounded file:border-0 file:bg-eco-primary/20 file:px-3 file:py-1 file:text-xs file:font-semibold file:text-eco-primary hover:file:bg-eco-primary/30"
             />

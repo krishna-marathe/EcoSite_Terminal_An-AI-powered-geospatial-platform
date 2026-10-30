@@ -244,3 +244,12 @@ def public_facility_ai_assist(
         force_model=req_body.force_model,
         inspection_mode=req_body.inspection_mode,
     )
+
+
+@router.get("/{facility_id}/resource-outlook")
+def public_facility_resource_outlook(
+    request: Request,
+    facility_id: str = ApiPath(pattern=r"^[a-z0-9-]+$", min_length=3, max_length=100),
+):
+    from .resource_outlook import get_facility_resource_outlook
+    return get_facility_resource_outlook(request, facility_id)

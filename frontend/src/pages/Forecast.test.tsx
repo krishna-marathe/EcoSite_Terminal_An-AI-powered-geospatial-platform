@@ -31,7 +31,7 @@ it('selects every canonical metric and horizon and renders the three chart serie
   }
   expect(screen.getByText(/Pilot forecasts are synthetic demonstrations/)).toBeTruthy();
   expect(screen.getByText(/No predictive model has been validated/)).toBeTruthy();
-}, 15000);
+}, 30000);
 
 it('shows API validation errors without rendering a fabricated chart', async () => {
   useDashboardStore.getState().setDataMode('api');

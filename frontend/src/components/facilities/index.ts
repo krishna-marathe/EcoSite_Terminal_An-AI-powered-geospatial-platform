@@ -5,4 +5,4 @@ export * from './PublicFacilityMap';
 export * from './RiskScorePanel';
 export * from './StationContext';
 export * from './DataCentreAiInsightsCard';
-
+export * from './ResourceOutlookPanel';

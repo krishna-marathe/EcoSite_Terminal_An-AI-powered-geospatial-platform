@@ -1,0 +1,24 @@
+BANGALORE ELECTRICITY SUPPLY COMPANY LIMITED (BESCOM)
+High Tension Power Supply Application Form (Form HT-1)
+
+Application ID: BESCOM/APP/2026/HT-08914                           Date: 10-02-2026
+
+APPLICANT DETAILS:
+Applicant Enterprise: M/s Silicon Horizon Tech Parks Ltd
+Project Title: Devanahalli AI Cloud Hub Phase 1
+Location: KIADB IT Hardware Industrial Park, Devanahalli, Bengaluru Rural - 562110
+
+LOAD SPECIFICATIONS:
+1. Proposed Contract Demand: 42.0 MVA
+2. Estimated Peak Active Load: 35.0 MW
+3. Desired Supply Voltage: 66 kV
+4. Nearest 220/66 kV KPTCL Substation: Devanahalli 220/66kV Substation (Distance: 2.4 km)
+5. Proposed Phase Scope: Phase 1 Commencement
+6. Anticipated Commercial Operation Date: 15-12-2027
+
+UNDERTAKING:
+We hereby apply for grid power feasibility and sanction for Phase 1. We undertake to construct
+a 66 kV GIS terminal bay at our own cost.
+
+Authorized Signatory
+Silicon Horizon Tech Parks Ltd

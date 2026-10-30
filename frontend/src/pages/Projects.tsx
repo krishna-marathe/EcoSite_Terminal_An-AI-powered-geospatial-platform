@@ -1,12 +1,3 @@
-import { PhaseEditor } from '../components/projects/PhaseEditor';
-import { EnvironmentalObservations } from '../components/projects/EnvironmentalObservations';
-import { EvidenceWorkspace } from '../components/projects/EvidenceWorkspace';
-import { ResourceReadinessTimeline } from '../components/projects/ResourceReadinessTimeline';
-import { ExtractionReviewDrawer } from '../components/projects/ExtractionReviewDrawer';
-import { SiteComparisonMatrix } from '../components/projects/SiteComparisonMatrix';
-import { SitePassport } from '../components/projects/SitePassport';
-import { evidenceService } from '../services/evidence';
-import { getPhases } from '../services/phases';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -25,8 +16,22 @@ import { PolygonEditor } from '../components/site-analysis/PolygonEditor';
 import { PageHeader, PageShell } from '../components/ui/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import type { EvidenceUploadMetadata } from '../components/projects/EvidenceWorkspace';
-import { Compass, Layers, MapPin } from 'lucide-react';
+import { PhaseEditor } from '../components/projects/PhaseEditor';
+import { EnvironmentalObservations } from '../components/projects/EnvironmentalObservations';
+import { EvidenceWorkspace } from '../components/projects/EvidenceWorkspace';
+import { ResourceReadinessTimeline } from '../components/projects/ResourceReadinessTimeline';
+import { ExtractionReviewDrawer } from '../components/projects/ExtractionReviewDrawer';
+import { SiteComparisonMatrix } from '../components/projects/SiteComparisonMatrix';
+import { SitePassport } from '../components/projects/SitePassport';
+import { IndustryBenchmarksSection } from '../components/projects/IndustryBenchmarksSection';
+import { SiteConstraintsModal } from '../components/projects/SiteConstraintsModal';
+import { EnergyWaterScenarioCalculator } from '../components/projects/EnergyWaterScenarioCalculator';
+import { getSiteObservations, type Observation } from '../services/observations';
+import { evidenceService } from '../services/evidence';
+import { readinessService, formatReadinessError } from '../services/readiness';
+import type { EvidenceUploadMetadata } from '../types/evidence';
+import { getPhases } from '../services/phases';
+import { ShieldCheck, SlidersHorizontal } from 'lucide-react';
 
 function useMounted() {
   const mounted = useRef(false);
@@ -140,34 +145,32 @@ export function Projects() {
               }}
             >
               <div className="grid gap-3 sm:grid-cols-3">
-                <label className="block text-meta text-eco-text">
+                <label className="block text-meta font-medium text-eco-text">
                   Project name
                   <input
                     name="name"
                     required
                     maxLength={200}
                     disabled={busy}
-                    placeholder="e.g. Pune Hyperscale Campus"
-                    className="mt-1 block w-full rounded border border-eco-border bg-eco-surface px-3 py-1.5 text-body text-eco-text focus:border-eco-primary focus:outline-none"
+                    className="mt-1 block w-full rounded border border-eco-border bg-eco-surface px-3 py-1.5 text-body text-eco-text"
                   />
                 </label>
-                <label className="block text-meta text-eco-text">
+                <label className="block text-meta font-medium text-eco-text">
                   Organization label
                   <input
                     name="organization"
                     required
                     maxLength={200}
                     disabled={busy}
-                    placeholder="e.g. West Coast Infrastructure"
-                    className="mt-1 block w-full rounded border border-eco-border bg-eco-surface px-3 py-1.5 text-body text-eco-text focus:border-eco-primary focus:outline-none"
+                    className="mt-1 block w-full rounded border border-eco-border bg-eco-surface px-3 py-1.5 text-body text-eco-text"
                   />
                 </label>
-                <label className="block text-meta text-eco-text">
+                <label className="block text-meta font-medium text-eco-text">
                   Data-centre archetype
                   <select
                     name="archetype"
                     disabled={busy}
-                    className="mt-1 block w-full rounded border border-eco-border bg-eco-surface px-3 py-1.5 text-body text-eco-text focus:border-eco-primary focus:outline-none"
+                    className="mt-1 block w-full rounded border border-eco-border bg-eco-surface px-3 py-1.5 text-body text-eco-text"
                   >
                     {['enterprise', 'colocation', 'hyperscale', 'edge', 'other'].map((a) => (
                       <option key={a} value={a}>{a}</option>
@@ -175,35 +178,16 @@ export function Projects() {
                   </select>
                 </label>
               </div>
-              <Button disabled={busy} variant="primary" size="sm">Create project</Button>
+              <Button disabled={busy}>Create project</Button>
             </form>
           </details>
+
           {error && <p role="alert" className="text-meta text-eco-accent">{error}</p>}
         </div>
       </Card>
 
       {projectId && !projects.isPending && projects.data && !project && (
-        <p role="alert" className="my-3 text-meta text-eco-accent">Selected project is unavailable or archived.</p>
-      )}
-
-      {!project && (
-        <div className="my-4 grid gap-4 md:grid-cols-3">
-          <Card title="1. Candidate Land Polygons" subtitle="Geospatial Parcel Drafting" icon={<MapPin className="h-4 w-4 text-eco-primary" />}>
-            <p className="text-meta text-eco-muted">
-              Draw candidate land boundaries directly on the interactive map or import GeoJSON polygons across Maharashtra, Telangana, Karnataka, or Tamil Nadu.
-            </p>
-          </Card>
-          <Card title="2. Automated Terrain & NDVI" subtitle="Earth Observation Screening" icon={<Layers className="h-4 w-4 text-eco-primary" />}>
-            <p className="text-meta text-eco-muted">
-              Compute NASA SRTM 30m elevation and slope profiles alongside Sentinel-2 cloud-masked green-cover verification to prevent steep slope hazards.
-            </p>
-          </Card>
-          <Card title="3. Multi-Phase Infrastructure" subtitle="Capacity Ramp-Up Milestones" icon={<Compass className="h-4 w-4 text-eco-primary" />}>
-            <p className="text-meta text-eco-muted">
-              Schedule phased power ramp-ups (IT MW), peak summer cooling water consumption (KLD), and target design PUE across commissioning horizons.
-            </p>
-          </Card>
-        </div>
+        <p role="alert" className="text-meta text-eco-accent">Selected project is unavailable or archived.</p>
       )}
 
       {project && <PhaseEditor key={`phases:${project.id}`} projectId={project.id} />}
@@ -232,6 +216,12 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
     queryFn: () => evidenceService.getExtractions(projectId),
   });
 
+  const readinessQuery = useQuery({
+    queryKey: ['project-readiness', projectId],
+    queryFn: ({ signal }) => readinessService.getProjectReadiness(projectId, undefined, signal),
+    enabled: Boolean(projectId),
+  });
+
   const handleUpload = async (file: File, metadata: EvidenceUploadMetadata) => {
     onBusy(true);
     try {
@@ -240,6 +230,8 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
         queryClient.invalidateQueries({ queryKey: ['evidence-artifacts', projectId] }),
         queryClient.invalidateQueries({ queryKey: ['evidence-assertions', projectId] }),
         queryClient.invalidateQueries({ queryKey: ['evidence-extractions', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['project-readiness', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['project-comparisons', projectId] }),
       ]);
     } finally {
       onBusy(false);
@@ -254,19 +246,29 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
         decision,
         reviewer_role: 'CONSULTANT',
       });
-      await queryClient.invalidateQueries({ queryKey: ['evidence-assertions', projectId] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['evidence-assertions', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['project-readiness', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['project-comparisons', projectId] }),
+      ]);
     } finally {
       onBusy(false);
     }
   };
 
-  const handleConfirmExtraction = async (extractionId: string, decision: 'ACCEPTED' | 'REJECTED', adjustedValue?: string | number) => {
+  const handleConfirmExtraction = async (
+    extractionId: string,
+    decision: 'ACCEPTED' | 'REJECTED',
+    adjustedValue?: string | number
+  ) => {
     onBusy(true);
     try {
-      await evidenceService.confirmExtraction(extractionId, decision, adjustedValue);
+      await evidenceService.confirmExtraction(extractionId, decision, adjustedValue, undefined, projectId);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['evidence-extractions', projectId] }),
         queryClient.invalidateQueries({ queryKey: ['evidence-assertions', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['project-readiness', projectId] }),
+        queryClient.invalidateQueries({ queryKey: ['project-comparisons', projectId] }),
       ]);
     } finally {
       onBusy(false);
@@ -280,7 +282,13 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
 
   return (
     <div className="space-y-4">
-      <ResourceReadinessTimeline phases={phasesQuery.data || []} assertions={assertionsQuery.data || []} />
+      <ResourceReadinessTimeline
+        phases={phasesQuery.data || []}
+        assertions={assertionsQuery.data || []}
+        readinessReport={readinessQuery.data}
+        loading={readinessQuery.isPending && phasesQuery.isPending}
+        error={readinessQuery.error ? formatReadinessError(readinessQuery.error) : null}
+      />
       <EvidenceWorkspace
         projectId={projectId}
         artifacts={artifactsQuery.data || []}
@@ -295,65 +303,30 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
         onClose={() => setIsReviewDrawerOpen(false)}
         extractions={extractionsQuery.data || []}
         onConfirm={handleConfirmExtraction}
-        busy={extractionsQuery.isFetching}
       />
     </div>
   );
 }
 
 function ProjectSites({ project, onBusy }: { project: Project; onBusy: (busy: boolean) => void }) {
-  const [params, setParams] = useSearchParams();
+  const mounted = useMounted();
   const queryClient = useQueryClient();
-
   const sites = useQuery({
     queryKey: ['project-sites', project.id],
-    queryFn: ({ signal }) => getSites(project.id, signal),
-    retry: false,
+    queryFn: () => getSites(project.id),
   });
+  const data = sites.data || [];
 
-  if (sites.isPending) return <p>Loading candidates…</p>;
-  if (sites.error || !sites.data) return <p role="alert">{projectError(sites.error)}</p>;
-
-  const requested = params.get('site');
-  const initialSite = sites.data.find((site) => site.id === requested);
-
-  return (
-    <LoadedProjectSites
-      key={project.id + ':' + (requested || 'new')}
-      project={project}
-      onBusy={onBusy}
-      initialSite={initialSite}
-      data={sites.data}
-      selectId={(id) => setParams(id ? { project: project.id, site: id } : { project: project.id })}
-      queryClient={queryClient}
-    />
-  );
-}
-
-function LoadedProjectSites({
-  project,
-  onBusy,
-  initialSite,
-  data,
-  selectId,
-  queryClient,
-}: {
-  project: Project;
-  onBusy: (busy: boolean) => void;
-  initialSite?: CandidateSite;
-  data: CandidateSite[];
-  selectId: (id?: string) => void;
-  queryClient: ReturnType<typeof useQueryClient>;
-}) {
-  const mounted = useMounted();
-  const [selected, setSelected] = useState<CandidateSite | undefined>(initialSite);
-  const [name, setName] = useState(initialSite?.name || '');
-  const [state, setState] = useState(initialSite?.state_code || 'IN-MH');
-  const [district, setDistrict] = useState(initialSite?.district || '');
-  const [geometry, setGeometry] = useState<PolygonGeometry | null>(initialSite?.geometry || null);
+  const [selectedId, selectId] = useState<string | undefined>();
+  const [selected, setSelected] = useState<CandidateSite | undefined>();
+  const [name, setName] = useState('');
+  const [state, setState] = useState('IN-MH');
+  const [district, setDistrict] = useState('');
+  const [geometry, setGeometry] = useState<PolygonGeometry | null>(null);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [busy, updateBusy] = useState(false);
+
   const setBusy = (value: boolean) => {
     updateBusy(value);
     onBusy(value);
@@ -372,8 +345,16 @@ function LoadedProjectSites({
     setMessage('');
   };
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['project-sites', project.id] });
+  const invalidate = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['project-sites', project.id] }),
+      queryClient.invalidateQueries({ queryKey: ['project-comparisons', project.id] }),
+      queryClient.invalidateQueries({ queryKey: ['project-readiness', project.id] }),
+    ]);
+
   const [passportSite, setPassportSite] = useState<CandidateSite | null>(null);
+  const [constraintsSite, setConstraintsSite] = useState<CandidateSite | null>(null);
+  const [showScenarios, setShowScenarios] = useState(false);
 
   const phasesQuery = useQuery({
     queryKey: ['project-phases', project.id],
@@ -387,65 +368,107 @@ function LoadedProjectSites({
     queryKey: ['evidence-artifacts', project.id],
     queryFn: () => evidenceService.getArtifacts(project.id),
   });
+  const comparisonsQuery = useQuery({
+    queryKey: ['project-comparisons', project.id],
+    queryFn: ({ signal }) => readinessService.getProjectComparisons(project.id, signal),
+    enabled: Boolean(project.id),
+  });
+  const passportQuery = useQuery({
+    queryKey: ['site-passport', project.id, passportSite?.id],
+    queryFn: ({ signal }) => readinessService.getSitePassport(project.id, passportSite!.id, signal),
+    enabled: Boolean(passportSite?.id),
+  });
+  const siteObservationsQuery = useQuery({
+    queryKey: ['candidate-observations-map', data.map((s) => s.id).join(',')],
+    queryFn: async () => {
+      const map: Record<string, Observation[]> = {};
+      await Promise.all(
+        data.map(async (s) => {
+          try {
+            const res = await getSiteObservations(s.id);
+            map[s.id] = res.items;
+          } catch {
+            map[s.id] = [];
+          }
+        })
+      );
+      return map;
+    },
+    enabled: data.length > 0,
+  });
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title="Saved candidate polygons">
-          <p>{data.length} / 3 active candidates</p>
+          <p className="text-body text-eco-muted mb-3">{data.length} / 3 active candidates</p>
           <Button type="button" disabled={busy} onClick={() => choose()}>
             New candidate
           </Button>
-          {data.map((site) => (
-            <div key={site.id} className="border p-3 space-y-2">
-              <div className="flex justify-between items-start">
-                <Button type="button" disabled={busy} onClick={() => choose(site)}>
-                  {site.name}
-                </Button>
+          <div className="mt-3 space-y-3">
+            {data.map((site) => (
+              <div key={site.id} className="rounded border border-eco-border bg-eco-surface-secondary/30 p-3 space-y-2">
+                <div className="flex flex-wrap justify-between items-start gap-2">
+                  <Button type="button" disabled={busy} onClick={() => choose(site)}>
+                    {site.name}
+                  </Button>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setPassportSite(site)}
+                      className="text-micro py-1 px-2 border-eco-primary text-eco-primary hover:bg-eco-primary/10"
+                    >
+                      📜 Passport
+                    </Button>
+                    <Button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setConstraintsSite(site)}
+                      className="text-micro py-1 px-2 border-amber-500/50 text-amber-300 hover:bg-amber-500/10"
+                    >
+                      <ShieldCheck className="h-3 w-3 inline mr-1" />
+                      Constraints
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-meta text-eco-muted">{site.area_ha.toFixed(4)} ha · {site.state_code} · revision {site.revision}</p>
+                <p className="text-micro text-eco-muted">Boundary screening: {site.boundary_source}. State/district are user supplied. Screening only, not official legal boundary verification.</p>
+                <p className="text-micro text-eco-text">
+                  {site.boundary_screening?.status === 'inside_screening_boundary'
+                    ? 'Inside screening boundary; no legal verification.'
+                    : 'Boundary review required — consult Survey of India.'}
+                  {' '}
+                  {site.boundary_screening?.version}
+                  {' '}
+                  {site.boundary_screening?.licence}
+                </p>
                 <Button
                   type="button"
                   disabled={busy}
-                  onClick={() => setPassportSite(site)}
-                  className="text-micro py-1 px-2 border-eco-primary text-eco-primary hover:bg-eco-primary/10"
+                  onClick={async () => {
+                    if (!window.confirm(`Archive candidate ${site.name}?`)) return;
+                    setBusy(true);
+                    setError('');
+                    try {
+                      await archiveSite(site);
+                      if (!mounted.current) return;
+                      if (selected?.id === site.id) choose();
+                      await invalidate();
+                    } catch (err) {
+                      setError(projectError(err));
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
                 >
-                  📜 Passport
+                  Archive {site.name}
                 </Button>
               </div>
-              <p>{site.area_ha.toFixed(4)} ha · {site.state_code} · revision {site.revision}</p>
-              <p>Boundary screening: {site.boundary_source}. State/district are user supplied. Screening only, not official legal boundary verification.</p>
-              <p>
-                {site.boundary_screening?.status === 'inside_screening_boundary'
-                  ? 'Inside screening boundary; no legal verification.'
-                  : 'Boundary review required — consult Survey of India.'}
-                {' '}
-                {site.boundary_screening?.version}
-                {' '}
-                {site.boundary_screening?.licence}
-              </p>
-              <Button
-                type="button"
-                disabled={busy}
-                onClick={async () => {
-                  if (!window.confirm(`Archive candidate ${site.name}?`)) return;
-                  setBusy(true);
-                  setError('');
-                  try {
-                    await archiveSite(site);
-                    if (!mounted.current) return;
-                    if (selected?.id === site.id) choose();
-                    await invalidate();
-                  } catch (err) {
-                    setError(projectError(err));
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                Archive {site.name}
-              </Button>
-            </div>
-          ))}
+            ))}
+          </div>
         </Card>
+
         <Card title={selected ? 'Edit candidate polygon' : 'New candidate polygon'}>
           <form
             className="space-y-3"
@@ -468,7 +491,7 @@ function LoadedProjectSites({
               }
             }}
           >
-            <label className="block">
+            <label className="block text-meta font-medium text-eco-text">
               Candidate name
               <input
                 required
@@ -476,20 +499,34 @@ function LoadedProjectSites({
                 value={name}
                 disabled={busy}
                 onChange={(e) => setName(e.target.value)}
+                className="mt-1 block w-full rounded border border-eco-border bg-eco-surface px-3 py-1.5 text-body text-eco-text"
               />
             </label>
-            <label className="block">
+            <label className="block text-meta font-medium text-eco-text">
               State
-              <select aria-label="State" required value={state} disabled={busy} onChange={(e) => setState(e.target.value)}>
+              <select
+                aria-label="State"
+                required
+                value={state}
+                disabled={busy}
+                onChange={(e) => setState(e.target.value)}
+                className="mt-1 block w-full rounded border border-eco-border bg-eco-surface px-3 py-1.5 text-body text-eco-text"
+              >
                 <option value="IN-MH">Maharashtra</option>
                 <option value="IN-TG">Telangana</option>
                 <option value="IN-KA">Karnataka</option>
                 <option value="IN-TN">Tamil Nadu</option>
               </select>
             </label>
-            <label className="block">
+            <label className="block text-meta font-medium text-eco-text">
               District (optional)
-              <input maxLength={100} value={district} disabled={busy} onChange={(e) => setDistrict(e.target.value)} />
+              <input
+                maxLength={100}
+                value={district}
+                disabled={busy}
+                onChange={(e) => setDistrict(e.target.value)}
+                className="mt-1 block w-full rounded border border-eco-border bg-eco-surface px-3 py-1.5 text-body text-eco-text"
+              />
             </label>
             <PolygonEditor key={editorVersion} value={geometry} disabled={busy} onChange={(value) => { setGeometry(value); setMessage(''); }} />
             <Button disabled={busy || !geometry || (!selected && data.length >= 3)}>
@@ -497,22 +534,47 @@ function LoadedProjectSites({
             </Button>
             {error && <p role="alert" className="text-meta text-eco-accent">{error}</p>}
             {message && <p role="status" className="text-meta text-eco-primary">{message}</p>}
-            <p className="text-meta text-eco-muted">Invalid or out-of-boundary polygons are rejected by the backend. Unsaved drafts are not restored after reload.</p>
+            <p className="text-micro text-eco-muted">Invalid or out-of-boundary polygons are rejected by the backend. Unsaved drafts are not restored after reload.</p>
           </form>
         </Card>
       </div>
 
-      {data.length > 1 && (
+      <div className="flex justify-end">
+        <Button
+          type="button"
+          onClick={() => setShowScenarios(!showScenarios)}
+          className="text-xs py-1.5 px-3 border border-eco-border hover:bg-eco-surface-secondary"
+        >
+          <SlidersHorizontal className="h-3.5 w-3.5 inline mr-1.5" />
+          {showScenarios ? 'Hide Energy & Water Scenarios' : 'Explore Energy & Water Scenarios (OpenDC-LCA)'}
+        </Button>
+      </div>
+
+      {showScenarios && (
+        <EnergyWaterScenarioCalculator
+          initialItMw={40}
+          initialParcelAreaHa={selected?.area_ha || 15}
+          siteName={selected?.name}
+        />
+      )}
+
+      {data.length > 0 && (
         <SiteComparisonMatrix
           sites={data}
           phases={phasesQuery.data || []}
           assertions={assertionsQuery.data || []}
+          comparisonData={comparisonsQuery.data}
+          siteObservations={siteObservationsQuery.data || {}}
+          loading={comparisonsQuery.isPending}
+          error={comparisonsQuery.error ? formatReadinessError(comparisonsQuery.error) : null}
           onGeneratePassport={(id) => {
             const s = data.find((item) => item.id === id);
             if (s) setPassportSite(s);
           }}
         />
       )}
+
+      <IndustryBenchmarksSection />
 
       {selected && <EnvironmentalObservations key={selected.id} site={selected} />}
 
@@ -523,7 +585,21 @@ function LoadedProjectSites({
           phases={phasesQuery.data || []}
           assertions={assertionsQuery.data || []}
           artifacts={artifactsQuery.data || []}
+          observations={passportSite ? (siteObservationsQuery.data?.[passportSite.id] || []) : undefined}
+          passportData={passportQuery.data}
+          loading={passportQuery.isPending}
+          error={passportQuery.error ? formatReadinessError(passportQuery.error) : null}
           onClose={() => setPassportSite(null)}
+        />
+      )}
+
+      {constraintsSite && (
+        <SiteConstraintsModal
+          isOpen={Boolean(constraintsSite)}
+          onClose={() => setConstraintsSite(null)}
+          site={constraintsSite}
+          observations={constraintsSite ? (siteObservationsQuery.data?.[constraintsSite.id] || []) : undefined}
+          assertions={assertionsQuery.data || []}
         />
       )}
     </div>

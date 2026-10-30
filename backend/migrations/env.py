@@ -1,6 +1,6 @@
 from alembic import context
 
-from backend.app.db import DB_PATH, make_engine
+from backend.app.db import make_engine, resolve_migration_target
 from backend.app.models.projects import Base
 from backend.app.models.phases import ProjectPhase
 from backend.app.models.sites import CandidateSite  # Register candidate metadata.
@@ -41,6 +41,16 @@ from backend.app.data.models import (  # Register the data plane.
     RawSnapshot,
     ScoreRun,
 )
+from backend.app.models.evidence import (  # Register evidence foundation.
+    Assertion,
+    AssertionEvidenceLink,
+    AssertionReview,
+    EvidenceArtifact,
+)
+from backend.app.models.commitments import (  # Register resource commitments.
+    PowerCommitment,
+    WaterCommitment,
+)
 
 config = context.config
 
@@ -59,7 +69,8 @@ def include_object(obj, name, type_, reflected, compare_to):
     return True
 
 
-engine = make_engine(config.attributes.get("db_path", DB_PATH))
+target_path = resolve_migration_target(config)
+engine = make_engine(target_path)
 try:
     with engine.connect() as connection:
         context.configure(connection=connection, target_metadata=Base.metadata,

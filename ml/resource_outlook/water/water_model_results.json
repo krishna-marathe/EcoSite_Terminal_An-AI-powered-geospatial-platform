@@ -1,0 +1,45 @@
+{
+  "task": "ML-F3.4 Water Forecasting Model Comparison",
+  "target_reservoir": "Bhatsa Lake (Thane / MMR Data Centre Water Security Basin)",
+  "reservoir_capacity_mcm": 942.1,
+  "evaluation_window": "2024-01-04 to 2024-06-27 (26 weeks / 2024-H1)",
+  "forecast_origin": "2024-01-04 (Fixed Origin / 26 weeks forward)",
+  "candidates": {
+    "candidate_1_seasonal_naive": {
+      "description": "Pure 52-week lag from 2023",
+      "mae_mcm": 39.85,
+      "rmse_mcm": 40.3,
+      "mape_pct": 10.8,
+      "mean_bias_mcm": -39.85,
+      "error_pct_of_capacity": 4.23
+    },
+    "candidate_2_trend_adjusted_baseline": {
+      "description": "52-week lag adjusted by initial level gap at origin (delta_0 = -30.0 MCM)",
+      "mae_mcm": 10.23,
+      "rmse_mcm": 11.56,
+      "mape_pct": 2.89,
+      "mean_bias_mcm": -9.85,
+      "error_pct_of_capacity": 1.09,
+      "empirical_80pct_coverage": 96.2
+    },
+    "candidate_3_regularized_lightgbm": {
+      "description": "Small regularized LightGBM residual regressor (num_leaves=4, n_estimators=15)",
+      "training_sample_size": 16,
+      "sample_limitation": "Only 16 historical training pairs prior to 2024 due to 2022 server 404s",
+      "mae_mcm": 6.58,
+      "rmse_mcm": 7.88,
+      "mape_pct": 1.72,
+      "mean_bias_mcm": -5.95,
+      "error_pct_of_capacity": 0.7
+    }
+  },
+  "selected_approach": {
+    "model_name": "Candidate 2: Trend-Adjusted Seasonal Baseline",
+    "justification": "Candidate 2 achieves 10.23 MCM MAE (1.09% of reservoir capacity and 2.89% MAPE) without parameter estimation risk. Candidate 3 (LightGBM) achieves 6.57 MCM on this specific test set, but was fitted on only 16 training samples due to 2022 server missingness, posing severe risk of sample-size overfitting. In accordance with task instructions, Candidate 2 is selected as the primary operational model.",
+    "status": "ML-F3.4 READY"
+  },
+  "uncertainty_assessment": {
+    "disclaimer": "Uncertainty intervals are based on historical empirical residual quantiles. True calibrated probabilities cannot be guaranteed from a single 26-week backtest window.",
+    "empirical_coverage_observed": "96.15384615384616% (Nominal target: 80%)"
+  }
+}
