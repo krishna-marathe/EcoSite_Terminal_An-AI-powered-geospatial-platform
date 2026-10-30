@@ -114,6 +114,24 @@ class ResourceOutlookApiTests(unittest.TestCase):
         response = self.client.get("/api/v1/resource-outlook/facility/non-existent-facility-id")
         self.assertEqual(response.status_code, 404)
 
+    def test_get_current_forecast_endpoint(self):
+        """Verify GET /current-forecast returns ML-F8 live electricity forecast and Bhatsa scenarios."""
+        response = self.client.get("/api/v1/resource-outlook/current-forecast")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        self.assertEqual(data["status"], "VALIDATED_CURRENT_OPERATIONAL_OUTLOOK")
+        self.assertIn("electricity", data)
+        self.assertEqual(data["electricity"]["classification"], "CURRENT_OPERATIONAL_FORECAST")
+        self.assertEqual(data["electricity"]["origin_date"], "2026-10-27")
+        self.assertGreater(len(data["electricity"]["points"]), 150)
+
+        self.assertIn("reservoir", data)
+        self.assertEqual(data["reservoir"]["classification"], "ILLUSTRATIVE_SCENARIO_ONLY")
+        self.assertEqual(data["reservoir"]["origin_date"], "2026-10-29")
+        self.assertEqual(data["reservoir"]["verified_live_storage_mcm"], 864.37)
+        self.assertGreater(len(data["reservoir"]["points"]), 20)
+
 
 if __name__ == "__main__":
     unittest.main()

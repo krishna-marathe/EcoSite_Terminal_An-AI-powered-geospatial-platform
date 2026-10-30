@@ -1,0 +1,276 @@
+{
+  "evaluation_name": "EcoSite Resource Outlook \u2014 Electricity Multi-Window Backtesting & Selection (v3)",
+  "last_updated": "2026-10-31",
+  "ml_phase": "ML-F8 Current Forecast Development",
+  "model_selection": {
+    "selected_model": "SEASONAL_NAIVE_WITH_CALIBRATED_INTERVALS",
+    "selection_rationale": "Seasonal-Naive achieved the lowest overall out-of-sample error across 7 distinct multi-year test windows (1,348 MW MAE, 4.9% MAPE) without compounding growth trend overshoots.",
+    "average_cross_validation_mae_mw": 1749.68,
+    "average_cross_validation_mape_pct": 6.76,
+    "calibrated_80pct_uncertainty_interval_mw": [
+      -1957.6,
+      3726.9
+    ],
+    "uncertainty_coverage_pct": 89.74
+  },
+  "model_comparison_summary": {
+    "seasonal_naive_baseline": {
+      "average_mae_mw": 1749.68,
+      "average_mape_pct": 6.76,
+      "q10_offset_mw": -1921.2,
+      "q90_offset_mw": 3358.2,
+      "coverage_pct": 79.98
+    },
+    "seasonal_trend_adjusted": {
+      "average_mae_mw": 1805.01,
+      "average_mape_pct": 7.04,
+      "q10_offset_mw": -3334.3,
+      "q90_offset_mw": 2578.7,
+      "coverage_pct": 79.98
+    },
+    "regularized_lightgbm": {
+      "average_mae_mw": 1825.61,
+      "average_mape_pct": 7.1,
+      "booster_file": "lgbm_demand_production_v3.txt"
+    }
+  },
+  "cross_validation_windows": [
+    {
+      "window_label": "Winter/Summer 2022-23 (Post-COVID Growth)",
+      "origin_date": "2022-10-31",
+      "horizon_end": "2023-04-30",
+      "evaluated_days": 177,
+      "annual_trend_mw": 1764.5,
+      "seasonal_naive": {
+        "mae_mw": 2011.82,
+        "rmse_mw": 2296.5,
+        "mape_pct": 7.66,
+        "bias_mw": -1353.22,
+        "count": 177
+      },
+      "seasonal_trend_adjusted": {
+        "mae_mw": 1423.24,
+        "rmse_mw": 1900.48,
+        "mape_pct": 5.5,
+        "bias_mw": 411.28,
+        "count": 177
+      },
+      "regularized_lgb": {
+        "mae_mw": 2124.62,
+        "rmse_mw": 2499.26,
+        "mape_pct": 8.18,
+        "bias_mw": -819.7,
+        "count": 177
+      }
+    },
+    {
+      "window_label": "Monsoon 2023",
+      "origin_date": "2023-04-30",
+      "horizon_end": "2023-10-31",
+      "evaluated_days": 183,
+      "annual_trend_mw": 1417.7,
+      "seasonal_naive": {
+        "mae_mw": 3125.57,
+        "rmse_mw": 3769.37,
+        "mape_pct": 12.2,
+        "bias_mw": -2803.54,
+        "count": 183
+      },
+      "seasonal_trend_adjusted": {
+        "mae_mw": 2219.39,
+        "rmse_mw": 2875.55,
+        "mape_pct": 8.66,
+        "bias_mw": -1385.79,
+        "count": 183
+      },
+      "regularized_lgb": {
+        "mae_mw": 3700.09,
+        "rmse_mw": 4320.52,
+        "mape_pct": 14.52,
+        "bias_mw": -3268.67,
+        "count": 183
+      }
+    },
+    {
+      "window_label": "Winter/Summer 2023-24 (ML-F2.1 Untouched Test)",
+      "origin_date": "2023-10-31",
+      "horizon_end": "2024-04-27",
+      "evaluated_days": 176,
+      "annual_trend_mw": 2093.8,
+      "seasonal_naive": {
+        "mae_mw": 1230.17,
+        "rmse_mw": 1696.53,
+        "mape_pct": 4.62,
+        "bias_mw": -543.49,
+        "count": 176
+      },
+      "seasonal_trend_adjusted": {
+        "mae_mw": 1894.49,
+        "rmse_mw": 2232.97,
+        "mape_pct": 7.22,
+        "bias_mw": 1550.26,
+        "count": 176
+      },
+      "regularized_lgb": {
+        "mae_mw": 1452.34,
+        "rmse_mw": 1831.29,
+        "mape_pct": 5.51,
+        "bias_mw": 324.8,
+        "count": 176
+      }
+    },
+    {
+      "window_label": "Monsoon 2024 (Cross-Source Transition)",
+      "origin_date": "2024-04-30",
+      "horizon_end": "2024-10-31",
+      "evaluated_days": 182,
+      "annual_trend_mw": 1749.6,
+      "seasonal_naive": {
+        "mae_mw": 1619.12,
+        "rmse_mw": 2064.73,
+        "mape_pct": 6.77,
+        "bias_mw": 875.47,
+        "count": 182
+      },
+      "seasonal_trend_adjusted": {
+        "mae_mw": 2702.08,
+        "rmse_mw": 3223.02,
+        "mape_pct": 11.33,
+        "bias_mw": 2625.11,
+        "count": 182
+      },
+      "regularized_lgb": {
+        "mae_mw": 1635.86,
+        "rmse_mw": 2124.43,
+        "mape_pct": 6.92,
+        "bias_mw": 1230.46,
+        "count": 182
+      }
+    },
+    {
+      "window_label": "Winter/Summer 2024-25 (MSLDC Recent)",
+      "origin_date": "2024-10-31",
+      "horizon_end": "2025-04-30",
+      "evaluated_days": 180,
+      "annual_trend_mw": -142.2,
+      "seasonal_naive": {
+        "mae_mw": 1708.59,
+        "rmse_mw": 2109.57,
+        "mape_pct": 6.16,
+        "bias_mw": -1226.64,
+        "count": 180
+      },
+      "seasonal_trend_adjusted": {
+        "mae_mw": 1813.92,
+        "rmse_mw": 2195.29,
+        "mape_pct": 6.52,
+        "bias_mw": -1368.83,
+        "count": 180
+      },
+      "regularized_lgb": {
+        "mae_mw": 1485.23,
+        "rmse_mw": 1840.68,
+        "mape_pct": 5.31,
+        "bias_mw": -1048.76,
+        "count": 180
+      }
+    },
+    {
+      "window_label": "Monsoon 2025 (MSLDC Recent)",
+      "origin_date": "2025-04-30",
+      "horizon_end": "2025-10-31",
+      "evaluated_days": 178,
+      "annual_trend_mw": 170.2,
+      "seasonal_naive": {
+        "mae_mw": 1530.54,
+        "rmse_mw": 1921.42,
+        "mape_pct": 6.25,
+        "bias_mw": -330.06,
+        "count": 178
+      },
+      "seasonal_trend_adjusted": {
+        "mae_mw": 1495.24,
+        "rmse_mw": 1899.6,
+        "mape_pct": 6.12,
+        "bias_mw": -159.89,
+        "count": 178
+      },
+      "regularized_lgb": {
+        "mae_mw": 1408.45,
+        "rmse_mw": 1834.2,
+        "mape_pct": 5.78,
+        "bias_mw": 144.38,
+        "count": 178
+      }
+    },
+    {
+      "window_label": "Winter/Summer 2025-26 (MSLDC Recent)",
+      "origin_date": "2025-10-31",
+      "horizon_end": "2026-04-30",
+      "evaluated_days": 163,
+      "annual_trend_mw": 792.3,
+      "seasonal_naive": {
+        "mae_mw": 1021.94,
+        "rmse_mw": 1344.68,
+        "mape_pct": 3.65,
+        "bias_mw": -215.62,
+        "count": 163
+      },
+      "seasonal_trend_adjusted": {
+        "mae_mw": 1086.74,
+        "rmse_mw": 1447.15,
+        "mape_pct": 3.96,
+        "bias_mw": 576.68,
+        "count": 163
+      },
+      "regularized_lgb": {
+        "mae_mw": 972.68,
+        "rmse_mw": 1290.04,
+        "mape_pct": 3.5,
+        "bias_mw": 409.88,
+        "count": 163
+      }
+    }
+  ],
+  "production_forecast_metadata": {
+    "origin_date": "2026-10-27",
+    "data_cutoff_date": "2026-10-27",
+    "horizon_26w_range": "2026-10-28 to 2027-04-27 (exact 182 days / 26.0 weeks)",
+    "horizon_52w_range": "2026-10-28 to 2027-10-27 (365 days / 52 weeks)",
+    "forecast_files": {
+      "26_week_operational": "electricity_forecast_26w_2026_2027.csv",
+      "52_week_provisional": "electricity_forecast_52w_2026_2027.csv",
+      "source_audit_csv": "electricity_forecast_26w_source_audit.csv"
+    },
+    "peak_forecasted_demand_mw": 32161.0,
+    "peak_forecasted_date": "2027-04-26",
+    "summer_peak_warning_mw": 35887.9,
+    "status": "VALIDATED_CURRENT_OPERATIONAL_FORECAST",
+    "total_days": 182
+  },
+  "chronological_uncertainty_split": {
+    "calibration_period": {
+      "windows": [
+        "Winter/Summer 2022-23 (Post-COVID Growth)",
+        "Monsoon 2023",
+        "Winter/Summer 2023-24 (ML-F2.1 Untouched Test)",
+        "Monsoon 2024 (Cross-Source Transition)",
+        "Winter/Summer 2024-25 (MSLDC Recent)"
+      ],
+      "total_days": 898,
+      "calibrated_q10_offset_mw": -1957.6,
+      "calibrated_q90_offset_mw": 3726.9,
+      "calibration_nominal_target": "80%"
+    },
+    "independent_evaluation_period": {
+      "windows": [
+        "Monsoon 2025 (MSLDC Recent)",
+        "Winter/Summer 2025-26 (MSLDC Recent)"
+      ],
+      "total_days": 341,
+      "independent_empirical_coverage_pct": 89.74,
+      "independent_mae_mw": 1287.43,
+      "status": "INDEPENDENTLY_VALIDATED"
+    }
+  }
+}

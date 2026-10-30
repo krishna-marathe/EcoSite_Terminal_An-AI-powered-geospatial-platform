@@ -1,10 +1,10 @@
-"""ML Predictions API endpoints for data centre requirements forecasting."""
+"""ML Predictions & Facility Engineering Scenarios API endpoints."""
 from __future__ import annotations
 
 import os
 from typing import List, Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from ..services.ml_service import predict_requirements
@@ -13,46 +13,49 @@ router = APIRouter(prefix="/ml", tags=["ML Predictions"])
 
 
 class MLPredictionRequest(BaseModel):
-    """Request model for ML predictions."""
+    """Request model for facility engineering scenarios."""
     capacity_mw: float = Field(
         ..., ge=0, description="Current capacity in MW"
     )
     water_demand_kl_day: float = Field(
-        ..., ge=0, description="Current water demand in kL/day"
+        default=0.0, ge=0, description="Current water demand in kL/day (0 if undisclosed)"
     )
     power_demand_mw: float = Field(
-        ..., ge=0, description="Current power demand in MW"
+        default=0.0, ge=0, description="Current power demand in MW (0 to derive from capacity * PUE)"
     )
     location: str = Field(
         default="IN-MH",
         description="Indian state code (IN-MH, IN-TG, IN-KA, IN-TN)",
     )
     months_ahead: Literal[6, 9, 12] = Field(
-        6, description="Prediction horizon in months"
+        6, description="Planning horizon in months"
     )
     model_version: str = Field(
-        "ML-F2.1",
-        description="ML model version (ML-F2.1, ML-F3.4, ML-F4.1)",
+        "ML-F4.1",
+        description="Module identifier (ML-F2.1, ML-F3.4, ML-F4.1)",
     )
 
 
 class MLPredictionResponse(BaseModel):
-    """Response model for ML predictions."""
-    power_demand_mw_pred: float
-    water_demand_kl_day_pred: float
-    capacity_mw_pred: float
-    confidence_score: float
+    """Response model for facility engineering scenarios with epistemic transparency."""
+    power_demand_mw_pred: Optional[float] = None
+    water_demand_kl_day_pred: Optional[float] = None
+    capacity_mw_pred: Optional[float] = None
+    confidence_score: Optional[float] = None
     prediction_horizon_months: int
     model_name: str
     timestamp: str
     input_summary: dict
+    status: str = "OK"
+    classification: str = "DETERMINISTIC_ENGINEERING_SCENARIO"
+    provenance_note: str = ""
 
 
 @router.post("/predict", response_model=MLPredictionResponse)
 async def predict_ml_requirements(
     request: MLPredictionRequest,
 ) -> MLPredictionResponse:
-    """Predict data centre requirements for future months."""
+    """Evaluate facility engineering requirements with transparent epistemic guards."""
     try:
         result = predict_requirements(
             model_name=request.model_version,
@@ -63,70 +66,65 @@ async def predict_ml_requirements(
             months_ahead=request.months_ahead,
         )
         return MLPredictionResponse(**result)
-    except FileNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/models", response_model=List[str])
 async def list_ml_models() -> List[str]:
-    """List available ML model versions."""
-    ml_dir = os.path.join(
-        os.path.dirname(__file__), "..", "..", "ml"
-    )
-    if os.path.exists(ml_dir):
-        files = [
-            f.replace(".txt", "")
-            for f in os.listdir(ml_dir)
-            if f.endswith(".txt")
-        ]
-        if files:
-            return files
+    """List available Resource Outlook ML and engineering modules."""
     return ["ML-F2.1", "ML-F3.4", "ML-F4.1"]
 
 
 @router.get("/model-info/{model_version}")
 async def model_info(model_version: str) -> dict:
-    """Get information about a specific ML model."""
+    """Get authoritative metadata and provenance about a Resource Outlook module."""
     models_info = {
         "ML-F2.1": {
-            "name": "Infrastructure Risk v2.1",
-            "description": "Predicts power and water requirements for data centres",
-            "training_date": "2024-01-15",
-            "accuracy": "94.2%",
+            "name": "Maharashtra Grid Peak Demand Model (ML-F2.1)",
+            "description": (
+                "Regional macro-grid daily peak demand forecasting combining 2013-2024 Zenodo "
+                "and 2024-2026 MSLDC operational reports. Evaluated across 7 chronological backtest windows."
+            ),
+            "training_date": "2026-10-30",
+            "evaluated_mae_mw": 1749.68,
+            "evaluated_mape_pct": 6.76,
+            "scope": "REGIONAL_MACRO_GRID_ONLY",
             "features": [
-                "capacity_mw",
-                "water_kl_day",
-                "power_mw",
-                "location",
-                "horizon_months",
+                "historical_52w_lag",
+                "annual_growth_trend",
+                "era5_climatology",
+                "calendar_seasonality",
             ],
         },
         "ML-F3.4": {
-            "name": "Environmental Stress v3.4",
-            "description": "Predicts environmental impact and sustainability metrics",
-            "training_date": "2024-03-20",
-            "accuracy": "91.8%",
+            "name": "Bhatsa Dam Water Storage Assessment (ML-F3.4)",
+            "description": (
+                "Continuous CWC weekly bulletin monitoring of Bhatsa Lake (MMR supply basin). "
+                "Provides dry-season drawdown backtests and illustrative depletion scenarios from 2026-10-29 benchmark."
+            ),
+            "training_date": "2026-10-30",
+            "evaluated_mae_mcm": 39.85,
+            "scope": "BASIN_RESERVOIR_STORAGE_ONLY",
             "features": [
-                "capacity_mw",
-                "water_kl_day",
-                "power_mw",
-                "location",
-                "horizon_months",
+                "cwc_weekly_live_storage",
+                "ten_year_historical_normal",
+                "dry_season_drawdown_profile",
             ],
         },
         "ML-F4.1": {
-            "name": "Population Forecast v4.1",
-            "description": "Predicts population impact and regional demand",
-            "training_date": "2024-06-10",
-            "accuracy": "89.5%",
+            "name": "Facility Resource Stress Engine (ML-F4.1)",
+            "description": (
+                "Deterministic facility engineering demand calculator combining IT MW, PUE (1.35), "
+                "and contractual grid sanctions against regional macro constraints."
+            ),
+            "training_date": "2026-10-30",
+            "scope": "FACILITY_DETERMINISTIC_ENGINEERING",
             "features": [
-                "capacity_mw",
-                "water_kl_day",
-                "power_mw",
-                "location",
-                "horizon_months",
+                "facility_it_mw",
+                "pue_benchmark",
+                "contracted_mva",
+                "renewable_ppa_matching",
             ],
         },
     }

@@ -122,5 +122,33 @@ export interface ResourceOutlookResponse {
   uncertainty_and_missing_evidence: UncertaintyAndMissingEvidence;
   recommended_review_actions: string[];
   epistemic_disclaimers: string[];
+  current_operational_outlook?: {
+    status: string;
+    electricity_forecast?: {
+      status: string;
+      classification: string;
+      selected_model: string;
+      origin_date: string;
+      horizon_26w_range: string;
+      average_cross_validation_mae_mw: number;
+      average_cross_validation_mape_pct: number;
+      calibrated_80pct_uncertainty_interval_mw: [number, number];
+      peak_forecasted_demand_mw: number;
+      summer_peak_warning_mw: number;
+      forecast_file: string;
+    };
+    bhatsa_water_outlook?: {
+      status: string;
+      classification: string;
+      reservoir_name: string;
+      observation_date: string;
+      live_storage_mcm: number;
+      storage_percent: number;
+      capacity_mcm: number;
+      scenarios_file: string;
+      drawdown_scenarios: string[];
+      note: string;
+    };
+  };
 }
 

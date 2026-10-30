@@ -170,4 +170,44 @@ describe('ResourceOutlookPanel', () => {
     rerender(<ResourceOutlookPanel error="API connection timed out" />);
     expect(screen.getByText(/API connection timed out/i)).toBeInTheDocument();
   });
+
+  it('renders ML-F8 current operational forecast and Bhatsa scenarios when present', () => {
+    const mockWithLive: ResourceOutlookResponse = {
+      ...mockMmrData,
+      current_operational_outlook: {
+        status: 'ML_F8_CURRENT_OUTLOOK_AVAILABLE',
+        electricity_forecast: {
+          status: 'READY_AND_VALIDATED',
+          classification: 'CURRENT_OPERATIONAL_FORECAST',
+          selected_model: 'SEASONAL_NAIVE_WITH_CALIBRATED_INTERVALS',
+          origin_date: '2026-10-27',
+          horizon_26w_range: '2026-10-28 to 2027-04-27 (exact 182 days / 26.0 weeks)',
+          average_cross_validation_mae_mw: 1749.68,
+          average_cross_validation_mape_pct: 6.76,
+          calibrated_80pct_uncertainty_interval_mw: [-1957.6, 3726.9],
+          peak_forecasted_demand_mw: 32161.0,
+          summer_peak_warning_mw: 35887.9,
+          forecast_file: 'electricity_forecast_26w_2026_2027.csv',
+        },
+        bhatsa_water_outlook: {
+          status: 'CURRENT_OBSERVATION_VERIFIED_INTERMEDIATE_SERIES_GATED',
+          classification: 'ILLUSTRATIVE_SCENARIO_ONLY',
+          reservoir_name: 'Bhatsa (D02993, Thane / MMR Supply Basin)',
+          observation_date: '2026-10-29',
+          live_storage_mcm: 864.37,
+          storage_percent: 91.76,
+          capacity_mcm: 942.0,
+          scenarios_file: 'bhatsa_illustrative_scenarios_2026_2027.csv',
+          drawdown_scenarios: ['Normal Seasonal Depletion', 'Dry Year Stressed Depletion'],
+          note: 'Intermediate 77-week series is unreleased.',
+        },
+      },
+    };
+
+    render(<ResourceOutlookPanel data={mockWithLive} />);
+    expect(screen.getByText(/Current 2026–2027 Operational Outlook \(ML-F8\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Maharashtra Electricity 26-Wk Forecast/i)).toBeInTheDocument();
+    expect(screen.getByText(/Bhatsa Reservoir 2026 Status & Scenarios/i)).toBeInTheDocument();
+    expect(screen.getByText(/864.37 MCM/i)).toBeInTheDocument();
+  });
 });

@@ -402,6 +402,96 @@ export function ResourceOutlookPanel({
           </div>
         </div>
 
+        {/* ML-F8 Current 2026–2027 Operational Forecast & Scenarios */}
+        {data.current_operational_outlook && (
+          <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-3 text-xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 font-medium text-emerald-800 dark:text-emerald-300">
+                <Activity className="h-4 w-4" />
+                <span>Current 2026–2027 Operational Outlook (ML-F8)</span>
+              </div>
+              <Badge size="xs" variant="primary">
+                Live 26-Wk Production
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-eco-text">
+              {data.current_operational_outlook.electricity_forecast && (
+                <div className="rounded bg-eco-surface p-2.5 space-y-1.5 border border-eco-border">
+                  <span className="font-semibold text-eco-text block">
+                    Maharashtra Electricity 26-Wk Forecast
+                  </span>
+                  <div className="flex justify-between text-eco-muted">
+                    <span>Origin Date:</span>
+                    <span className="font-medium text-eco-text">
+                      {data.current_operational_outlook.electricity_forecast.origin_date}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-eco-muted">
+                    <span>Forecast Horizon:</span>
+                    <span className="font-medium text-eco-text">
+                      {data.current_operational_outlook.electricity_forecast.horizon_26w_range}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-eco-muted">
+                    <span>Peak Projected Demand:</span>
+                    <span className="font-medium text-eco-text text-amber-600 dark:text-amber-400">
+                      ~{NUMBER.format(data.current_operational_outlook.electricity_forecast.peak_forecasted_demand_mw)} MW
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-eco-muted">
+                    <span>Summer Peak (P90 Warning):</span>
+                    <span className="font-medium text-eco-text">
+                      {NUMBER.format(data.current_operational_outlook.electricity_forecast.summer_peak_warning_mw)} MW
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-eco-muted">
+                    <span>7-Window Backtest MAE:</span>
+                    <span className="font-medium text-eco-text">
+                      {NUMBER.format(data.current_operational_outlook.electricity_forecast.average_cross_validation_mae_mw)} MW ({data.current_operational_outlook.electricity_forecast.average_cross_validation_mape_pct}%)
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {data.current_operational_outlook.bhatsa_water_outlook && (
+                <div className="rounded bg-eco-surface p-2.5 space-y-1.5 border border-eco-border">
+                  <span className="font-semibold text-eco-text block">
+                    Bhatsa Reservoir 2026 Status & Scenarios
+                  </span>
+                  <div className="flex justify-between text-eco-muted">
+                    <span>Verified CWC Observation:</span>
+                    <span className="font-medium text-eco-text">
+                      {data.current_operational_outlook.bhatsa_water_outlook.observation_date}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-eco-muted">
+                    <span>Current Live Storage:</span>
+                    <span className="font-medium text-eco-text text-sky-600 dark:text-sky-400">
+                      {data.current_operational_outlook.bhatsa_water_outlook.live_storage_mcm} MCM ({data.current_operational_outlook.bhatsa_water_outlook.storage_percent}%)
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-eco-muted">
+                    <span>Gross Live Capacity (FRL):</span>
+                    <span className="font-medium text-eco-text">
+                      {data.current_operational_outlook.bhatsa_water_outlook.capacity_mcm} MCM
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-eco-muted">
+                    <span>Outlook Classification:</span>
+                    <span className="font-medium text-eco-text italic">
+                      Illustrative Scenarios Only
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-eco-muted pt-1">
+                    Intermediate May 2025–Oct 2026 series is unreleased in public bulk archives. Depletion trajectories are bounded scenarios, not an unvalidated statistical forecast.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Uncertainty and Missing Evidence Warnings */}
         {(uncertainty_and_missing_evidence.missing_critical_data.length > 0 ||
           uncertainty_and_missing_evidence.operator_assumptions.length > 0 ||

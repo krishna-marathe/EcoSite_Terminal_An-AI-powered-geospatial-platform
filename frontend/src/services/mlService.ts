@@ -10,13 +10,16 @@ export interface MLPredictionInput {
 }
 
 export interface MLPredictionOutput {
-  power_demand_mw_pred: number;
-  water_demand_kl_day_pred: number;
-  capacity_mw_pred: number;
-  confidence_score: number;
+  power_demand_mw_pred?: number | null;
+  water_demand_kl_day_pred?: number | null;
+  capacity_mw_pred?: number | null;
+  confidence_score?: number | null;
   prediction_horizon_months: number;
   model_name: string;
   timestamp: string;
+  status?: string;
+  classification?: string;
+  provenance_note?: string;
   input_summary: {
     capacity_mw: number;
     water_demand_kl_day: number;
@@ -60,15 +63,20 @@ export const mlService = {
     return response.data;
   },
 
-  // Get predictions for all three time horizons (6, 9, 12 months)
+  // Get multi-month predictions (6, 9, 12 months)
   async getMultiMonthPredictions(
-    input: Omit<MLPredictionInput, "months_ahead">
+    baseInput: Omit<MLPredictionInput, "months_ahead">
   ): Promise<MLPredictionsOutput> {
-    const [month6, month9, month12] = await Promise.all([
-      mlService.predictRequirements({ ...input, months_ahead: 6 }),
-      mlService.predictRequirements({ ...input, months_ahead: 9 }),
-      mlService.predictRequirements({ ...input, months_ahead: 12 }),
+    const [month_6, month_9, month_12] = await Promise.all([
+      this.predictRequirements({ ...baseInput, months_ahead: 6 }),
+      this.predictRequirements({ ...baseInput, months_ahead: 9 }),
+      this.predictRequirements({ ...baseInput, months_ahead: 12 }),
     ]);
-    return { month_6: month6, month_9: month9, month_12: month12 };
+
+    return {
+      month_6,
+      month_9,
+      month_12,
+    };
   },
 };

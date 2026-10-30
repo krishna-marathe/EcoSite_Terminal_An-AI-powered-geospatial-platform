@@ -83,7 +83,7 @@ export function PublicFacilityDetail({
         facilityName={facility.name}
         initialCapacity={facility.capacityDisclosures?.[0]?.value ?? 40}
         initialPowerMW={(facility.capacityDisclosures?.[0]?.value ?? 40) * 1.35}
-        initialWaterKL={(facility.capacityDisclosures?.[0]?.value ?? 40) * 1.6 * 24}
+        initialWaterKL={0}
         location={facility.stateCode}
       />
       <ResourceOutlookPanel

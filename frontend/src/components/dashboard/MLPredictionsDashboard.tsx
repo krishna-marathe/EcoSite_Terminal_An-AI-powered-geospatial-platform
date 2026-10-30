@@ -17,20 +17,19 @@ interface MLPredictionsDashboardProps {
 }
 
 export const MLPredictionsDashboard: React.FC<MLPredictionsDashboardProps> = ({
-  facilityId = "",
   facilityName = "Data Centre",
   initialCapacity = 50,
-  initialWaterKL = 250,
-  initialPowerMW = 65,
+  initialWaterKL = 0,
+  initialPowerMW = 67.5,
   location = "IN-MH",
 }) => {
-  const [modelVersions, setModelVersions] = useState<string[]>(["ML-F2.1", "ML-F3.4", "ML-F4.1"]);
-  const [selectedModel, setSelectedModel] = useState<string>("ML-F2.1");
+  const [modelVersions, setModelVersions] = useState<string[]>(["ML-F4.1", "ML-F2.1", "ML-F3.4"]);
+  const [selectedModel, setSelectedModel] = useState<string>("ML-F4.1");
   const [predictions, setPredictions] = useState<MLPredictionsOutput | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
-  // Load available models
+  // Load available modules
   useEffect(() => {
     let cancelled = false;
     mlService
@@ -51,7 +50,7 @@ export const MLPredictionsDashboard: React.FC<MLPredictionsDashboardProps> = ({
     };
   }, []);
 
-  // Fetch predictions for this facility when component mounts, model changes, or facility capacity changes
+  // Fetch projections for this facility
   useEffect(() => {
     if (!selectedModel) return;
 
@@ -74,7 +73,7 @@ export const MLPredictionsDashboard: React.FC<MLPredictionsDashboardProps> = ({
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(String(err?.message || "ML prediction request failed"));
+          setError(String(err?.message || "Scenario calculation request failed"));
         }
       })
       .finally(() => {
@@ -89,11 +88,12 @@ export const MLPredictionsDashboard: React.FC<MLPredictionsDashboardProps> = ({
   }, [selectedModel, initialCapacity, initialWaterKL, initialPowerMW, location]);
 
   const formatPrediction = (pred?: MLPredictionOutput) => ({
-    power: `${(pred?.power_demand_mw_pred ?? initialPowerMW).toFixed(1)} MW`,
-    water: `${(pred?.water_demand_kl_day_pred ?? initialWaterKL).toFixed(1)} kL/day`,
-    capacity: `${(pred?.capacity_mw_pred ?? initialCapacity).toFixed(1)} MW`,
-    confidence: `${((pred?.confidence_score ?? 0.85) * 100).toFixed(1)}%`,
+    power: pred?.power_demand_mw_pred != null ? `${pred.power_demand_mw_pred.toFixed(1)} MW` : "N/A",
+    water: pred?.water_demand_kl_day_pred != null ? `${pred.water_demand_kl_day_pred.toFixed(1)} kL/day` : "Not Disclosed",
+    capacity: pred?.capacity_mw_pred != null ? `${pred.capacity_mw_pred.toFixed(1)} MW` : "N/A",
+    classification: pred?.classification ? pred.classification.replace(/_/g, " ") : "Deterministic Scenario",
     horizon: `${pred?.prediction_horizon_months ?? 6} months`,
+    note: pred?.provenance_note || "",
   });
 
   const renderForecastCard = (months: number, pred?: MLPredictionOutput) => {
@@ -104,7 +104,7 @@ export const MLPredictionsDashboard: React.FC<MLPredictionsDashboardProps> = ({
         label={`${months}-Month Horizon`}
         value={formatted.power}
         unit="Power"
-        caption={`${formatted.horizon} · Confidence: ${formatted.confidence}`}
+        caption={`${formatted.horizon} · ${formatted.classification}`}
       />
     );
   };
@@ -114,13 +114,13 @@ export const MLPredictionsDashboard: React.FC<MLPredictionsDashboardProps> = ({
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between border-b border-eco-border/60 pb-3">
         <div>
           <h3 className="text-sm font-semibold text-eco-text uppercase tracking-wider">
-            ML Infrastructure Demand Sizing Forecast
+            Facility Engineering Sizing &amp; Scenarios
           </h3>
           <p className="text-meta text-eco-muted">
-            Predictive power &amp; water resource scaling for {facilityName} ({initialCapacity} MW IT capacity, {location})
+            Deterministic engineering projections for {facilityName} ({initialCapacity} MW IT capacity, {location})
           </p>
         </div>
-        <Field label="Model Version" htmlFor="model-version">
+        <Field label="Assessment Module" htmlFor="model-version">
           <select
             id="model-version"
             value={selectedModel}
@@ -137,7 +137,7 @@ export const MLPredictionsDashboard: React.FC<MLPredictionsDashboardProps> = ({
       </div>
 
       {loading && (
-        <p className="text-meta text-eco-muted">Computing ML multi-horizon forecast for {initialCapacity} MW load…</p>
+        <p className="text-meta text-eco-muted">Computing engineering scenario for {initialCapacity} MW load…</p>
       )}
 
       {error && (
@@ -168,7 +168,7 @@ export const MLPredictionsDashboard: React.FC<MLPredictionsDashboardProps> = ({
               >
                 <div className="flex justify-between items-center text-micro uppercase tracking-wide text-eco-primary font-mono font-semibold">
                   <span>{months}-Month Projection</span>
-                  <span className="text-eco-muted">Conf: {formatted.confidence}</span>
+                  <span className="text-eco-muted text-[10px]">{formatted.classification}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-eco-muted">Power Demand:</span>
@@ -176,16 +176,24 @@ export const MLPredictionsDashboard: React.FC<MLPredictionsDashboardProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-eco-muted">Water Demand:</span>
-                  <span className="font-mono font-medium text-eco-text">{formatted.water}</span>
+                  <span className={`font-mono font-medium ${formatted.water === "Not Disclosed" ? "text-eco-muted italic text-[11px]" : "text-eco-text"}`}>
+                    {formatted.water}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-eco-muted">Predicted Capacity:</span>
+                  <span className="text-eco-muted">Design IT Capacity:</span>
                   <span className="font-mono font-medium text-eco-text">{formatted.capacity}</span>
                 </div>
               </div>
             );
           })}
         </div>
+      )}
+
+      {predictions?.month_6?.provenance_note && (
+        <p className="text-[11px] text-eco-muted border-t border-eco-border/40 pt-2 italic">
+          Provenance: {predictions.month_6.provenance_note}
+        </p>
       )}
     </div>
   );

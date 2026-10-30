@@ -231,6 +231,7 @@ class ResourceOutlook:
     uncertainty_and_missing_evidence: UncertaintyAndMissingEvidence
     recommended_review_actions: List[str] = field(default_factory=list)
     epistemic_disclaimers: List[str] = field(default_factory=list)
+    current_operational_outlook: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -315,6 +316,49 @@ class ResourceStressEngine:
         self.bhatsa_dry_season_min_mcm = 197.0
         self.bhatsa_daily_municipal_capacity_kld = 2_400_000.0  # ~2,400 MLD municipal treatment/supply throughput to MMR
 
+        # 4. Current 2026 Operational Forecast & Scenarios (ML-F8)
+        self.current_operational_outlook: Optional[Dict[str, Any]] = None
+        elec_v3_path = self.base_dir / "electricity_recent" / "electricity_evaluation_metrics_v3.json"
+        water_v3_path = self.base_dir / "water" / "water_evaluation_metrics_v3.json"
+
+        if elec_v3_path.exists() and water_v3_path.exists():
+            try:
+                with open(elec_v3_path, "r", encoding="utf-8") as f:
+                    e_v3 = json.load(f)
+                with open(water_v3_path, "r", encoding="utf-8") as f:
+                    w_v3 = json.load(f)
+
+                self.current_operational_outlook = {
+                    "status": "ML_F8_CURRENT_OUTLOOK_AVAILABLE",
+                    "electricity_forecast": {
+                        "status": "READY_AND_VALIDATED",
+                        "classification": "CURRENT_OPERATIONAL_FORECAST",
+                        "selected_model": e_v3["model_selection"]["selected_model"],
+                        "origin_date": e_v3["production_forecast_metadata"]["origin_date"],
+                        "horizon_26w_range": e_v3["production_forecast_metadata"]["horizon_26w_range"],
+                        "average_cross_validation_mae_mw": e_v3["model_selection"]["average_cross_validation_mae_mw"],
+                        "average_cross_validation_mape_pct": e_v3["model_selection"]["average_cross_validation_mape_pct"],
+                        "calibrated_80pct_uncertainty_interval_mw": e_v3["model_selection"]["calibrated_80pct_uncertainty_interval_mw"],
+                        "peak_forecasted_demand_mw": e_v3["production_forecast_metadata"]["peak_forecasted_demand_mw"],
+                        "summer_peak_warning_mw": e_v3["production_forecast_metadata"]["summer_peak_warning_mw"],
+                        "forecast_file": e_v3["production_forecast_metadata"]["forecast_files"]["26_week_operational"]
+                    },
+                    "bhatsa_water_outlook": {
+                        "status": "CURRENT_OBSERVATION_VERIFIED_INTERMEDIATE_SERIES_GATED",
+                        "classification": "ILLUSTRATIVE_SCENARIO_ONLY",
+                        "reservoir_name": w_v3["verified_ground_truth_origin"]["reservoir_name"],
+                        "observation_date": w_v3["verified_ground_truth_origin"]["observation_date"],
+                        "live_storage_mcm": w_v3["verified_ground_truth_origin"]["live_storage_mcm"],
+                        "storage_percent": w_v3["verified_ground_truth_origin"]["storage_percent"],
+                        "capacity_mcm": w_v3["verified_ground_truth_origin"]["live_capacity_frl_mcm"],
+                        "scenarios_file": w_v3["illustrative_scenarios_metadata"]["file"],
+                        "drawdown_scenarios": w_v3["illustrative_scenarios_metadata"]["scenarios_included"],
+                        "note": "Intermediate 77-week series from May 2025 to Oct 2026 is unreleased in public bulk archives. Depletion trajectories are bounded scenarios starting from the verified 2026-10-29 benchmark."
+                    }
+                }
+            except Exception:
+                self.current_operational_outlook = None
+
     def _set_default_elec_metadata(self):
         self.elec_model_name = "SEASONAL_NAIVE_WITH_CALIBRATED_INTERVALS"
         self.elec_mae_mw = 1230.17
@@ -395,7 +439,72 @@ class ResourceStressEngine:
             uncertainty_and_missing_evidence=uncertainty_info,
             recommended_review_actions=recommendations,
             epistemic_disclaimers=epistemic_disclaimers,
+            current_operational_outlook=self.current_operational_outlook,
         )
+
+    def get_current_forecast_payload(self, horizon_weeks: int = 26) -> Dict[str, Any]:
+        """Returns the day-by-day and weekly series for current electricity forecast and Bhatsa scenarios."""
+        fc_file = self.base_dir / "electricity_recent" / "electricity_forecast_26w_2026_2027.csv"
+        scen_file = self.base_dir / "water" / "bhatsa_illustrative_scenarios_2026_2027.csv"
+
+        elec_points: List[Dict[str, Any]] = []
+        if fc_file.exists():
+            with open(fc_file, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for r in reader:
+                    val = r.get("predicted_peak_met_mw")
+                    if val is not None and val != "":
+                        elec_points.append({
+                            "date": r["forecast_date"],
+                            "lead_day": int(r["lead_day"]),
+                            "predicted_peak_met_mw": float(val),
+                            "p10_lower_bound_mw": float(r.get("p10_lower_bound_mw", 0.0) or 0.0),
+                            "p90_upper_bound_mw": float(r.get("p90_upper_bound_mw", 0.0) or 0.0),
+                            "day_of_week": r.get("day_of_week", "")
+                        })
+
+        water_points: List[Dict[str, Any]] = []
+        if scen_file.exists():
+            with open(scen_file, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for r in reader:
+                    water_points.append({
+                        "date": r["scenario_date"],
+                        "week_number": int(r["week_number"]),
+                        "scenario_normal_depletion_mcm": float(r["scenario_normal_depletion_mcm"]),
+                        "scenario_normal_pct": float(r["scenario_normal_pct"]),
+                        "scenario_dry_stress_mcm": float(r["scenario_dry_stress_mcm"]),
+                        "scenario_dry_stress_pct": float(r["scenario_dry_stress_pct"]),
+                        "scenario_wet_retention_mcm": float(r["scenario_wet_retention_mcm"]),
+                        "scenario_wet_retention_pct": float(r["scenario_wet_retention_pct"])
+                    })
+
+        return {
+            "status": "VALIDATED_CURRENT_OPERATIONAL_OUTLOOK",
+            "electricity": {
+                "classification": "CURRENT_OPERATIONAL_FORECAST",
+                "origin_date": "2026-10-27",
+                "horizon_weeks": horizon_weeks,
+                "total_days": len(elec_points),
+                "points": elec_points
+            },
+            "reservoir": {
+                "classification": "ILLUSTRATIVE_SCENARIO_ONLY",
+                "target_reservoir": "Bhatsa (D02993, Thane / MMR Basin)",
+                "origin_date": "2026-10-29",
+                "verified_live_storage_mcm": 864.37,
+                "storage_percent": 91.76,
+                "capacity_frl_mcm": 942.0,
+                "horizon_weeks": 26,
+                "points": water_points
+            },
+            "metadata": self.current_operational_outlook,
+            "epistemic_disclaimer": (
+                "CURRENT OPERATIONAL FORECAST & SCENARIOS (ML-F8): Electricity forecast is backed by 2013-2026 continuous daily observations with out-of-sample conformal calibration. "
+                "Bhatsa reservoir is anchored to the official 2026-10-29 CWC observation (864.37 MCM, 91.76%) and depicts illustrative non-monsoon depletion scenarios pending unreleased intermediate series. "
+                "Regional outlook does not establish local utility spare capacity or municipal water allocations."
+            )
+        }
 
     def _evaluate_power(self, request: FacilityResourceRequest) -> FacilityPowerFindings:
         """

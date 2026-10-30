@@ -1,0 +1,65 @@
+{
+  "dataset_name": "EcoSite Resource Outlook \u2014 Maharashtra Real Reservoir Storage Inventory (v2)",
+  "last_updated": "2026-10-30",
+  "ml_phase": "ML-F7 Real Data Integration",
+  "provenance": {
+    "source_authority": "Central Water Commission (CWC), Ministry of Jal Shakti, Government of India",
+    "source_portal": "https://cwc.gov.in/reservoir-level-storage-bulletin",
+    "reporting_frequency": "Weekly (Thursday bulletins)",
+    "total_official_pdf_bulletins_acquired": 163,
+    "raw_storage_directory": "ml/resource_outlook/water/raw/"
+  },
+  "coverage_metrics": {
+    "start_date": "2022-01-06",
+    "latest_available_cwc_bulletin_date": "2025-05-01",
+    "total_calendar_weeks": 174,
+    "bhatsa_reservoir": {
+      "monitored_capacity_mcm": 942.1,
+      "observed_weeks": 122,
+      "missing_weeks": 52,
+      "completeness_pct": 70.1,
+      "latest_observed_storage_mcm": 415.0,
+      "latest_observation_date": "2025-04-24"
+    },
+    "maharashtra_statewide": {
+      "observed_weeks": 122,
+      "missing_weeks": 52,
+      "completeness_pct": 70.1,
+      "benchmark_capacity_bcm": 19.166,
+      "latest_observed_storage_bcm": 7.022,
+      "latest_observation_date": "2025-04-24"
+    }
+  },
+  "curated_datasets": {
+    "versioned_bhatsa_calendar": {
+      "file": "bhatsa_weekly_2022_2025_cwc.csv",
+      "weeks": 174,
+      "description": "Continuous weekly time-series from 2022-01-06 to 2025-05-01 with verified CWC observations."
+    },
+    "versioned_statewide_calendar": {
+      "file": "maharashtra_statewide_weekly_2022_2025_cwc.csv",
+      "weeks": 174,
+      "description": "Continuous weekly time-series for Maharashtra statewide storage scaled to 32 monitored reservoirs."
+    },
+    "versioned_major_reservoirs": {
+      "file": "maharashtra_major_reservoirs_cwc_v2.csv",
+      "total_records": 487,
+      "reservoirs_included": [
+        "Bhatsa",
+        "Bhima (Ujjani)",
+        "Jayakwadi (Paithan)",
+        "Koyna"
+      ]
+    },
+    "preserved_historical_benchmarks": {
+      "bhatsa_benchmark_file": "bhatsa_weekly_continuous_calendar.csv",
+      "statewide_benchmark_file": "maharashtra_statewide_weekly_continuous_calendar.csv",
+      "water_model_comparison_2024h1": "water_model_comparison_2024h1.csv"
+    }
+  },
+  "forecast_readiness_assessment": {
+    "forecast_origin_feasible": "2025-05-01",
+    "historical_evaluation_readiness": "READY (Multi-year training 2022-2024 available; held-out test windows 2024-H1 and 2024-H2/2025-H1 available)",
+    "live_october_2026_forecasting": "BLOCKED (CWC public PDF bulletin repository concludes at May 1, 2025. Data between May 2025 and October 2026 is unreleased in public bulletin archive. Per EcoSite rules, missing records cannot be fabricated.)"
+  }
+}

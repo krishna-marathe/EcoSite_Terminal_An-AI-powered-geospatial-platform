@@ -1,0 +1,62 @@
+{
+  "report_name": "EcoSite Resource Outlook \u2014 Bhatsa Reservoir Forecast Readiness & Scenarios (v3)",
+  "last_updated": "2026-10-31",
+  "ml_phase": "ML-F8 Current Forecast Development",
+  "verified_ground_truth_origin": {
+    "reservoir_name": "Bhatsa (D02993, Thane / MMR Supply Basin)",
+    "observation_date": "2026-10-29",
+    "live_storage_bcm": 0.86437,
+    "live_storage_mcm": 864.37,
+    "live_capacity_frl_mcm": 942.0,
+    "storage_percent": 91.76,
+    "prior_year_comparison_mcm": 906.86,
+    "prior_year_comparison_pct": 96.27,
+    "ten_year_normal_mcm": 906.6,
+    "ten_year_normal_pct": 96.24,
+    "source": "Central Water Commission RSMS Public Portal (Bulletin Approved 2026-10-29)"
+  },
+  "intermediate_data_gap_assessment": {
+    "missing_period": "2025-05-08 to 2026-10-22 (77 calendar weeks)",
+    "status": "SOURCE_UNAVAILABLE",
+    "blocker_explanation": "The public RSMS Angular dashboard only renders the latest approved bulletin as on 2026-10-29. Multi-week historical archive queries require authenticated credentials at https://rsms.cwc.gov.in/admin/login. The public static bulletin archive at cwc.gov.in ended weekly uploads on 2025-05-01.",
+    "epistemic_policy_compliance": "Zero synthetic water records. EcoSite refuses to invent 77 unreleased intermediate weeks."
+  },
+  "forecast_readiness_verdict": {
+    "status": "PARTIALLY READY / ORIGIN BENCHMARK VERIFIED",
+    "justification": "While the origin state as of 2026-10-29 is officially verified (864.37 MCM, 91.76%), continuous weekly backtesting across 2025-2026 is blocked by the 77-week unreleased gap. Therefore, current post-monsoon 2026 outlook is provided as clearly labeled ILLUSTRATIVE SCENARIOS anchored to the verified origin, NOT an unvalidated continuous statistical forecast.",
+    "recommended_operational_mode": "CURRENT_OBSERVATION_AND_ILLUSTRATIVE_SCENARIO"
+  },
+  "historical_backtest_evaluations": {
+    "2024-H1 Dry Season": {
+      "evaluated_weeks": 26,
+      "seasonal_naive_mae_mcm": 39.85,
+      "seasonal_naive_mape_pct": 10.8,
+      "trend_adjusted_mae_mcm": 4.77,
+      "trend_adjusted_mape_pct": 1.28
+    },
+    "2024-H2 Monsoon Refill": {
+      "evaluated_weeks": 1,
+      "seasonal_naive_mae_mcm": 24.0,
+      "seasonal_naive_mape_pct": 2.61,
+      "trend_adjusted_mae_mcm": 57.0,
+      "trend_adjusted_mape_pct": 6.2
+    },
+    "2025-H1 Partial Dry Season": {
+      "evaluated_weeks": 2,
+      "seasonal_naive_mae_mcm": 52.5,
+      "seasonal_naive_mape_pct": 10.16,
+      "trend_adjusted_mae_mcm": 52.5,
+      "trend_adjusted_mape_pct": 10.16
+    }
+  },
+  "illustrative_scenarios_metadata": {
+    "file": "bhatsa_illustrative_scenarios_2026_2027.csv",
+    "horizon_weeks": 26,
+    "date_range": "2026-11-05 to 2027-04-29",
+    "scenarios_included": [
+      "Normal Seasonal Depletion (Historical 10-Yr Drawdown Rate)",
+      "Dry Year Stressed Depletion (Accelerated Non-Monsoon Drawdown)",
+      "Wet Year Retention (Slower Non-Monsoon Drawdown)"
+    ]
+  }
+}

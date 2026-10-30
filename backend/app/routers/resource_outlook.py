@@ -259,4 +259,13 @@ def get_regional_forecast_summary() -> Dict[str, Any]:
             "dry_season_minimum_storage_mcm": engine.bhatsa_dry_season_min_mcm,
             "daily_municipal_capacity_kld": engine.bhatsa_daily_municipal_capacity_kld,
         },
+        "current_operational_outlook": engine.current_operational_outlook,
     }
+
+
+@router.get("/current-forecast")
+def get_current_operational_forecast(
+    horizon_weeks: int = Query(default=26, ge=1, le=52)
+) -> Dict[str, Any]:
+    """Returns operationally validated 2026-2027 Maharashtra electricity forecast and Bhatsa scenarios."""
+    return engine.get_current_forecast_payload(horizon_weeks=horizon_weeks)

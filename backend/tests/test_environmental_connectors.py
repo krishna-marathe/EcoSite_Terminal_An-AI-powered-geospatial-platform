@@ -378,6 +378,7 @@ class StacConnectorTests(unittest.TestCase):
         self.assertEqual(CONNECTORS["copernicus_stac"].source_id, "copernicus_stac")
 
 
+@unittest.skipUnless(HAS_RASTERIO, "rasterio is not installed")
 class Sentinel2NdviTests(unittest.TestCase):
     """Pixel NDVI: cloud masking, coverage and explicit missing values."""
 

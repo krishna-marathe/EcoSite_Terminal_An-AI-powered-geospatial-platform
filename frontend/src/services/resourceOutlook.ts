@@ -22,3 +22,14 @@ export async function getRegionalForecastSummary(
   return response.data;
 }
 
+export async function getCurrentOperationalForecast(
+  horizonWeeks: number = 26,
+  signal?: AbortSignal
+): Promise<Record<string, unknown>> {
+  const response = await apiClient.get<Record<string, unknown>>(
+    `/resource-outlook/current-forecast?horizon_weeks=${horizonWeeks}`,
+    { signal }
+  );
+  return response.data;
+}
+

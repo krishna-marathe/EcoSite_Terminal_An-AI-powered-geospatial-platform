@@ -363,6 +363,15 @@ def parse_all_available_bulletins():
                         except Exception:
                             pass
 
+    if not res_records:
+        res_csv = WATER_DIR / "maharashtra_major_reservoirs_cwc.csv"
+        state_csv = WATER_DIR / "maharashtra_statewide_storage_cwc.csv"
+        if res_csv.exists() and state_csv.exists():
+            print("Raw bulletins purged; loading committed official CWC CSV observations...")
+            df_res = pd.read_csv(res_csv)
+            df_state = pd.read_csv(state_csv)
+            return df_res, df_state, parse_errors
+
     df_res = pd.DataFrame(res_records).drop_duplicates(subset=["reservoir_id", "observation_date"]).sort_values(["reservoir_name", "observation_date"])
     df_state = pd.DataFrame(state_records).drop_duplicates(subset=["state", "observation_date"]).sort_values("observation_date")
 
