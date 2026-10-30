@@ -1,14 +1,20 @@
-"""Copernicus Sentinel-2 STAC scene-metadata connector.
+"""Copernicus Sentinel-2 L2A connector: scene metadata plus cloud-masked NDVI.
 
-The connector performs a polygon search against the Copernicus Data Space
-Ecosystem STAC API and summarises scene availability: how many scenes matched,
-how many are below the cloud-cover threshold, the cloud-cover distribution and
-how old the latest scene is.
+Two stages, one source:
 
-It deliberately does **not** download pixels. Asset download requires a CDSE
-account, and scene discovery is not a land-cover measurement. NDVI is added only
-after authenticated asset access and cloud masking are verified. Until then the
-land sub-score has scene context, not a vegetation measurement.
+1. A polygon search against the Copernicus Data Space Ecosystem STAC API
+   summarises scene availability: how many scenes matched, how many are below
+the cloud-cover threshold, the cloud-cover distribution and how old the latest
+   scene is.
+2. The clearest scene that carries red, NIR and SCL is read at 10 m through
+   COG range requests, restricted to the candidate polygon plus buffer, and its
+   cloud-masked NDVI is summarised (see ``sentinel2_ndvi``).
+
+Scene metadata is not a land-cover measurement and still is not labelled as one;
+NDVI is reported as a separate indicator with its own coverage, mask and scene
+identifiers. The pixel stage uses the keyless ESA L2A mirror because every
+``eodata`` asset requires CDSE credentials; if pixels cannot be read, the
+metadata records are still stored and the NDVI records say why they are missing.
 """
 from __future__ import annotations
 
@@ -18,6 +24,7 @@ import statistics
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+from . import sentinel2_ndvi as ndvi
 from .base import (
     ConnectorUnavailable,
     FetchRequest,
@@ -73,6 +80,14 @@ def _lookback_days() -> int:
 
 def _max_cloud() -> float:
     return _env_float("ECOSITE_STAC_MAX_CLOUD", DEFAULT_MAX_CLOUD, 0.0, 100.0)
+
+
+def _ndvi_enabled() -> bool:
+    return os.getenv("ECOSITE_S2_NDVI", "1").strip().lower() not in {"0", "false", "no", "off"}
+
+
+def _cog_search_url() -> str:
+    return os.getenv("ECOSITE_S2_COG_SEARCH_URL", ndvi.DEFAULT_COG_SEARCH_URL)
 
 
 def _search_window() -> tuple[str, str]:
@@ -241,7 +256,7 @@ def _records(
         "scenes_without_datetime": missing_datetime,
         "latest_scene_id": latest[1] if latest else None,
         "earliest_scene_id": earliest[1] if earliest else None,
-        "note": "Scene metadata only; no pixels were downloaded and no NDVI was computed.",
+        "note": "Scene metadata summary; pixel NDVI is reported separately by the sentinel2_ndvi_* indicators.",
     }
 
     def record(
@@ -318,6 +333,136 @@ def _records(
     ]
 
 
+def _ndvi_unavailable(reason: str, coverage_reason: str | None = None) -> list[ParsedRecord]:
+    """The three NDVI indicators, explicitly missing with a reason.
+
+    A failed pixel stage must never look like a zero-NDVI site.
+    """
+
+    def record(indicator: str, unit: str) -> ParsedRecord:
+        return ParsedRecord(
+            indicator=indicator,
+            value=None,
+            unit=unit,
+            status="SOURCE_UNAVAILABLE",
+            evidence_class=ndvi.EVIDENCE_CLASS,
+            dataset_version=DATASET_VERSION,
+            period_start=None,
+            period_end=None,
+            observed_at=None,
+            published_at=None,
+            resolution=ndvi.RESOLUTION,
+            method=ndvi.METHOD,
+            processing_version=ndvi.PROCESSING_VERSION,
+            coverage_fraction=None,
+            quality_flags={"pixel_stage": "unavailable"},
+            missing_reason=coverage_reason or reason,
+        )
+
+    return [
+        record("sentinel2_ndvi_median", "index"),
+        record("sentinel2_ndvi_valid_pixel_fraction", "fraction"),
+        record("sentinel2_ndvi_cloud_masked_fraction", "fraction"),
+    ]
+
+
+def _ndvi_records(ndvi_payloads: list[RawPayload]) -> list[ParsedRecord]:
+    """Turn the snapshotted cog search and band windows into NDVI observations."""
+    if not _ndvi_enabled():
+        return _ndvi_unavailable("Pixel NDVI is disabled on this backend (ECOSITE_S2_NDVI=0).")
+    if not ndvi_payloads:
+        return _ndvi_unavailable("No Sentinel-2 pixel payload was fetched in this run.")
+
+    search = next((payload for payload in ndvi_payloads if payload.metadata.get("role") == "cog_search"), None)
+    if search is None:
+        return _ndvi_unavailable("The Sentinel-2 COG scene search did not run.")
+    metadata = search.metadata
+    if metadata.get("ndvi_error"):
+        return _ndvi_unavailable(str(metadata["ndvi_error"]))
+
+    bands: dict[str, RawPayload] = {
+        str(payload.metadata.get("band")): payload
+        for payload in ndvi_payloads
+        if payload.metadata.get("role") == "ndvi_band"
+    }
+    missing = [name for name in ("red", "nir", "scl") if name not in bands]
+    if missing:
+        return _ndvi_unavailable(f"The fetched Sentinel-2 window is missing the {', '.join(missing)} band.")
+
+    scene_id = str(bands["red"].metadata.get("scene_id") or "")
+    scene_datetime = bands["red"].metadata.get("scene_datetime")
+    period_start = bands["red"].metadata.get("period_start")
+    try:
+        red, transform, raster_crs = ndvi.read_window_geotiff(bands["red"].content)
+        nir, _nir_transform, _nir_crs = ndvi.read_window_geotiff(bands["nir"].content)
+        scl, _scl_transform, _scl_crs = ndvi.read_window_geotiff(bands["scl"].content)
+        stats = ndvi.ndvi_statistics(
+            red,
+            nir,
+            scl,
+            transform,
+            search.metadata["geometry"],
+            crs=raster_crs,
+        )
+    except (ConnectorUnavailable, KeyError) as error:
+        return _ndvi_unavailable(f"Sentinel-2 pixel window could not be processed: {error}")
+
+    coverage = float(stats["coverage_fraction"])
+    if stats["valid_pixels"] == 0:
+        # The reason must stay the primary explanation; coverage is reported by
+        # the coverage indicator, not substituted for it.
+        return _ndvi_unavailable(
+            "No cloud-free vegetation or bare-soil pixel falls inside the candidate polygon."
+        )
+    status = "AVAILABLE" if coverage >= 0.5 else "PARTIAL"
+    reason = None if coverage >= 0.5 else "Less than half of the polygon had usable pixels after cloud masking."
+    quality = {
+        "pixel_stage": "available",
+        "scene_id": scene_id,
+        "scene_cloud_cover_percent": bands["red"].metadata.get("scene_cloud_cover"),
+        "inside_pixels": stats["inside_pixels"],
+        "valid_pixels": stats["valid_pixels"],
+        "cloud_masked_pixels": stats["cloud_masked_pixels"],
+        "other_excluded_pixels": stats["other_excluded_pixels"],
+        "unresolved_pixels": stats["unresolved_pixels"],
+        "valid_scl_classes": list(ndvi.VALID_SCL),
+        "cloud_scl_classes": list(ndvi.CLOUD_SCL),
+        "mask": "L2A SCL; vegetation and bare soil kept, cloud/shadow/cirrus/snow excluded",
+        "note": "Median NDVI, not a land-cover classification or a site survey.",
+    }
+
+    def record(indicator: str, value: float, unit: str, coverage_fraction: float | None) -> ParsedRecord:
+        return ParsedRecord(
+            indicator=indicator,
+            value=value,
+            unit=unit,
+            status=status,
+            evidence_class=ndvi.EVIDENCE_CLASS,
+            dataset_version=DATASET_VERSION,
+            period_start=period_start,
+            period_end=period_start,
+            observed_at=scene_datetime,
+            published_at=None,
+            resolution=ndvi.RESOLUTION,
+            method=ndvi.METHOD,
+            processing_version=ndvi.PROCESSING_VERSION,
+            coverage_fraction=coverage_fraction,
+            quality_flags=quality,
+            missing_reason=reason,
+        )
+
+    return [
+        record("sentinel2_ndvi_median", float(stats["ndvi_median"]), "index", coverage),
+        record("sentinel2_ndvi_valid_pixel_fraction", coverage, "fraction", coverage),
+        record(
+            "sentinel2_ndvi_cloud_masked_fraction",
+            float(stats["cloud_masked_fraction"]),
+            "fraction",
+            coverage,
+        ),
+    ]
+
+
 class CopernicusStacConnector:
     source_id = SOURCE_ID
     parser_version = PARSER_VERSION
@@ -365,9 +510,122 @@ class CopernicusStacConnector:
                 body = next_link.get("body") or body
             else:
                 body = None
+        payloads.extend(self._pixel_payloads(request))
+        return payloads
+
+    def _pixel_payloads(self, request: FetchRequest) -> list[RawPayload]:
+        """Search the keyless COG mirror and snapshot the polygon window.
+
+        A pixel failure is returned as a payload carrying the reason rather than
+        raised, so the scene-metadata stage that already succeeded is still
+        stored. ``parse`` turns that reason into explicit missing NDVI records.
+        """
+        if not _ndvi_enabled():
+            return []
+        fetched_at = datetime.now(timezone.utc).isoformat()
+        start, end = _search_window()
+        search_metadata: dict[str, Any] = {
+            "role": "cog_search",
+            "geometry": request.geometry,
+            "search_url": _cog_search_url(),
+        }
+
+        def failure(reason: str) -> list[RawPayload]:
+            document = json.dumps({"error": reason}).encode("utf-8")
+            return [
+                RawPayload(
+                    source_id=SOURCE_ID,
+                    url=_cog_search_url(),
+                    content=document,
+                    content_type="application/json",
+                    http_status=0,
+                    fetched_at=fetched_at,
+                    filename="cog-search-unavailable.json",
+                    dataset_version=DATASET_VERSION,
+                    is_live=False,
+                    metadata={**search_metadata, "ndvi_error": reason},
+                )
+            ]
+
+        try:
+            body = ndvi.cog_search_body(request.geometry, start, end, _max_cloud())
+            content, content_type, status = http_post_json(
+                _cog_search_url(), body, timeout_s=request.timeout_s
+            )
+        except ConnectorUnavailable as error:
+            return failure(f"Sentinel-2 COG scene search failed: {error}")
+
+        try:
+            document = json.loads(content)
+            features = document.get("features") if isinstance(document, dict) else None
+            if not isinstance(features, list):
+                raise ConnectorUnavailable("Sentinel-2 COG search response is not a FeatureCollection.")
+            feature = ndvi.pick_scene(features)
+            if feature is None:
+                raise ConnectorUnavailable(
+                    "No Sentinel-2 scene in the search window carries red, NIR and SCL "
+                    "Cloud-Optimized GeoTIFFs, so NDVI cannot be computed."
+                )
+        except (ConnectorUnavailable, ValueError) as error:
+            return failure(str(error))
+
+        scene_id = str(feature.get("id") or "")
+        period_start, scene_datetime = ndvi.scene_period(feature)
+        payloads = [
+            RawPayload(
+                source_id=SOURCE_ID,
+                url=_cog_search_url(),
+                content=content,
+                content_type=content_type,
+                http_status=status,
+                fetched_at=fetched_at,
+                filename="cog-search-01.json",
+                dataset_version=DATASET_VERSION,
+                metadata={
+                    **search_metadata,
+                    "scene_id": scene_id,
+                    "scene_datetime": scene_datetime,
+                    "scene_cloud_cover": _cloud_cover(feature),
+                },
+            )
+        ]
+
+        try:
+            windows = ndvi.read_scene_pixels(
+                feature, request.geometry, request.buffer_m, timeout_s=request.timeout_s
+            )
+        except ConnectorUnavailable as error:
+            payloads[0].metadata["ndvi_error"] = f"Sentinel-2 pixel window could not be read: {error}"
+            return payloads
+
+        assets = ndvi.scene_assets(feature) or {}
+        for name, (array, transform, crs) in windows.items():
+            payloads.append(
+                RawPayload(
+                    source_id=SOURCE_ID,
+                    url=assets.get(name, _cog_search_url()),
+                    content=ndvi.window_geotiff_bytes(array, transform, crs),
+                    content_type="image/tiff",
+                    http_status=200,
+                    fetched_at=fetched_at,
+                    filename=f"ndvi-{scene_id}-{name}.tif",
+                    dataset_version=DATASET_VERSION,
+                    metadata={
+                        "role": "ndvi_band",
+                        "band": name,
+                        "scene_id": scene_id,
+                        "scene_datetime": scene_datetime,
+                        "period_start": period_start,
+                        "scene_cloud_cover": _cloud_cover(feature),
+                    },
+                )
+            )
         return payloads
 
     def parse(self, payloads: list[RawPayload], request: FetchRequest) -> list[ParsedRecord]:
+        scene_pages = [payload for payload in payloads if payload.metadata.get("role", "scene_search") == "scene_search"]
+        pixel_pages = [payload for payload in payloads if payload.metadata.get("role") in {"cog_search", "ndvi_band"}]
+        payloads = scene_pages
         features, pages = _collect_features(payloads)
         fetched_at = _parse_datetime(payloads[0].fetched_at) if payloads else None
         if fetched_at is None:
@@ -385,4 +643,4 @@ class CopernicusStacConnector:
             lookback_days=lookback_days if isinstance(lookback_days, int) else None,
         )
         validate_records(records)
-        return records
+        return records + _ndvi_records(pixel_pages)

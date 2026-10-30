@@ -60,8 +60,8 @@ def main() -> None:
             "Catalogue of every source required by the dashboard. The product is limited to "
             "Telangana, Maharashtra, Karnataka and Tamil Nadu. A source is PROCESSING_TESTED only "
             "after a real candidate polygon produced an observation. JRC and Copernicus STAC "
-            "passed live processing tests on 2026-10-27. SRTM remains DISCOVERED because no "
-            "Earthdata token was available for a live run. No source is VALIDATED or INTEGRATED."
+            "passed live processing tests on 2026-10-27; NASA SRTMGL1 passed its authenticated "
+            "tile test on 2026-10-29. No source is VALIDATED or INTEGRATED."
         ),
         "maturity_gates": list(TEST_STATUSES),
         "runtime_statuses": list(RUNTIME_STATUSES),

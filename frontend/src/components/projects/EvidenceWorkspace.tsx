@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Assertion, EvidenceArtifact, EvidenceUploadMetadata } from '../../types/evidence';
+import type { Assertion, AssertionStatus, DocumentType, EvidenceArtifact } from '../../types/evidence';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { EvidenceUploadModal } from './EvidenceUploadModal';
@@ -12,6 +12,14 @@ interface EvidenceWorkspaceProps {
   onReviewAssertion?: (assertionId: string, decision: 'VERIFIED_WITHIN_SCOPE' | 'REJECTED' | 'FLAG_CONFLICT') => Promise<void>;
   onOpenReviewer?: () => void;
   busy?: boolean;
+}
+
+export interface EvidenceUploadMetadata {
+  document_type: DocumentType;
+  issuer?: string;
+  reference?: string;
+  valid_until?: string;
+  notes?: string;
 }
 
 export function EvidenceWorkspace({

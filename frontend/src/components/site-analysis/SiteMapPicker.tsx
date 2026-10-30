@@ -287,8 +287,8 @@ export const SiteMapPicker: React.FC<SiteMapPickerProps> = ({
 
       el.innerHTML = `
         <div class="absolute -inset-2 rounded-full bg-eco-primary/20 pointer-events-none"></div>
-        <div class="flex h-7 w-7 items-center justify-center rounded-full border-2 border-eco-bg bg-eco-primary text-eco-bg shadow-2xl">
-          <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <div class="flex h-5 w-5 items-center justify-center rounded-full border border-eco-bg bg-eco-primary text-eco-bg shadow-xl">
+          <svg style="width:11px;height:11px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <line x1="22" y1="12" x2="18" y2="12"/>
             <line x1="6" y1="12" x2="2" y2="12"/>

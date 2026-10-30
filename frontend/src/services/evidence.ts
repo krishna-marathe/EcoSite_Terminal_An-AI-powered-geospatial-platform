@@ -231,6 +231,51 @@ export const INITIAL_MOCK_EXTRACTIONS: ExtractionCandidate[] = [
   },
 ];
 
+export const EVIDENCE_STORAGE_KEY = 'ecosite-project-evidence-v1';
+
+export interface EvidenceStoreData {
+  artifacts: EvidenceArtifact[];
+  assertions: Assertion[];
+  extractions: ExtractionCandidate[];
+}
+
+function loadStore(): EvidenceStoreData {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const raw = window.localStorage.getItem(EVIDENCE_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (
+          parsed &&
+          Array.isArray(parsed.artifacts) &&
+          Array.isArray(parsed.assertions) &&
+          Array.isArray(parsed.extractions)
+        ) {
+          return parsed as EvidenceStoreData;
+        }
+      }
+    }
+  } catch {
+    // Fall back to memory on localStorage error or corrupted JSON
+  }
+
+  return {
+    artifacts: [...INITIAL_MOCK_ARTIFACTS],
+    assertions: [...INITIAL_MOCK_ASSERTIONS],
+    extractions: [...INITIAL_MOCK_EXTRACTIONS],
+  };
+}
+
+function saveStore(data: EvidenceStoreData): void {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(EVIDENCE_STORAGE_KEY, JSON.stringify(data));
+    }
+  } catch {
+    // Silently ignore quota / access errors
+  }
+}
+
 // In-memory state for offline/demo/contract tests
 let artifactsStore = [...INITIAL_MOCK_ARTIFACTS];
 let assertionsStore = [...INITIAL_MOCK_ASSERTIONS];
@@ -542,7 +587,9 @@ function mapCandidatePayload(
 export const evidenceService = {
   async getArtifacts(projectId: string): Promise<EvidenceArtifact[]> {
     if (!isEvidenceApiMode()) {
-      return artifactsStore.filter((a) => !projectId || a.project_id === projectId);
+      const store = loadStore();
+      if (!projectId) return store.artifacts;
+      return store.artifacts.filter((a) => a.project_id === projectId);
     }
 
     try {
@@ -578,7 +625,7 @@ export const evidenceService = {
 
     if (!isEvidenceApiMode()) {
       const newArtifact: EvidenceArtifact = {
-        id: `art-${Date.now().toString(36)}`,
+        id: `art-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
         project_id: projectId,
         site_id: metadata.site_id || null,
         document_type: metadata.document_type,
@@ -598,6 +645,9 @@ export const evidenceService = {
       };
 
       artifactsStore = [newArtifact, ...artifactsStore];
+      const store = loadStore();
+      store.artifacts = [newArtifact, ...store.artifacts];
+      saveStore(store);
       return newArtifact;
     }
 
@@ -641,7 +691,9 @@ export const evidenceService = {
 
   async getAssertions(projectId: string): Promise<Assertion[]> {
     if (!isEvidenceApiMode()) {
-      return assertionsStore.filter((a) => !projectId || a.project_id === projectId);
+      const store = loadStore();
+      if (!projectId) return store.assertions;
+      return store.assertions.filter((a) => a.project_id === projectId);
     }
 
     try {
@@ -659,23 +711,25 @@ export const evidenceService = {
 
   async reviewAssertion(review: AssertionReviewRequest): Promise<Assertion> {
     if (!isEvidenceApiMode()) {
-      const target = assertionsStore.find((a) => a.id === review.assertion_id);
+      const store = loadStore();
+      const target = store.assertions.find((a) => a.id === review.assertion_id) || assertionsStore.find((a) => a.id === review.assertion_id);
       if (!target) throw new Error('Assertion not found');
 
-      let resolvedStatus: AssertionStatus;
-      if (review.decision === 'FLAG_CONFLICT') {
-        resolvedStatus = 'CONFLICTING';
-      } else if (review.decision === 'VERIFIED_WITHIN_SCOPE') {
-        resolvedStatus = 'VERIFIED_WITHIN_SCOPE';
-      } else {
-        resolvedStatus = 'MISSING';
-      }
+      const resolvedStatus: AssertionStatus =
+        review.decision === 'FLAG_CONFLICT'
+          ? 'CONFLICTING'
+          : review.decision === 'VERIFIED_WITHIN_SCOPE'
+            ? 'VERIFIED_WITHIN_SCOPE'
+            : 'MISSING';
 
       const updated: Assertion = {
         ...target,
         status: resolvedStatus,
         revision: target.revision + 1,
       };
+
+      store.assertions = store.assertions.map((a) => (a.id === updated.id ? updated : a));
+      saveStore(store);
       assertionsStore = assertionsStore.map((a) => (a.id === updated.id ? updated : a));
       return updated;
     }
@@ -710,10 +764,20 @@ export const evidenceService = {
 
   async getExtractions(documentOrProjectId?: string): Promise<ExtractionCandidate[]> {
     if (!isEvidenceApiMode()) {
-      if (!documentOrProjectId) return extractionsStore;
-      return extractionsStore.filter(
+      const store = loadStore();
+      if (!documentOrProjectId) return store.extractions;
+
+      // Check if documentOrProjectId matches document_id directly
+      const directMatches = store.extractions.filter(
         (e) => e.document_id === documentOrProjectId || e.id === documentOrProjectId
       );
+      if (directMatches.length > 0) return directMatches;
+
+      // Otherwise treat documentOrProjectId as projectId: only return extractions whose document belongs to this project
+      const projectDocIds = new Set(
+        store.artifacts.filter((a) => a.project_id === documentOrProjectId).map((a) => a.id)
+      );
+      return store.extractions.filter((e) => projectDocIds.has(e.document_id));
     }
 
     if (!documentOrProjectId) {
@@ -818,7 +882,8 @@ export const evidenceService = {
     projectId?: string
   ): Promise<ExtractionCandidate> {
     if (!isEvidenceApiMode()) {
-      const target = extractionsStore.find((e) => e.id === extractionId);
+      const store = loadStore();
+      const target = store.extractions.find((e) => e.id === extractionId) || extractionsStore.find((e) => e.id === extractionId);
       if (!target) throw new Error('Extraction not found');
 
       const updated: ExtractionCandidate = {
@@ -826,6 +891,9 @@ export const evidenceService = {
         review_status: decision,
         normalized_value: adjustedValue !== undefined ? adjustedValue : target.normalized_value,
       };
+
+      store.extractions = store.extractions.map((e) => (e.id === updated.id ? updated : e));
+      saveStore(store);
       extractionsStore = extractionsStore.map((e) => (e.id === updated.id ? updated : e));
       return updated;
     }
@@ -952,5 +1020,18 @@ export const evidenceService = {
     } catch {
       // Ignore
     }
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(EVIDENCE_STORAGE_KEY);
+      }
+    } catch {
+      // Ignore
+    }
+    const initial: EvidenceStoreData = {
+      artifacts: [...INITIAL_MOCK_ARTIFACTS],
+      assertions: [...INITIAL_MOCK_ASSERTIONS],
+      extractions: [...INITIAL_MOCK_EXTRACTIONS],
+    };
+    saveStore(initial);
   },
 };

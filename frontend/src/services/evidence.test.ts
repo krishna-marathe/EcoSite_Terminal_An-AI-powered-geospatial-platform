@@ -649,4 +649,47 @@ describe('evidenceService', () => {
       );
     });
   });
+
+  it('enforces strict project isolation for artifacts and assertions', async () => {
+    // Other project has no artifacts or assertions initially
+    const otherArtifacts = await evidenceService.getArtifacts('proj-chennai-edge');
+    expect(otherArtifacts).toEqual([]);
+
+    const otherAssertions = await evidenceService.getAssertions('proj-chennai-edge');
+    expect(otherAssertions).toEqual([]);
+
+    const otherExtractions = await evidenceService.getExtractions('proj-chennai-edge');
+    expect(otherExtractions).toEqual([]);
+
+    // Upload an artifact for the other project
+    const file = new File(['content'], 'TANGEDCO_Sanction.pdf', { type: 'application/pdf' });
+    const uploaded = await evidenceService.uploadArtifact('proj-chennai-edge', file, {
+      document_type: 'UTILITY_SANCTION',
+      issuer: 'TANGEDCO',
+    });
+
+    // Check it appears in Chennai, but NOT in Pune
+    const chennaiArtifacts = await evidenceService.getArtifacts('proj-chennai-edge');
+    expect(chennaiArtifacts).toHaveLength(1);
+    expect(chennaiArtifacts[0].id).toBe(uploaded.id);
+
+    const puneArtifacts = await evidenceService.getArtifacts('proj-pune-hyperscale');
+    expect(puneArtifacts.some((a) => a.id === uploaded.id)).toBe(false);
+  });
+
+  it('persists evidence data across localStorage reloads', async () => {
+    const file = new File(['data'], 'Water_Permit.pdf', { type: 'application/pdf' });
+    const uploaded = await evidenceService.uploadArtifact('proj-pune-hyperscale', file, {
+      document_type: 'WATER_ALLOCATION',
+    });
+
+    // Verify localStorage has the record
+    const stored = JSON.parse(localStorage.getItem('ecosite-project-evidence-v1') || '{}');
+    expect(stored.artifacts).toBeDefined();
+    expect(stored.artifacts.some((a: { id: string }) => a.id === uploaded.id)).toBe(true);
+
+    // Call getArtifacts again (which re-reads from store)
+    const reloaded = await evidenceService.getArtifacts('proj-pune-hyperscale');
+    expect(reloaded.some((a) => a.id === uploaded.id)).toBe(true);
+  });
 });

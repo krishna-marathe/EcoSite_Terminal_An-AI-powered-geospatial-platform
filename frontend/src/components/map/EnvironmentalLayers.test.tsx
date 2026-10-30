@@ -124,7 +124,7 @@ it('sidebar disables unavailable geometry without erasing user toggle preference
   render(<LeftSidebar />);
   const groundwater = screen.getByRole('button', { name: /Groundwater Stress/ });
   expect((groundwater as HTMLButtonElement).disabled).toBe(false);
-  expect((screen.getByRole('button', { name: /Land Use/ }) as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.queryByRole('button', { name: /Land Use/ })).toBeNull();
   setMode('api');
   expect((groundwater as HTMLButtonElement).disabled).toBe(true);
   expect(groundwater.getAttribute('aria-pressed')).toBe('false');
@@ -132,16 +132,30 @@ it('sidebar disables unavailable geometry without erasing user toggle preference
   setMode('demo'); expect(groundwater.getAttribute('aria-pressed')).toBe('true');
 });
 
-it('banner and ribbon describe synthetic API facility records honestly with computed counts', () => {
-  setMode('api'); useDashboardStore.getState().setFacilities([PILOT_FACILITIES[0]]);
-  render(<MemoryRouter><DataQualityBanner /><WorldMonitorLayerRibbon /></MemoryRouter>);
+it('banner reports facility source status while the ribbon shows the registry count', () => {
+  const dataCentre = { ...PILOT_FACILITIES[0], type: 'data_centre' as const };
+  setMode('api'); useDashboardStore.getState().setFacilities([dataCentre]);
+  render(<MemoryRouter><DataQualityBanner /><WorldMonitorLayerRibbon dataCentreCount={19} /></MemoryRouter>);
   expect(screen.getByText(environmentalMessage('api'))).toBeTruthy();
   expect(screen.getByText(/Sources:/).textContent).toContain('(synthetic)');
-  fireEvent.click(screen.getByRole('button', { name: /Facility filters/ }));
-  expect(screen.getByText(/Counts are matching facility records/)).toBeTruthy();
-  const all = screen.getByRole('button', { name: /All facilities/ });
-  expect(all.textContent).toContain('1');
-  expect(all.title).toContain('not an environmental observation layer');
+  fireEvent.click(screen.getByRole('button', { name: /Data centre markers/ }));
+  expect(screen.getByText(/only tracked facility layer/)).toBeTruthy();
+  const dataCentres = screen.getByRole('button', { name: /Data Centres/ });
+  expect(dataCentres.textContent).toContain('19');
+  expect(screen.queryByRole('button', { name: /Thermal Power/ })).toBeNull();
+  expect(screen.queryByRole('button', { name: /Grid Hubs/ })).toBeNull();
+});
+
+it('sidebar fixes facility scope to data centres and labels retained overlays as context', () => {
+  useDashboardStore.setState({ typeFilter: 'all' });
+  useDashboardStore.getState().toggleLeftSidebar();
+  render(<LeftSidebar />);
+  expect(screen.getByText('Data centres (fixed)')).toBeTruthy();
+  expect(useDashboardStore.getState().typeFilter).toBe('data_centre');
+  expect(screen.getByRole('button', { name: /Ambient Air Quality.*Context/ })).toBeTruthy();
+  expect(screen.getByRole('button', { name: /Substations.*Context/ })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: /Thermal Power Plants/ })).toBeNull();
+  expect(screen.queryByRole('button', { name: /Solar Farms/ })).toBeNull();
 });
 
 it('never infers source backing from transport, missing metadata or unavailable status', () => {

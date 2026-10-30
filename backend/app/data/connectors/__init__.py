@@ -17,4 +17,16 @@ CONNECTORS = {
     "nasa_power": NasaPowerConnector(),
 }
 
+try:
+    from .osm_substation import OsmSubstationConnector
+    CONNECTORS["osm_overpass"] = OsmSubstationConnector()
+except Exception:
+    pass
+
+try:
+    from .worldpop import WorldPopConnector
+    CONNECTORS["worldpop"] = WorldPopConnector()
+except Exception:
+    pass
+
 __all__ = ["CONNECTORS"]

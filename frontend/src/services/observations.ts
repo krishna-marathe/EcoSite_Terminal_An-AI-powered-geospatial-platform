@@ -95,7 +95,7 @@ export const IMPLEMENTED_SOURCES = [
   {
     id: 'nasa_srtmgl1',
     label: 'NASA SRTMGL1',
-    note: 'Terrain, slope and void screening. Requires an Earthdata token on the backend.',
+    note: 'Terrain, slope and void screening. Uses the Earthdata token configured on the backend.',
     requiresToken: true,
   },
   {

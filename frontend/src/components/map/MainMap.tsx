@@ -5,7 +5,6 @@ import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Compass, Layers, Sparkles, X, ZoomIn, ZoomOut } from 'lucide-react';
 import { useDashboardStore } from '../../stores/dashboardStore';
-import { getPilotCity } from '../../data/pilotCities';
 import {
   GROUNDWATER_ZONES_GEOJSON,
   AIR_QUALITY_ZONES_GEOJSON,
@@ -15,7 +14,8 @@ import {
   TRANSMISSION_GRID_GEOJSON,
 } from '../../data/demo/environmentalOverlays';
 import { FACILITY_TYPE_COLORS, FACILITY_TYPE_LABELS, scoreColor } from '../../theme/tokens';
-import type { Facility, InfrastructureType } from '../../types';
+import type { Facility, InfrastructureType, TimeRange } from '../../types';
+import type { PublicFacility } from '../../types/publicFacilities';
 
 // Dynamic style generator: uses Mapbox HD tiles when a token is provided, otherwise falls back to Carto/ESRI
 const getMapStyle = (
@@ -345,29 +345,49 @@ const syncEnvironmentalLayers = (map: maplibregl.Map, styleLoadEvent = false) =>
 const getFacilityIconSvg = (type: InfrastructureType): string => {
   switch (type) {
     case 'data_centre':
-      return `<svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>`;
+      return `<svg style="width:10px;height:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>`;
     case 'thermal_power':
-      return `<svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
+      return `<svg style="width:10px;height:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
     case 'solar_farm':
-      return `<svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>`;
+      return `<svg style="width:10px;height:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>`;
     case 'wind_farm':
-      return `<svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>`;
+      return `<svg style="width:10px;height:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>`;
     case 'hydro_power':
-      return `<svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`;
+      return `<svg style="width:10px;height:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`;
     case 'substation':
-      return `<svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`;
+      return `<svg style="width:10px;height:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`;
     case 'industrial':
     default:
-      return `<svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>`;
+      return `<svg style="width:10px;height:10px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>`;
   }
 };
 
-export const MainMap: React.FC = () => {
+export interface MainMapProps {
+  publicDataCentres?: PublicFacility[];
+  /** Load state of the public registry that supplies `publicDataCentres`. */
+  publicDataCentresStatus?: 'loading' | 'error' | 'ready';
+  suppressLegacyFacilities?: boolean;
+  selectedPublicFacilityId?: string | null;
+  onSelectPublicFacility?: (facility: PublicFacility) => void;
+  onOpenPublicFacility?: (facility: PublicFacility) => void;
+}
+
+export const MainMap: React.FC<MainMapProps> = ({
+  publicDataCentres = [],
+  publicDataCentresStatus = 'ready',
+  suppressLegacyFacilities = false,
+  selectedPublicFacilityId: controlledPublicFacilityId,
+  onSelectPublicFacility,
+  onOpenPublicFacility,
+}) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null);
   const markersRef = useRef<{ [key: string]: maplibregl.Marker }>({});
+  const publicDataCentreMarkersRef = useRef<maplibregl.Marker[]>([]);
   const prevStyleRef = useRef<string>('dark');
   const [mapError, setMapError] = useState<string | null>(null);
+  const [internalPublicFacilityId, setInternalPublicFacilityId] = useState<string | null>(null);
+  const selectedPublicFacilityId = controlledPublicFacilityId ?? internalPublicFacilityId;
 
   const mapboxToken =
     localStorage.getItem('ECOSITE_MAPBOX_TOKEN') ||
@@ -385,15 +405,54 @@ export const MainMap: React.FC = () => {
     layerOpacities,
     wmLayers,
     facilities,
-    facilitiesStatus,
-    cityId,
     mapStyle,
     setMapStyle,
     viewport,
     setViewport,
     fitToIndia,
     toggleLeftSidebar,
+    timeRange,
+    setTimeRange,
   } = useDashboardStore();
+
+  const [istClock, setIstClock] = useState('');
+  const [is3D, setIs3D] = useState(false);
+
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      const dateParts = new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      }).formatToParts(now);
+
+      const p = Object.fromEntries(dateParts.map((item) => [item.type, item.value]));
+      const formatted = `${p.weekday?.toUpperCase()}, ${p.day} ${p.month?.toUpperCase()} ${p.year} ${p.hour}:${p.minute}:${p.second} IST (+5:30)`;
+      setIstClock(formatted);
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const toggle3D = (enable3D: boolean) => {
+    setIs3D(enable3D);
+    if (!mapInstance) return;
+    if (typeof (mapInstance as any).easeTo === 'function') {
+      (mapInstance as any).easeTo({
+        pitch: enable3D ? 52 : 0,
+        bearing: enable3D ? -15 : 0,
+        duration: 900,
+      });
+    }
+  };
 
   const [hoveredFacility, setHoveredFacility] = useState<Facility | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
@@ -510,6 +569,8 @@ export const MainMap: React.FC = () => {
       resizeObserver.disconnect();
       Object.values(markersRef.current).forEach((marker) => marker.remove());
       markersRef.current = {};
+      publicDataCentreMarkersRef.current.forEach((marker) => marker.remove());
+      publicDataCentreMarkersRef.current = [];
       map.off('style.load', onStyleLoaded);
       map.off('load', onMapLoaded);
       map.remove();
@@ -600,8 +661,6 @@ export const MainMap: React.FC = () => {
       }),
     [facilities, activeLayers, wmLayers, typeFilter, riskFilter, searchQuery]
   );
-
-  const city = getPilotCity(cityId);
 
   // Keep the hover card anchored to the marker's projected screen position.
   useEffect(() => {
@@ -723,7 +782,11 @@ export const MainMap: React.FC = () => {
       return el;
     };
 
-    const desired = new Map(filteredFacilities.map((facility) => [facility.id, facility]));
+    // The public registry supersedes synthetic/legacy facility pins. Keeping the
+    // two populations mutually exclusive prevents duplicate or misleading sites.
+    const desired = new Map(
+      (suppressLegacyFacilities || publicDataCentres.length > 0 ? [] : filteredFacilities).map((facility) => [facility.id, facility])
+    );
 
     // Drop markers whose facility is no longer visible.
     Object.entries(markersRef.current).forEach(([id, marker]) => {
@@ -756,7 +819,130 @@ export const MainMap: React.FC = () => {
     });
 
     // Teardown of all markers happens in the map-initialisation effect cleanup.
-  }, [mapInstance, filteredFacilities, selectedFacilityId, setSelectedFacilityId]);
+  }, [mapInstance, filteredFacilities, publicDataCentres.length, selectedFacilityId, setSelectedFacilityId, suppressLegacyFacilities]);
+
+  // The command map uses the real public data-centre registry. Public location
+  // precision is intentionally represented by locality/district context; exact
+  // coordinate values are never exposed in marker labels or interaction copy.
+  useEffect(() => {
+    if (!mapInstance) return;
+    publicDataCentreMarkersRef.current.forEach((marker) => marker.remove());
+
+    // Group coincident coordinates so facilities in the same locality/city
+    // are each rendered with a distinct, clickable marker instead of occluding one another.
+    const coordGroups = new Map<string, PublicFacility[]>();
+    publicDataCentres.forEach((facility) => {
+      const key = `${facility.publicCoordinates[0].toFixed(4)},${facility.publicCoordinates[1].toFixed(4)}`;
+      const list = coordGroups.get(key) || [];
+      list.push(facility);
+      coordGroups.set(key, list);
+    });
+
+    publicDataCentreMarkersRef.current = publicDataCentres.map((facility) => {
+      const element = document.createElement('button');
+      element.type = 'button';
+      const isSelected = facility.id === selectedPublicFacilityId;
+      element.className = 'public-data-centre-marker';
+      element.dataset.facilityId = facility.id;
+      element.dataset.selected = String(isSelected);
+      element.setAttribute('aria-pressed', String(isSelected));
+      element.setAttribute(
+        'aria-label',
+        `${isSelected ? 'Selected data centre' : 'Select data centre'}: ${facility.name}, ${facility.city}, ${facility.state}`
+      );
+      // MapLibre's .maplibregl-marker class manages absolute placement and projection transforms.
+      // Do not set position:relative here as it forces relative document flow, which stacks sibling
+      // markers into a vertical line and causes them to drift across the map during zoom operations.
+      element.style.cssText = [
+        `width:${isSelected ? '28px' : '22px'}`,
+        `height:${isSelected ? '28px' : '22px'}`,
+        'display:flex',
+        'align-items:center',
+        'justify-content:center',
+        'border-radius:5px',
+        `border:${isSelected ? '2px solid #f8fafc' : '1.5px solid #08110d'}`,
+        'background:#39f58b',
+        'color:#08110d',
+        'font:900 10px/1 ui-monospace,monospace',
+        'box-shadow:0 0 0 1.5px rgba(57,245,139,.45),0 4px 12px rgba(0,0,0,.75)',
+        'cursor:pointer',
+        'transition:width .15s,height .15s,box-shadow .15s',
+        `z-index:${isSelected ? '120' : '60'}`,
+      ].join(';');
+
+      const glyph = document.createElement('span');
+      glyph.setAttribute('aria-hidden', 'true');
+      // Server-rack SVG (two rack units + status LED) — matches the facility type icon
+      glyph.innerHTML = '<svg style="width:11px;height:11px;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>';
+      element.append(glyph);
+
+      const label = document.createElement('span');
+      label.className = 'public-data-centre-marker-label';
+      label.setAttribute('aria-hidden', 'true');
+      label.textContent = `${facility.name} · ${facility.city}, ${facility.state}`;
+      label.style.cssText = [
+        'position:absolute',
+        'top:calc(100% + 6px)',
+        'left:50%',
+        'transform:translateX(-50%)',
+        'max-width:260px',
+        'overflow:hidden',
+        'text-overflow:ellipsis',
+        'white-space:nowrap',
+        'border:1px solid #29362f',
+        'border-radius:4px',
+        'background:rgba(17,21,20,.97)',
+        'color:#e7f1e8',
+        'padding:4px 7px',
+        'font:500 12px/1.25 system-ui,sans-serif',
+        'box-shadow:0 4px 12px rgba(0,0,0,.65)',
+        `opacity:${isSelected ? '1' : '0'}`,
+        'pointer-events:none',
+        'transition:opacity .15s',
+      ].join(';');
+      element.append(label);
+
+      const revealLabel = () => { label.style.opacity = '1'; };
+      const concealLabel = () => { if (!isSelected) label.style.opacity = '0'; };
+      element.addEventListener('mouseenter', revealLabel);
+      element.addEventListener('mouseleave', concealLabel);
+      element.addEventListener('focus', revealLabel);
+      element.addEventListener('blur', concealLabel);
+      element.addEventListener('pointerdown', (event) => event.stopPropagation());
+      element.addEventListener('click', (event) => {
+        event.stopPropagation();
+        setInternalPublicFacilityId(facility.id);
+        onSelectPublicFacility?.(facility);
+        if (onOpenPublicFacility) {
+          onOpenPublicFacility(facility);
+        } else if (!onSelectPublicFacility) {
+          window.history.pushState({}, '', `/public-facilities/${facility.id}`);
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        }
+      });
+
+      const key = `${facility.publicCoordinates[0].toFixed(4)},${facility.publicCoordinates[1].toFixed(4)}`;
+      const group = coordGroups.get(key) || [facility];
+      let renderCoords: [number, number] = facility.publicCoordinates;
+      if (group.length > 1) {
+        const index = group.findIndex((f) => f.id === facility.id);
+        const angle = (2 * Math.PI * index) / group.length;
+        // Subtle offset around the generalized locality centroid (~1.5-2km) so coincident markers do not occlude
+        const lngOffset = Math.cos(angle) * 0.02;
+        const latOffset = Math.sin(angle) * 0.016;
+        renderCoords = [
+          Number((facility.publicCoordinates[0] + lngOffset).toFixed(4)),
+          Number((facility.publicCoordinates[1] + latOffset).toFixed(4)),
+        ];
+      }
+
+      return new maplibregl.Marker({ element, anchor: 'center' }).setLngLat(renderCoords).addTo(mapInstance);
+    });
+    return () => {
+      publicDataCentreMarkersRef.current.forEach((marker) => marker.remove());
+      publicDataCentreMarkersRef.current = [];
+    };
+  }, [mapInstance, onOpenPublicFacility, onSelectPublicFacility, publicDataCentres, selectedPublicFacilityId]);
 
   return (
     <div className="relative w-full h-full min-h-[300px] overflow-hidden bg-eco-bg">
@@ -766,34 +952,98 @@ export const MainMap: React.FC = () => {
         className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"
       />
 
-      {/* Top-left floating controls */}
-      <div className="absolute top-3.5 left-3.5 z-20 flex items-center gap-2 select-none">
-        <button
-          type="button"
-          onClick={toggleLeftSidebar}
-          className="flex items-center gap-2 px-3 py-1.5 bg-eco-surface/90 hover:bg-eco-surface-secondary border border-eco-border text-eco-text rounded-lg shadow-lg backdrop-blur-md text-xs font-medium transition-colors cursor-pointer"
-        >
-          <Layers className="w-3.5 h-3.5 text-eco-primary" />
-          <span>Layers &amp; filters</span>
-        </button>
+      {/* Top-left floating controls & World Monitor Tactical HUD */}
+      <div className="absolute top-3.5 left-3.5 z-20 flex flex-col gap-2 select-none pointer-events-auto">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleLeftSidebar}
+            className="flex items-center gap-2 px-3 py-1.5 bg-eco-surface/90 hover:bg-eco-surface-secondary border border-eco-border text-eco-text rounded-lg shadow-lg backdrop-blur-md text-xs font-medium transition-colors cursor-pointer"
+          >
+            <Layers className="w-3.5 h-3.5 text-eco-primary" />
+            <span>Layers &amp; filters</span>
+          </button>
 
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-eco-surface/80 border border-eco-border text-eco-muted rounded-lg shadow-lg backdrop-blur-md text-xs">
-          <span className="w-2 h-2 rounded-full bg-eco-primary" />
-          <span className="font-semibold text-eco-text">
-            {facilitiesStatus === 'loading'
-              ? 'Loading facilities…'
-              : facilitiesStatus === 'error'
-              ? 'Facilities unavailable'
-              : `${filteredFacilities.length} ${
-                  filteredFacilities.length === 1 ? 'facility' : 'facilities'
-                } · ${city.name}`}
-          </span>
-          {mapboxToken && (
-            <span className="text-micro text-eco-primary bg-eco-primary/10 px-1.5 py-0.5 rounded border border-eco-primary/30 font-mono uppercase tracking-wide">
-              Mapbox HD
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-eco-surface/90 border border-eco-border text-eco-muted rounded-lg shadow-lg backdrop-blur-md text-xs">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-          )}
+            <span className="font-semibold text-eco-text">
+              {publicDataCentresStatus === 'loading'
+                ? 'Loading data centres…'
+                : publicDataCentresStatus === 'error'
+                  ? 'Data centres unavailable'
+                  : `${publicDataCentres.length} operating data centre${publicDataCentres.length === 1 ? '' : 's'}`}
+            </span>
+            {mapboxToken && (
+              <span className="text-micro text-eco-primary bg-eco-primary/10 px-1.5 py-0.5 rounded border border-eco-primary/30 font-mono uppercase tracking-wide">
+                Mapbox HD
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center rounded-lg border border-eco-border bg-eco-surface/90 p-0.5 shadow-lg backdrop-blur-md">
+            <button
+              type="button"
+              onClick={() => toggle3D(false)}
+              className={`px-2 py-1 rounded text-[11px] font-bold cursor-pointer transition-all ${
+                !is3D
+                  ? 'bg-emerald-400 text-black shadow-sm'
+                  : 'text-eco-muted hover:text-eco-text'
+              }`}
+              title="2D Planar Orthographic View"
+            >
+              2D
+            </button>
+            <button
+              type="button"
+              onClick={() => toggle3D(true)}
+              className={`px-2 py-1 rounded text-[11px] font-bold cursor-pointer transition-all ${
+                is3D
+                  ? 'bg-emerald-400 text-black shadow-sm'
+                  : 'text-eco-muted hover:text-eco-text'
+              }`}
+              title="3D Tactical Perspective with Elevation Contours"
+            >
+              3D
+            </button>
+          </div>
         </div>
+
+        {/* Live Clock & Time Range Bar */}
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-eco-border/90 bg-eco-surface/90 px-3 py-1.5 shadow-2xl backdrop-blur-md font-mono text-[11px] w-fit">
+          <span className="font-semibold uppercase tracking-wider text-eco-text">
+            DC SITUATION
+          </span>
+          <span className="text-eco-border">|</span>
+          <span className="text-emerald-400 font-bold tracking-tight">
+            {istClock || 'LIVE'}
+          </span>
+          <span className="text-eco-border">|</span>
+          <div className="flex items-center gap-1">
+            {(['1h', '24h', '7d', '30d', 'all'] as TimeRange[]).map((tr) => (
+              <button
+                key={tr}
+                type="button"
+                onClick={() => setTimeRange(tr)}
+                className={`px-1.5 py-0.5 rounded font-mono text-[10px] uppercase transition-all cursor-pointer ${
+                  timeRange === tr
+                    ? 'bg-emerald-400 font-bold text-black shadow-md shadow-emerald-500/20'
+                    : 'text-eco-muted hover:text-eco-text hover:bg-eco-surface-secondary/60'
+                }`}
+              >
+                {tr}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {environmentalMessage(dataMode) && (
+          <div className="max-w-xs rounded border border-eco-warning/30 bg-eco-surface/95 px-2.5 py-1 text-micro text-eco-warning backdrop-blur-md shadow-lg">
+            {environmentalMessage(dataMode)}
+          </div>
+        )}
       </div>
 
       {/* Floating map controls (top-right) */}
@@ -889,12 +1139,12 @@ export const MainMap: React.FC = () => {
           <ZoomOut className="w-4 h-4" />
         </button>
 
-        {/* Recenter on the selected city */}
+        {/* Recenter on the current India data-centre scope */}
         <button
           type="button"
           onClick={() => fitToIndia()}
           className="w-8 h-8 rounded-lg bg-eco-surface/90 border border-eco-border text-eco-text flex items-center justify-center hover:bg-eco-surface-secondary shadow-lg backdrop-blur-md transition-colors cursor-pointer"
-          title={`Recenter on ${city.name}`}
+          title="Recenter on India data-centre scope"
         >
           <Compass className="w-4 h-4 text-eco-primary" />
         </button>
@@ -929,22 +1179,25 @@ export const MainMap: React.FC = () => {
         </div>
       )}
 
-      <div className="absolute top-14 left-4 z-20 max-w-sm rounded border border-eco-warning/30 bg-eco-surface/95 px-2 py-1 text-micro text-eco-warning">{environmentalMessage(dataMode)}</div>
-
-      {/* Facility type legend */}
-      <div className="absolute bottom-4 left-4 z-20 hidden lg:flex flex-wrap items-center gap-x-3 gap-y-1 max-w-[75%] px-3 py-2 bg-eco-surface/90 border border-eco-border rounded-lg shadow-2xl backdrop-blur-md text-xs text-eco-text select-none">
-        <span className="text-micro uppercase tracking-wider text-eco-muted font-mono">
-          Legend
+      {/* World Monitor Floating Tactical Legend */}
+      <div className="absolute bottom-4 left-4 z-20 hidden sm:flex items-center gap-3 px-3 py-1.5 bg-black/85 border border-eco-border/80 rounded-md shadow-2xl backdrop-blur-md font-mono text-[11px] text-eco-text select-none">
+        <span className="text-micro uppercase tracking-wider text-eco-muted font-bold">
+          LEGEND
         </span>
-        {Array.from(new Set(filteredFacilities.map(facility => facility.type))).map((type) => (
-          <div key={type} className="flex items-center gap-1.5">
-            <span
-              className="w-2.5 h-2.5 rounded-full border border-eco-bg shadow"
-              style={{ backgroundColor: FACILITY_TYPE_COLORS[type] }}
-            />
-            <span>{FACILITY_TYPE_LABELS[type]}</span>
-          </div>
-        ))}
+        <div className="flex items-center gap-1.5 rounded bg-purple-500/10 border border-purple-500/30 px-1.5 py-0.5">
+          <span className="w-2 h-2 rounded-xs bg-[#8b5cf6]" />
+          <span className="text-purple-300 font-bold text-[10px]">
+            DATACENTER ({filteredFacilities.length})
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 text-eco-muted text-[10px]">
+          <span className="w-2 h-2 rounded-full bg-amber-400" />
+          <span>SLOPE &gt;15° (SRTM)</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-eco-muted text-[10px]">
+          <span className="w-2 h-2 rounded-full bg-cyan-400" />
+          <span>SURFACE WATER (GSW)</span>
+        </div>
       </div>
 
       {/* Hover tooltip */}

@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate, useSearchParams } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search,
   Layers,
   Globe2,
-  Activity,
-  TrendingUp,
   MapPin,
-  Sparkles,
-  FileSpreadsheet,
   Volume2,
   VolumeX,
   Compass,
@@ -17,6 +13,11 @@ import {
   LayoutGrid,
   Key,
   Database,
+  Server,
+  ShieldCheck,
+  ClipboardCheck,
+  UserPlus,
+  Newspaper,
 } from 'lucide-react';
 import { useDashboardStore } from '../../stores/dashboardStore';
 import { ApiKeyModal } from '../ui/ApiKeyModal';
@@ -25,12 +26,13 @@ import type { TimeRange, DashboardViewMode } from '../../types';
 
 const NAV_MODULES = [
   { to: '/dashboard', label: 'Dashboard', icon: <Globe2 className="h-3.5 w-3.5" /> },
-  { to: '/risk-analysis', label: 'Risk', icon: <Activity className="h-3.5 w-3.5" /> },
-  { to: '/forecast', label: 'Forecast', icon: <TrendingUp className="h-3.5 w-3.5" /> },
-  { to: '/site-analysis', label: 'Site analysis', icon: <MapPin className="h-3.5 w-3.5" /> },
-  { to: '/mitigation', label: 'Mitigation', icon: <Sparkles className="h-3.5 w-3.5" /> },
-  { to: '/reports', label: 'Reports', icon: <FileSpreadsheet className="h-3.5 w-3.5" /> },
-  { to: '/data-sources', label: 'Data sources', icon: <Database className="h-3.5 w-3.5" /> },
+  { to: '/public-facilities', label: 'Registry', icon: <Server className="h-3.5 w-3.5" /> },
+  { to: '/ministry', label: 'Ministry', icon: <ShieldCheck className="h-3.5 w-3.5" /> },
+  { to: '/operator/register', label: 'Register', icon: <UserPlus className="h-3.5 w-3.5" /> },
+  { to: '/ministry/review', label: 'Review', icon: <ClipboardCheck className="h-3.5 w-3.5" /> },
+  { to: '/projects', label: 'DC site planning', icon: <MapPin className="h-3.5 w-3.5" /> },
+  { to: '/data-sources', label: 'DC data sources', icon: <Database className="h-3.5 w-3.5" /> },
+  { to: '/news', label: 'News', icon: <Newspaper className="h-3.5 w-3.5" /> },
 ];
 
 const VIEW_MODES: Array<{ mode: DashboardViewMode; label: string; icon: React.ReactNode; title: string }> = [
@@ -56,16 +58,24 @@ export const WorldMonitorHeader: React.FC = () => {
   } = useDashboardStore();
 
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
 
-  // Live ticking UTC clock
-  const [utcTime, setUtcTime] = useState('');
+  // Live ticking IST clock (UTC+5:30)
+  const [istTime, setIstTime] = useState('');
 
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      setUtcTime(`UTC ${now.toUTCString().slice(17, 25)}`);
+      const timeStr = now.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      setIstTime(`IST ${timeStr} (+5:30)`);
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
@@ -87,6 +97,7 @@ export const WorldMonitorHeader: React.FC = () => {
   };
 
   const activeLayerCount = Object.values(wmLayers).filter(Boolean).length;
+  const showDashboardTools = location.pathname.startsWith('/dashboard');
 
   return (
     <header className="z-30 flex h-14 shrink-0 select-none items-center justify-between border-b border-eco-border bg-eco-bg/95 px-4 backdrop-blur-md">
@@ -102,13 +113,36 @@ export const WorldMonitorHeader: React.FC = () => {
                 EcoSite<span className="text-eco-primary"> Terminal</span>
               </span>
             </div>
-            <p className="mt-0.5 hidden text-micro text-eco-muted lg:block">Environmental intelligence platform</p>
+            <p className="mt-0.5 hidden text-micro text-eco-muted lg:block">Government data-centre oversight</p>
           </div>
         </NavLink>
 
         <div className="hidden items-center gap-1.5 rounded-sm border border-eco-border bg-eco-surface px-2 py-0.5 font-mono text-micro text-eco-muted 2xl:flex">
           <span className="h-1.5 w-1.5 rounded-full bg-eco-primary" />
-          <span>{utcTime || 'UTC --:--:--'}</span>
+          <span>{istTime || 'IST --:--:-- (+5:30)'}</span>
+        </div>
+
+        {/* World Monitor Tactical DEFCON & Risk Pill */}
+        <div className="hidden xl:flex items-center gap-1.5 select-none">
+          <div
+            title="National DC Environmental Threat Condition: DEFCON 4 (Moderate regional groundwater and power stress)"
+            className="flex items-center gap-1.5 rounded bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-400"
+          >
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+            </span>
+            <span>DEFCON 4</span>
+            <span className="text-emerald-500/40">|</span>
+            <span className="text-eco-muted font-normal text-[9px] uppercase">WATER TIER 2</span>
+          </div>
+
+          <div
+            title="19 Data Centres monitored across 4 focus states (MH, TG, KA, TN)"
+            className="flex items-center gap-1 rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 font-mono text-[10px] font-bold text-amber-400"
+          >
+            <span>⚡ 19 DCS</span>
+          </div>
         </div>
       </div>
 
@@ -134,6 +168,7 @@ export const WorldMonitorHeader: React.FC = () => {
 
       {/* Search · view · time · layers · utilities */}
       <div className="flex items-center gap-2">
+        {showDashboardTools && <>
         <div className="relative w-36 sm:w-48">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-eco-muted" />
           <input
@@ -224,6 +259,7 @@ export const WorldMonitorHeader: React.FC = () => {
           icon={<Key className="h-4 w-4" />}
           onClick={() => setIsApiKeyModalOpen(true)}
         />
+        </>}
       </div>
 
       <ApiKeyModal isOpen={isApiKeyModalOpen} onClose={() => setIsApiKeyModalOpen(false)} />

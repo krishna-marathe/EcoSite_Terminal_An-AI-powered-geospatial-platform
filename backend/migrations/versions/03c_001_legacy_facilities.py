@@ -1,6 +1,8 @@
-"""Add power_commitments and water_commitments tables for Phase C.1."""
+"""Formalize the historical demo-facility table and resource commitments."""
+
 from alembic import op
 import sqlalchemy as sa
+
 
 revision = "03c_001"
 down_revision = "03b_001"
@@ -26,6 +28,25 @@ VERIFICATION_STATES = "'UNVERIFIED', 'DOCUMENTED', 'VERIFIED', 'SIMULATED'"
 
 
 def upgrade():
+    # Older databases created this compatibility table in application startup.
+    # Preserve its rows, payloads and any user-created indexes exactly.
+    if not sa.inspect(op.get_bind()).has_table("facilities"):
+        op.execute(
+            """CREATE TABLE facilities (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                type TEXT NOT NULL,
+                state TEXT NOT NULL,
+                district TEXT NOT NULL,
+                longitude REAL NOT NULL,
+                latitude REAL NOT NULL,
+                risk_score INTEGER NOT NULL,
+                risk_level TEXT NOT NULL,
+                payload TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )"""
+        )
+
     op.create_table(
         "power_commitments",
         sa.Column("id", sa.String(36), primary_key=True),
@@ -107,5 +128,4 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_table("water_commitments")
-    op.drop_table("power_commitments")
+    raise RuntimeError("Destructive downgrade is not supported; restore a reviewed backup.")

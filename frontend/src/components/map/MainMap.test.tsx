@@ -1,10 +1,11 @@
-import { act, cleanup, fireEvent, render } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MainMap } from './MainMap';
 import { PILOT_FACILITIES } from '../../data/pilotCities';
 import { getFacilities } from '../../services/facilities';
 import { apiClient } from '../../services/api';
 import { useDashboardStore } from '../../stores/dashboardStore';
+import type { PublicFacility } from '../../types/publicFacilities';
 
 const { flyTo } = vi.hoisted(() => ({ flyTo: vi.fn() }));
 
@@ -111,5 +112,76 @@ describe.each(['demo', 'api'] as const)('%s facility markers', (mode) => {
     expect(marker()).toBeNull();
     act(() => useDashboardStore.getState().setSearchQuery(''));
     expect(marker().querySelector('.facility-name-tag')!.textContent?.trim()).toBe(name);
+  });
+});
+
+describe('public data-centre markers', () => {
+  const publicFacility: PublicFacility = {
+    id: 'public-dc-1',
+    name: '<img src=x onerror="window.mapInjectionExecuted = true">',
+    operator: 'Public Operator',
+    ownershipCategory: 'private',
+    facilityType: 'colocation',
+    stateCode: 'IN-MH',
+    state: 'Maharashtra',
+    city: 'Mumbai',
+    locality: 'General locality',
+    publicCoordinates: [72.8777, 19.076],
+    locationPrecision: 'locality',
+    operationalSince: 2020,
+    capacityDisclosures: [],
+    verification: {
+      status: 'public_operator_confirmed',
+      verifiedAt: '2026-01-01T00:00:00Z',
+      expiresAt: '2026-04-01T00:00:00Z',
+      source: {
+        title: 'Facility page',
+        publisher: 'Public Operator',
+        url: 'https://example.test/facility',
+        sourceClass: 'operator',
+        retrievedAt: '2026-01-01T00:00:00Z',
+      },
+    },
+  };
+
+  it('replaces legacy pins with a safe, selectable and keyboard-native registry marker', () => {
+    useDashboardStore.getState().setFacilities([{ ...PILOT_FACILITIES[0] }]);
+    const onSelect = vi.fn();
+    const onOpen = vi.fn();
+    const view = render(
+      <MainMap
+        publicDataCentres={[publicFacility]}
+        onSelectPublicFacility={onSelect}
+        onOpenPublicFacility={onOpen}
+      />
+    );
+
+    expect(view.container.querySelector('.facility-marker-pin')).toBeNull();
+    const marker = view.container.querySelector<HTMLButtonElement>('.public-data-centre-marker')!;
+    expect(marker).toBeInstanceOf(HTMLButtonElement);
+    expect(marker.getAttribute('aria-label')).toContain('Mumbai, Maharashtra');
+    expect(marker.querySelector('img, script, [onerror]')).toBeNull();
+    expect(marker.querySelector('.public-data-centre-marker-label')?.textContent).toContain(publicFacility.name);
+    expect(marker.textContent).not.toContain('72.8777');
+
+    fireEvent.focus(marker);
+    expect(marker.querySelector<HTMLElement>('.public-data-centre-marker-label')!.style.opacity).toBe('1');
+    fireEvent.click(marker);
+    expect(onSelect).toHaveBeenCalledWith(publicFacility);
+    expect(onOpen).toHaveBeenCalledWith(publicFacility);
+    expect(view.container.querySelector<HTMLButtonElement>('.public-data-centre-marker')?.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('never claims zero data centres while the registry is loading or unavailable', () => {
+    const view = render(<MainMap publicDataCentres={[]} publicDataCentresStatus="loading" />);
+    expect(screen.getByText('Loading data centres…')).toBeTruthy();
+    expect(screen.queryByText(/0 operating data centre/)).toBeNull();
+
+    view.rerender(<MainMap publicDataCentres={[]} publicDataCentresStatus="error" />);
+    expect(screen.getByText('Data centres unavailable')).toBeTruthy();
+    expect(screen.queryByText(/0 operating data centre/)).toBeNull();
+
+    view.rerender(<MainMap publicDataCentres={[publicFacility]} publicDataCentresStatus="ready" />);
+    expect(screen.getByText('1 operating data centre')).toBeTruthy();
   });
 });

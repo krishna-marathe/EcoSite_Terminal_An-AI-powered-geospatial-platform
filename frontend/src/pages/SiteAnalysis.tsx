@@ -8,14 +8,12 @@ import { PageHeader, PageShell } from '../components/ui/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { DataModeBadge, SourceTag } from '../components/ui/Badge';
-import { Field, Input, Select } from '../components/ui/Field';
+import { Field, Input } from '../components/ui/Field';
 import { DefinitionRow, MetricTile } from '../components/ui/MetricTile';
 import { DataTable, type DataTableColumn } from '../components/ui/DataTable';
 import { EmptyState, InlineAlert, LoadingSkeleton } from '../components/ui/StateViews';
 import { DATA_STATUS_LABELS, FACILITY_TYPE_LABELS } from '../theme/tokens';
-import type { CityId, DataMode, InfrastructureType, ProposedSite } from '../types';
-
-const INFRASTRUCTURE_TYPES = Object.keys(FACILITY_TYPE_LABELS) as InfrastructureType[];
+import type { CityId, DataMode, ProposedSite } from '../types';
 
 /** Missing values stay explicit in tables — never rendered as 0. */
 const numberCell = (value: number | null) =>
@@ -107,9 +105,7 @@ function CitySiteAnalysis({ cityId, dataMode }: { cityId: CityId; dataMode: Data
             <Input id="candidate-name" required value={form.name} onChange={e => updateForm({ name: e.target.value })} />
           </Field>
           <Field label="Infrastructure type" htmlFor="candidate-type">
-            <Select id="candidate-type" value={form.type} onChange={e => updateForm({ type: e.target.value as InfrastructureType })}>
-              {INFRASTRUCTURE_TYPES.map(type => <option key={type} value={type}>{FACILITY_TYPE_LABELS[type]}</option>)}
-            </Select>
+            <Input id="candidate-type" value={FACILITY_TYPE_LABELS.data_centre} disabled readOnly />
           </Field>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Latitude (°)" htmlFor="candidate-latitude" hint="Decimal degrees; negative values are south.">
