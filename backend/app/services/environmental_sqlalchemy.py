@@ -5,11 +5,29 @@ from collections.abc import Callable, Sequence
 from datetime import datetime, timedelta, timezone
 from statistics import fmean
 
+from pydantic import HttpUrl, TypeAdapter
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from ..data.models import DataSource
+
+_URL_ADAPTER = TypeAdapter(HttpUrl)
+_FALLBACK_URL = "https://data.gov.in"
+
+
+def _safe_url(candidate: str | None) -> str | None:
+    if not candidate:
+        return None
+    cleaned = str(candidate).strip()
+    if not cleaned:
+        return None
+    try:
+        _URL_ADAPTER.validate_python(cleaned)
+        return cleaned
+    except Exception:
+        return None
+
 from ..models.environmental import (
     EnvironmentalObservation, EnvironmentalRollup, FacilityStationLink,
     MetricDefinition, MonitoringStation,
@@ -78,11 +96,17 @@ class SqlAlchemyEnvironmentalRepository(EnvironmentalRepository):
 
     @staticmethod
     def _provenance(source: DataSource, retrieved_at: datetime) -> Provenance:
+        url = (
+            _safe_url(getattr(source, "exact_endpoint", None))
+            or _safe_url(getattr(source, "base_url", None))
+            or _FALLBACK_URL
+        )
         return Provenance(
             source.id, source.provider, source.dataset_name,
-            source.exact_endpoint or source.base_url or "", retrieved_at,
+            url, retrieved_at,
             "measured", "near_real_time", "public",
         )
+
 
     def current_metrics(self, facility_id: str, metrics: Sequence[str]) -> Sequence[CurrentMetric]:
         def query(session: Session):

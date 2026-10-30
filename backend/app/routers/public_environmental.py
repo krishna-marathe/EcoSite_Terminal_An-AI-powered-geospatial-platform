@@ -13,7 +13,10 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 
+from pydantic import HttpUrl, TypeAdapter
+
 from ..schemas.environmental_monitoring import (
+    DEFAULT_PROVENANCE_URL,
     EnvironmentalCurrentResponse,
     EnvironmentalPoint,
     EnvironmentalProvenance,
@@ -26,6 +29,22 @@ from ..schemas.environmental_monitoring import (
     SourceHealth,
     StationContext,
 )
+
+_URL_ADAPTER = TypeAdapter(HttpUrl)
+
+
+def _safe_provenance_url(raw: str | None) -> str:
+    if not raw:
+        return DEFAULT_PROVENANCE_URL
+    candidate = str(raw).strip()
+    if not candidate:
+        return DEFAULT_PROVENANCE_URL
+    try:
+        _URL_ADAPTER.validate_python(candidate)
+        return candidate
+    except Exception:
+        return DEFAULT_PROVENANCE_URL
+
 from ..schemas.public_facilities import ApiError, StateCode
 from ..services.environmental_monitoring import (
     EnvironmentalFacilityNotFound,
@@ -146,16 +165,18 @@ def _station(value) -> StationContext | None:
 def _provenance(value) -> EnvironmentalProvenance | None:
     if value is None:
         return None
+    safe_url = _safe_provenance_url(getattr(value, "source_url", None))
     return EnvironmentalProvenance(
         sourceId=value.source_id,
         provider=value.provider,
         dataset=value.dataset,
-        sourceUrl=value.source_url,
+        sourceUrl=safe_url,
         retrievedAt=value.retrieved_at,
         evidenceClass=value.evidence_class,
         temporalClass=value.temporal_class,
         visibility=value.visibility,
     )
+
 
 
 def _current_metric(value) -> dict:

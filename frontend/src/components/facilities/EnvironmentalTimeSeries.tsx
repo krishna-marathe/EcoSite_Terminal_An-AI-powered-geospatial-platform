@@ -16,7 +16,7 @@ export function EnvironmentalTimeSeries({ data, range, onRangeChange, loading = 
   return (
     <Card
       title="Environmental trends"
-      subtitle="Cached observations and rollups from linked public stations"
+      subtitle="Official CPCB & IMD station network · Surrounding ambient baseline"
       actions={
         <div className="flex flex-wrap gap-1" aria-label="Environmental time range">
           {RANGES.map((item) => (

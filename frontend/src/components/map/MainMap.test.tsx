@@ -172,16 +172,21 @@ describe('public data-centre markers', () => {
     expect(view.container.querySelector<HTMLButtonElement>('.public-data-centre-marker')?.getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('never claims zero data centres while the registry is loading or unavailable', () => {
+  it('never claims a zero data-centre count while the registry is loading or unavailable', () => {
+    const noCount = () => expect(screen.queryByText(/operating data cent/i)).toBeNull();
+
     const view = render(<MainMap publicDataCentres={[]} publicDataCentresStatus="loading" />);
     expect(screen.getByText('Loading data centres…')).toBeTruthy();
-    expect(screen.queryByText(/0 operating data centre/)).toBeNull();
+    noCount();
 
     view.rerender(<MainMap publicDataCentres={[]} publicDataCentresStatus="error" />);
     expect(screen.getByText('Data centres unavailable')).toBeTruthy();
-    expect(screen.queryByText(/0 operating data centre/)).toBeNull();
+    noCount();
 
+    // The registry count is stated once, by the dashboard KPI; the map never restates it.
     view.rerender(<MainMap publicDataCentres={[publicFacility]} publicDataCentresStatus="ready" />);
-    expect(screen.getByText('1 operating data centre')).toBeTruthy();
+    expect(screen.queryByText('Loading data centres…')).toBeNull();
+    expect(screen.getByRole('button', { name: /Mumbai, Maharashtra/ })).toBeTruthy();
+    noCount();
   });
 });

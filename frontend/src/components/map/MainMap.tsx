@@ -3,7 +3,7 @@ import { DEMO_OVERLAYS, overlayLayerIds, environmentalMessage } from '../../util
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Compass, Layers, Sparkles, X, ZoomIn, ZoomOut } from 'lucide-react';
+import { Layers, Maximize2, Sparkles, X, ZoomIn, ZoomOut } from 'lucide-react';
 import { useDashboardStore } from '../../stores/dashboardStore';
 import {
   GROUNDWATER_ZONES_GEOJSON,
@@ -416,7 +416,6 @@ export const MainMap: React.FC<MainMapProps> = ({
   } = useDashboardStore();
 
   const [istClock, setIstClock] = useState('');
-  const [is3D, setIs3D] = useState(false);
 
   useEffect(() => {
     const update = () => {
@@ -442,17 +441,6 @@ export const MainMap: React.FC<MainMapProps> = ({
     return () => clearInterval(id);
   }, []);
 
-  const toggle3D = (enable3D: boolean) => {
-    setIs3D(enable3D);
-    if (!mapInstance) return;
-    if (typeof (mapInstance as any).easeTo === 'function') {
-      (mapInstance as any).easeTo({
-        pitch: enable3D ? 52 : 0,
-        bearing: enable3D ? -15 : 0,
-        duration: 900,
-      });
-    }
-  };
 
   const [hoveredFacility, setHoveredFacility] = useState<Facility | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
@@ -480,6 +468,12 @@ export const MainMap: React.FC<MainMapProps> = ({
       minZoom: 3,
       maxZoom: 18,
       attributionControl: false,
+      pitch: 0,
+      bearing: 0,
+      maxPitch: 0,
+      dragRotate: false,
+      pitchWithRotate: false,
+      touchPitch: false,
     });
 
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
@@ -678,14 +672,12 @@ export const MainMap: React.FC<MainMapProps> = ({
     mapInstance.on('zoom', syncTooltipPosition);
     mapInstance.on('resize', syncTooltipPosition);
     mapInstance.on('rotate', syncTooltipPosition);
-    mapInstance.on('pitch', syncTooltipPosition);
 
     return () => {
       mapInstance.off('move', syncTooltipPosition);
       mapInstance.off('zoom', syncTooltipPosition);
       mapInstance.off('resize', syncTooltipPosition);
       mapInstance.off('rotate', syncTooltipPosition);
-      mapInstance.off('pitch', syncTooltipPosition);
     };
   }, [mapInstance, hoveredFacility]);
 
@@ -964,60 +956,33 @@ export const MainMap: React.FC<MainMapProps> = ({
             <span>Layers &amp; filters</span>
           </button>
 
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-eco-surface/90 border border-eco-border text-eco-muted rounded-lg shadow-lg backdrop-blur-md text-xs">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
-            <span className="font-semibold text-eco-text">
-              {publicDataCentresStatus === 'loading'
-                ? 'Loading data centres…'
-                : publicDataCentresStatus === 'error'
-                  ? 'Data centres unavailable'
-                  : `${publicDataCentres.length} operating data centre${publicDataCentres.length === 1 ? '' : 's'}`}
-            </span>
-            {mapboxToken && (
+          {/* The registry count is stated once, by the dashboard KPI; the map only reports a
+              transient loading/failed registry state, which is actionable here. */}
+          {publicDataCentresStatus !== 'ready' && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-eco-surface/90 border border-eco-border text-eco-muted rounded-lg shadow-lg backdrop-blur-md text-xs">
+              <span className={`relative flex h-2 w-2 rounded-full ${publicDataCentresStatus === 'error' ? 'bg-eco-critical' : 'bg-eco-primary'}`} />
+              <span className="font-semibold text-eco-text">
+                {publicDataCentresStatus === 'loading' ? 'Loading data centres…' : 'Data centres unavailable'}
+              </span>
+            </div>
+          )}
+
+          {mapboxToken && (
+            <div className="flex items-center px-2.5 py-1.5 bg-eco-surface/90 border border-eco-border rounded-lg shadow-lg backdrop-blur-md">
               <span className="text-micro text-eco-primary bg-eco-primary/10 px-1.5 py-0.5 rounded border border-eco-primary/30 font-mono uppercase tracking-wide">
                 Mapbox HD
               </span>
-            )}
-          </div>
-
-          <div className="flex items-center rounded-lg border border-eco-border bg-eco-surface/90 p-0.5 shadow-lg backdrop-blur-md">
-            <button
-              type="button"
-              onClick={() => toggle3D(false)}
-              className={`px-2 py-1 rounded text-[11px] font-bold cursor-pointer transition-all ${
-                !is3D
-                  ? 'bg-emerald-400 text-black shadow-sm'
-                  : 'text-eco-muted hover:text-eco-text'
-              }`}
-              title="2D Planar Orthographic View"
-            >
-              2D
-            </button>
-            <button
-              type="button"
-              onClick={() => toggle3D(true)}
-              className={`px-2 py-1 rounded text-[11px] font-bold cursor-pointer transition-all ${
-                is3D
-                  ? 'bg-emerald-400 text-black shadow-sm'
-                  : 'text-eco-muted hover:text-eco-text'
-              }`}
-              title="3D Tactical Perspective with Elevation Contours"
-            >
-              3D
-            </button>
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Live Clock & Time Range Bar */}
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-eco-border/90 bg-eco-surface/90 px-3 py-1.5 shadow-2xl backdrop-blur-md font-mono text-[11px] w-fit">
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-eco-border/90 bg-eco-surface/90 px-3 py-1.5 shadow-2xl backdrop-blur-md font-mono text-micro w-fit">
           <span className="font-semibold uppercase tracking-wider text-eco-text">
             DC SITUATION
           </span>
           <span className="text-eco-border">|</span>
-          <span className="text-emerald-400 font-bold tracking-tight">
+          <span className="text-eco-primary font-bold tracking-tight">
             {istClock || 'LIVE'}
           </span>
           <span className="text-eco-border">|</span>
@@ -1027,9 +992,9 @@ export const MainMap: React.FC<MainMapProps> = ({
                 key={tr}
                 type="button"
                 onClick={() => setTimeRange(tr)}
-                className={`px-1.5 py-0.5 rounded font-mono text-[10px] uppercase transition-all cursor-pointer ${
+                className={`px-1.5 py-0.5 rounded font-mono text-meta uppercase transition-all cursor-pointer ${
                   timeRange === tr
-                    ? 'bg-emerald-400 font-bold text-black shadow-md shadow-emerald-500/20'
+                    ? 'bg-eco-primary font-bold text-eco-bg shadow-md shadow-eco-primary/20'
                     : 'text-eco-muted hover:text-eco-text hover:bg-eco-surface-secondary/60'
                 }`}
               >
@@ -1146,7 +1111,7 @@ export const MainMap: React.FC<MainMapProps> = ({
           className="w-8 h-8 rounded-lg bg-eco-surface/90 border border-eco-border text-eco-text flex items-center justify-center hover:bg-eco-surface-secondary shadow-lg backdrop-blur-md transition-colors cursor-pointer"
           title="Recenter on India data-centre scope"
         >
-          <Compass className="w-4 h-4 text-eco-primary" />
+          <Maximize2 className="w-4 h-4 text-eco-primary" />
         </button>
       </div>
 

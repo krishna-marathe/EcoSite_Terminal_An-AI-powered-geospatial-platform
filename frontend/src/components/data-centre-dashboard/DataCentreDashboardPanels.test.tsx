@@ -39,14 +39,16 @@ describe('data-centre dashboard panels', () => {
     expect(screen.getByText(/not on-site facility telemetry/)).toBeInTheDocument();
   });
 
-  it('renders metric availability and covered facility counts', () => {
+  it('summarises coverage as a total and keeps metric detail behind a disclosure', () => {
     const state: EnvironmentalStateSummaryResponse = {
       stateCode: 'IN-MH', range: '24h', generatedAt: '2026-10-29T08:30:00Z', facilityCount: 7, coveredFacilityCount: 2,
       metrics: [{ metric: 'aqi', displayName: 'Air quality index', unit: 'AQI', availability: 'PARTIAL', coveredFacilityCount: 2, currentFacilityCount: 1, staleFacilityCount: 1, unavailableFacilityCount: 0, minimum: 40, maximum: 80, mean: 60, aggregationMethod: 'station_context', contextNotice: 'Nearby station.' }],
       sourceHealth: [],
     };
     render(<EnvironmentalCoveragePanel states={[state]} />);
-    expect(screen.getByText('2/7 facilities covered')).toBeInTheDocument();
+    expect(screen.getByText(/of 7 facilities have a linked public monitoring station/)).toBeInTheDocument();
+    expect(screen.getByText('IN-MH')).toBeInTheDocument();
+    expect(screen.getByText('Which metrics, and what is missing?')).toBeInTheDocument();
     expect(screen.getByText('PARTIAL')).toBeInTheDocument();
   });
 

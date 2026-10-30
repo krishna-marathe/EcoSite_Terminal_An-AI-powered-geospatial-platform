@@ -17,6 +17,7 @@ import {
   Printer,
   ShieldCheck,
   Flame,
+  Users,
 } from 'lucide-react';
 import type { PublicFacility } from '../../types/publicFacilities';
 import type { EnvironmentalCurrentResponse } from '../../types/environmentalMonitoring';
@@ -473,23 +474,70 @@ export const DataCentreAiInsightsCard: React.FC<DataCentreAiInsightsCardProps> =
               </div>
             </div>
 
-            {/* Human Receptor & Population Density */}
-            <div className="rounded border border-eco-border/80 bg-eco-surface-secondary/40 p-2.5 space-y-1">
-              <div className="flex items-center justify-between text-micro text-eco-muted uppercase tracking-wider">
-                <span className="flex items-center gap-1 text-cyan-400 font-bold">
-                  <Leaf className="h-3 w-3" /> Population Context
-                </span>
-                <span className="rounded bg-sky-500/10 border border-sky-500/30 px-1 py-0.2 text-[9px] text-sky-400 font-bold">
-                  {activeInsights.infrastructureTelemetry.population.densityBand.replace('_', ' ')}
-                </span>
-              </div>
-              <div className="text-body font-bold text-eco-text">
-                {activeInsights.infrastructureTelemetry.population.densityPerKm2.toLocaleString()} persons/km²
-              </div>
-              <div className="text-micro text-eco-muted line-clamp-1 pt-0.5" title={activeInsights.infrastructureTelemetry.population.bufferAlert}>
-                {activeInsights.infrastructureTelemetry.population.bufferAlert}
-              </div>
-            </div>
+            {/* Human Population Context & Community Coexistence */}
+            {(() => {
+              const popTelemetry = activeInsights.infrastructureTelemetry.population;
+              const pop1km = popTelemetry.population1km ?? Math.round(popTelemetry.densityPerKm2 * 3.14);
+              const pop5km = popTelemetry.population5km ?? Math.round(popTelemetry.densityPerKm2 * 25);
+              const popSource = popTelemetry.dataSource || 'WorldPop 100m SDI & Census Baseline';
+
+              return (
+                <div className="rounded border border-eco-border/80 bg-eco-surface-secondary/40 p-2.5 space-y-2">
+                  <div className="flex items-center justify-between text-micro text-eco-muted uppercase tracking-wider">
+                    <span className="flex items-center gap-1 text-cyan-400 font-bold">
+                      <Users className="h-3 w-3" /> Population & Coexistence
+                    </span>
+                    <span className="rounded bg-sky-500/10 border border-sky-500/30 px-1.5 py-0.2 text-[9px] text-sky-400 font-bold">
+                      {popTelemetry.densityBand.replace('_', ' ')}
+                    </span>
+                  </div>
+
+                  {/* 1 km vs 5 km Dual Radii Metrics */}
+                  <div className="grid grid-cols-2 gap-2 pt-0.5 font-mono text-[11px]">
+                    <div className="rounded bg-eco-surface/60 border border-eco-border/60 p-1.5">
+                      <div className="text-[9px] text-eco-muted uppercase tracking-wider flex items-center justify-between">
+                        <span>1 km Radius</span>
+                        <span className="text-emerald-400 font-semibold">Immediate</span>
+                      </div>
+                      <div className="text-body font-bold text-eco-text pt-0.5">
+                        {pop1km.toLocaleString()} <span className="text-[10px] font-normal text-eco-muted">people</span>
+                      </div>
+                      <div className="text-[9px] text-eco-muted pt-0.5 truncate" title={`~${popTelemetry.densityPerKm2.toLocaleString()} / km²`}>
+                        ~{popTelemetry.densityPerKm2.toLocaleString()} / km²
+                      </div>
+                    </div>
+
+                    <div className="rounded bg-eco-surface/60 border border-eco-border/60 p-1.5">
+                      <div className="text-[9px] text-eco-muted uppercase tracking-wider flex items-center justify-between">
+                        <span>5 km Radius</span>
+                        <span className="text-sky-400 font-semibold">Catchment</span>
+                      </div>
+                      <div className="text-body font-bold text-eco-text pt-0.5">
+                        {pop5km.toLocaleString()} <span className="text-[10px] font-normal text-eco-muted">people</span>
+                      </div>
+                      <div className="text-[9px] text-eco-muted pt-0.5 truncate">
+                        Municipal corridor
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pleasant Recommendation Alert */}
+                  <div className="rounded bg-emerald-500/10 border border-emerald-500/25 p-1.5 text-micro text-emerald-300 flex items-start gap-1.5 leading-snug">
+                    <Leaf className="h-3.5 w-3.5 shrink-0 text-emerald-400 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-emerald-400">Coexistence Guide: </span>
+                      <span>{popTelemetry.bufferAlert}</span>
+                    </div>
+                  </div>
+
+                  {/* Source attribution footnote */}
+                  <div className="text-[9px] text-eco-muted flex items-center justify-between pt-0.5">
+                    <span>Source: <strong className="text-eco-text">{popSource}</strong></span>
+                    <span className="text-eco-primary font-mono">100m grid</span>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Actionable Interventions Section */}

@@ -7,7 +7,7 @@ describe('InfrastructurePredictionsPanel', () => {
     render(<InfrastructurePredictionsPanel />);
 
     expect(screen.getByText('Infrastructure & risk predictions')).toBeInTheDocument();
-    expect(screen.getByText('Tactical situational forecast')).toBeInTheDocument();
+    expect(screen.getByText(/Illustrative screening scenarios/i)).toBeInTheDocument();
     expect(
       screen.getByText(/Chakan Taluka Groundwater Over-Extraction/i)
     ).toBeInTheDocument();

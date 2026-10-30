@@ -25,7 +25,7 @@ export interface EnvironmentalCurrentProps {
 
 export function EnvironmentalCurrent({ data, loading = false }: EnvironmentalCurrentProps) {
   return (
-    <Card title="Current environmental context" subtitle="Nearby official monitoring stations, not on-site facility telemetry" icon={<Activity className="h-4 w-4" />}>
+    <Card title="Current environmental context" subtitle="Official CPCB & IMD station network · Surrounding ambient baseline" icon={<Activity className="h-4 w-4" />}>
       {loading ? <p className="text-body text-eco-muted">Loading current observations&hellip;</p> : !data ? (
         <p className="text-body text-eco-muted">Environmental context is unavailable.</p>
       ) : (

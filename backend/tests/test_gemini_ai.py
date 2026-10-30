@@ -92,6 +92,12 @@ class TestGeminiAiService(unittest.TestCase):
             self.assertIn("Deterministic Engineering Engine", result.modelUsed)
             self.assertGreaterEqual(len(result.interventions), 3)
             self.assertGreaterEqual(len(result.complianceChecklist), 3)
+            # Verify 1km and 5km population metrics and pleasant buffer alert
+            pop = result.infrastructureTelemetry.population
+            self.assertEqual(pop.population1km, 6200)
+            self.assertEqual(pop.population5km, 118000)
+            self.assertIn("WorldPop", pop.dataSource)
+            self.assertIn("pleasant", pop.bufferAlert.lower())
 
     @patch("app.services.gemini_ai._call_gemini_endpoint")
     def test_generate_facility_ai_insights_live_gemini(self, mock_call):

@@ -19,9 +19,6 @@ vi.mock('../services/environmentalMonitoring', () => ({
 }));
 vi.mock('../services/ministryOperations', () => ({ getMinistryOverview: vi.fn() }));
 vi.mock('../components/layout/LeftSidebar', () => ({ LeftSidebar: () => <div data-testid="left-sidebar" /> }));
-vi.mock('../components/worldmonitor/WorldMonitorLayerRibbon', () => ({
-  WorldMonitorLayerRibbon: ({ dataCentreCount }: { dataCentreCount?: number }) => <div>Marker count: {dataCentreCount ?? 'loading'}</div>,
-}));
 vi.mock('../components/map/MainMap', () => ({
   MainMap: ({
     publicDataCentres,
@@ -107,7 +104,9 @@ describe('Dashboard integration', () => {
     expect(await screen.findByRole('main', { name: 'Data-centre operations dashboard' })).toBeInTheDocument();
     expect(await screen.findByText('Operational registry')).toBeInTheDocument();
     expect(screen.getByText('Environmental coverage')).toBeInTheDocument();
-    expect(screen.getByText('Action queue and source health')).toBeInTheDocument();
+    // The action queue moved to the ministry workspace; the dashboard links to it instead.
+    expect(screen.queryByText('Action queue and source health')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Ministry workspace/ })).toHaveAttribute('href', '/ministry');
     expect(screen.queryByTestId('main-map')).not.toBeInTheDocument();
   });
 

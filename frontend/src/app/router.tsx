@@ -4,6 +4,7 @@ import { Dashboard } from '../pages/Dashboard';
 import { Projects } from '../pages/Projects';
 import { DataSources } from '../pages/DataSources';
 import { News } from '../pages/News';
+import { CommunityGuide } from '../pages/CommunityGuide';
 import { PublicFacilities } from '../pages/PublicFacilities';
 import { MinistryDashboardRoute, MinistryReviewRoute, OperatorRegistrationRoute, PublicFacilityDetailRoute } from '../pages/IntegratedRoutes';
 
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
       { path: 'projects', element: <Projects /> },
       { path: 'data-sources', element: <DataSources /> },
       { path: 'news', element: <News /> },
+      { path: 'learn', element: <CommunityGuide /> },
       { path: 'public-facilities', element: <PublicFacilities /> },
       { path: 'public-facilities/:facilityId', element: <PublicFacilityDetailRoute /> },
       { path: 'ministry', element: <MinistryDashboardRoute /> },

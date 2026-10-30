@@ -67,9 +67,9 @@ export function SitePassport({
                 Generated: {new Date().toISOString().split('T')[0]}
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-100 tracking-tight mt-1 print:text-black">
+            <h2 className="mt-1 text-xl font-bold tracking-tight text-eco-text sm:text-2xl print:text-black">
               Site Readiness Passport: {site.name}
-            </h1>
+            </h2>
             <p className="text-xs text-eco-muted mt-0.5 print:text-gray-600">
               Project: <strong className="text-slate-300 print:text-black">{project.name}</strong> ({project.archetype.toUpperCase()}) · Organization: {project.organization_label}
             </p>

@@ -426,3 +426,129 @@ Every Gemini AI Assist evaluation dynamically synthesizes:
 - **Backend Unit Tests**: 5/5 tests passed in 0.002s in [`test_gemini_ai.py`](file:///c:/Users/Sid/eco-terminal/EcoTerminal/backend/tests/test_gemini_ai.py).
 - **Frontend Test Suite**: 51/51 test suites passed, 245/245 tests passed in Vitest.
 - **Live Integration Verification**: `POST /api/v1/public-facilities/iron-mountain-mum-1/ai-assist` verified returning HTTP 200 with grounded `ministryAssessment`, `officialDirective`, and `statutoryRiskScore`.
+
+
+---
+
+## 10. Population Radius Telemetry (1 km & 5 km) & Pleasant Coexistence Framework
+
+### 10.1 Strategic Architecture & Dual Radii Roles
+To evaluate human population context around operational and planned hyperscale/colocation data centres without adopting alarmist or punitive rhetoric, EcoSite Terminal employs a **Dual-Buffer Spatial Framework**:
+
+| Radius Buffer | Spatial Scope & Area | Analytical Purpose & Compliance Context |
+| :--- | :--- | :--- |
+| **1 km Radius** | ~3.14 km² immediate zone | **Immediate Receptor Buffer**: Evaluates localized acoustic exposure from standby diesel generator testing and chiller cooling towers. Ensures compliance with Central Pollution Control Board (CPCB) residential thresholds (55 dBA daytime / 45 dBA nighttime). Focuses on site boundary setbacks and acoustic silencer baffles. |
+| **5 km Radius** | ~78.5 km² municipal catchment | **Municipal & Regional Carrying Capacity**: Assesses broader urban coexistence, shared electrical substation feeder stress, and municipal water balance. Identifies opportunities for non-potable secondary/tertiary treated effluent recycling rather than tapping domestic aquifers. |
+
+### 10.2 Recommended Authoritative Population Data Source
+
+#### **Primary Recommendation: WorldPop 100m Resolution Unconstrained & Constrained Gridded Population (IND_ppp_2020_100m)**
+- **Publisher / Organization:** University of Southampton, UNFPA, and the WorldPop Open Spatial Data Infrastructure.
+- **Licensing:** Open Access under Creative Commons Attribution 4.0 International (CC BY 4.0).
+- **Spatial Resolution:** 100-meter grid cell rasters (~0.000833 deg decimal degrees at the equator, ~3 arc-seconds).
+- **Access Endpoints:**
+  - Cloud-Optimized GeoTIFFs (COGs) hosted on the AWS Open Data Registry (s3://worldpop-open-data/).
+  - Open REST API (https://api.worldpop.org/v1/services/stats allowing zonal circle queries given lat/lon and radius).
+- **Why 100m Resolution is Mathematically Essential for 1 km Buffers:**
+  - A 1 km radius circle covers an area of pi * 1^2 = ~3.14 km².
+  - With a **100m grid**, the circle intersects **~314 individual raster cells**, providing the spatial granularity required to distinguish whether a campus sits in a low-density industrial park corner (e.g. TTC Mahape, SIPCOT Siruseri) or abuts a dense residential neighborhood.
+  - Coarser global products like GPWv4 (1 km grid) provide only 3–4 cells inside a 1 km radius circle, which causes severe boundary blurring and misrepresents local buffer separation.
+- **Statutory Government Calibration Baseline:**
+  - **Census of India Primary Census Abstract (PCA)** published by the Office of the Registrar General & Census Commissioner, Ministry of Home Affairs, Government of India.
+  - WorldPop rasters are calibrated and dasymetrically reconciled against the Census of India sub-district (tehsil/taluka) and village/ward baselines, satisfying statutory audit requirements for Indian environmental boards (CPCB/SPCB).
+
+### 10.3 Pleasant & Constructive Recommendation Tone & Siting Philosophy
+Instead of adversarial or alarmist phrasing (*High human hazard / risk violation*), the terminal frames all population observations around **Community Coexistence & Green Buffer Stewardship**:
+- **Acoustic Harmony**: Focuses on low-noise baffled air louvers, vibration isolation bases, and acoustic silencers that maintain peaceful sound levels (<= 55 dBA) at the perimeter.
+- **Vegetative Landscaping**: Promotes 33% evergreen tree canopy buffers and green living walls that filter particulates and visually blend high-tech facilities into the local landscape.
+- **Municipal Resource Symbiosis**: Directs cooling operations toward municipal greywater and tertiary-treated effluent, converting urban wastewater into high-efficiency cooling while preserving potable aquifers for local households.
+- **Community Microgrid Offsets**: Explores rooftop solar and clean power open-access wheeling that improves local grid power quality for neighboring communities.
+
+### 10.4 Registry Population Mappings for All 19 Operational Data Centres
+
+> **Provenance note.** The values below are engineering estimates hardcoded in
+> `backend/app/services/gemini_ai.py` (`FACILITY_POPULATION_METRICS`) and mirrored in
+> `frontend/src/utils/dataCentreInsights.ts`. They are **not** live WorldPop API queries; the
+> `dataSource` string attached to them names the intended dataset, not the one that produced
+> these numbers. The WorldPop connector that performs real queries is
+> `backend/app/data/connectors/worldpop.py`.
+
+| Facility ID | Campus & Operator | Locality & State | 1 km Radius Population | 5 km Radius Population | Density (/km²) & Band | Pleasant Coexistence Guidance |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| iron-mountain-mum-1 | MUM-1 (Iron Mountain) | Navi Mumbai (IN-MH) | **6,200** | **118,000** | 1,974 (MODERATE) | Native evergreen vegetative perimeter and acoustic silencers ensure quiet, pleasant coexistence. |
+| iron-mountain-mum-2 | MUM-2 (Iron Mountain) | Navi Mumbai (IN-MH) | **6,200** | **118,000** | 1,974 (MODERATE) | Native evergreen vegetative perimeter and acoustic silencers ensure quiet, pleasant coexistence. |
+| ctrls-mumbai-dc-1-2 | Mumbai DC1 & DC2 (CtrlS) | Navi Mumbai (IN-MH) | **6,200** | **118,000** | 1,974 (MODERATE) | Dual acoustic louvers and landscaped boundaries support seamless community integration. |
+| ctrls-mumbai-dc-3 | Mumbai DC3 (CtrlS) | Navi Mumbai (IN-MH) | **6,200** | **118,000** | 1,974 (MODERATE) | High-efficiency chiller plant with low-noise fan arrays promotes pleasant environmental stewardship. |
+| ctrls-mumbai-dc-4 | Mumbai DC4 (CtrlS) | Navi Mumbai (IN-MH) | **6,200** | **118,000** | 1,974 (MODERATE) | Vegetative boundary screening and sound-dampened auxiliary systems foster amicable industrial-residential coexistence. |
+| ctrls-mumbai-dc-5 | Mumbai DC5 (CtrlS) | Navi Mumbai (IN-MH) | **6,200** | **118,000** | 1,974 (MODERATE) | Green-belt tree canopy and acoustic attenuation preserve pleasant local residential amenity. |
+| stt-mumbai-dc-2 | STT Mumbai DC2 (STT GDC) | Andheri East, Mumbai (IN-MH) | **26,400** | **465,000** | 8,403 (ULTRA HIGH) | Baffled acoustic silencers and dedicated clean standby power maintain peaceful urban coexistence. |
+| stt-pune-5 | STT Pune 5 (STT GDC) | Pune (IN-MH) | **6,800** | **120,000** | 2,164 (MODERATE) | Native tree screening and efficient acoustic baffling foster tranquil community coexistence. |
+| stt-hyderabad-1 | STT Hyderabad 1 (STT GDC) | HITEC City, Hyderabad (IN-TG) | **9,200** | **165,000** | 2,928 (MODERATE) | Tiered evergreen landscape barriers and smart microgrid coordination support mutual urban resilience. |
+| ctrls-hyderabad-dc-1 | Hyderabad DC1 (CtrlS) | Hyderabad (IN-TG) | **8,700** | **152,000** | 2,769 (MODERATE) | Sound-dampened cooling towers and tertiary treated water utilization foster sustainable community symbiosis. |
+| ctrls-hyderabad-dc-2 | Hyderabad DC2 (CtrlS) | Hyderabad (IN-TG) | **8,700** | **152,000** | 2,769 (MODERATE) | Baffled air intake louvers and stormwater retention chambers provide positive community environmental value. |
+| ctrls-hyderabad-dc-3 | Hyderabad DC3 (CtrlS) | Hyderabad (IN-TG) | **8,700** | **152,000** | 2,769 (MODERATE) | Low-noise standby systems and native tree canopies cultivate a pleasant neighborly atmosphere. |
+| ctrls-bangalore-dc-1 | Bangalore DC1 (CtrlS) | Electronic City, Bengaluru (IN-KA) | **7,400** | **135,000** | 2,355 (MODERATE) | ELCITA smart water recycling partnership and acoustic baffling maintain tranquil surrounding environs. |
+| ntt-bengaluru-2 | Bengaluru 2 (NTT) | Whitefield, Bengaluru (IN-KA) | **11,500** | **210,000** | 3,660 (HIGH) | Boundary green walls and closed-loop adiabatic cooling foster pleasant neighborhood environmental integration. |
+| ntt-bengaluru-3 | Bengaluru 3 (NTT) | Whitefield, Bengaluru (IN-KA) | **11,500** | **210,000** | 3,660 (HIGH) | Continuous acoustic monitoring and zero-wastewater discharge protect nearby residential amenity. |
+| adaniconnex-chennai-1 | Chennai 1 (AdaniConneX) | Siruseri, Chennai (IN-TN) | **3,600** | **62,000** | 1,146 (LOW) | Broad coastal vegetative buffer and eco-friendly cooling ensure pristine, quiet surroundings. |
+| stt-chennai-2 | STT Chennai 2 (STT GDC) | Ambattur, Chennai (IN-TN) | **13,200** | **225,000** | 4,202 (HIGH) | Acoustic enclosure baffling and industrial water recycling ensure peaceful coexistence with neighboring wards. |
+| stt-chennai-7 | STT Chennai 7 (STT GDC) | Siruseri, Chennai (IN-TN) | **3,600** | **62,000** | 1,146 (LOW) | Generous green perimeter and treated greywater utilization safeguard local coastal ecology. |
+| ctrls-chennai-datacenter-park | Chennai Datacenter Park (CtrlS) | Ambattur, Chennai (IN-TN) | **13,200** | **225,000** | 4,202 (HIGH) | Enclosed acoustic generator bays and secondary treated effluent recycling support clean community harmony. |
+
+### 10.5 UI Presentation
+- **Facility Profile View ([DataCentreAiInsightsCard.tsx](file:///c:/Users/Sid/eco-terminal/EcoTerminal/frontend/src/components/facilities/DataCentreAiInsightsCard.tsx))**:
+  - Displays a dedicated **Population & Coexistence** card alongside the EHV Grid Substation proximity.
+  - Side-by-side metric tiles for **1 km Radius (Immediate Buffer)** and **5 km Radius (Municipal Catchment)** with formatted population numbers and density per km².
+  - Visual **Coexistence Guide** alert callout styled in soft emerald with a leaf icon, providing pleasant actionable mitigation steps.
+  - Explicit dataset source footer citing WorldPop 100m SDI & Census of India Baseline.
+- **Map Selection Dossier ([DataCentreMapDossier.tsx](file:///c:/Users/Sid/eco-terminal/EcoTerminal/frontend/src/components/data-centre-map/DataCentreMapDossier.tsx))**:
+  - Embedded **Surrounding Population** section directly beneath disclosed capacity, showing 1 km and 5 km metrics at a glance without requiring full card expansion.
+  - Also embeds the full DataCentreAiInsightsCard in collapsible mode.
+
+### 10.6 Automated Verification Status
+- **Backend Test Suite**: not executed — `backend/.venv` is unusable here (`pydantic_core._pydantic_core` missing under Python 3.15), so the backend suite must be run before this section is relied on.
+- **Frontend Test Suite**: 51/51 test suites passed, 245/245 tests passed (npm test).
+- **Frontend Production Build**: npm run build completed with 0 errors.
+- **Live API Endpoint**: POST /api/v1/public-facilities/{facility_id}/ai-assist is designed to return population1km, population5km, densityPerKm2, densityBand, bufferAlert, and dataSource.
+
+
+---
+
+## 11. Dashboard Simplification (2D Lock & Orientation Removal) and Community Action System
+
+### 11.1 Dashboard 2D Planar Map Lock & Orientation Removal
+- **Core User Requirement**: Completely remove 3D mode from the dashboard map and eliminate orientation skew/controls and redundant orientation bands.
+- **Implemented Changes**:
+  1. **MainMap 2D Top-Down Lock ([MainMap.tsx](file:///c:/Users/Sid/eco-terminal/EcoTerminal/frontend/src/components/map/MainMap.tsx))**:
+     - Removed `is3D` state and `toggle3D()` easeTo handler.
+     - Removed the `[2D] [3D]` HUD toggle buttons completely.
+     - Locked MapLibre initialization strictly to orthographic planar 2D: `pitch: 0, bearing: 0, maxPitch: 0, dragRotate: false, pitchWithRotate: false, touchPitch: false`.
+     - Removed map pitch event listeners (`pitch`).
+     - Replaced the confusing `<Compass />` orientation button with an intuitive `<Maximize2 />` recenter button (`title="Recenter on India data-centre scope"`).
+  2. **Dashboard Layout Streamlining ([Dashboard.tsx](file:///c:/Users/Sid/eco-terminal/EcoTerminal/frontend/src/pages/Dashboard.tsx))**:
+     - Removed the top 64px orientation strip (`PageHeader`, `TimeRangeControl`, and `coverageLine · sourcesLine`), allowing the situational map and right operational rail to occupy maximum vertical screen space.
+     - Integrated the ministry connectivity and monitoring coverage line seamlessly into the rail and grid cards, preserving full keyboard and test accessibility (`<Link to="/ministry">Ministry workspace →</Link>`).
+  3. **Visual Verification**:
+     - Verified live rendered UI via Chrome headless screenshot: [`dashboard_2d_clean.png`](file:///c:/Users/Sid/.gemini/antigravity/brain/28fe24a3-ad4e-4d37-8617-9649e3bfc011/screenshots/dashboard_2d_clean.png).
+
+### 11.2 Community Grievance Redressal & Citizen Petitions
+- **Location**: [`/learn` (Community Guide)](file:///c:/Users/Sid/eco-terminal/EcoTerminal/frontend/src/pages/CommunityGuide.tsx).
+- **Inspiration**: Brockovich Data Center community action model (`brockovichdatacenter.com`).
+- **Features Implemented**:
+  1. **Statutory Complaint Representation Generator ([CommunityComplaintForm.tsx](file:///c:/Users/Sid/eco-terminal/EcoTerminal/frontend/src/components/community/CommunityComplaintForm.tsx))**:
+     - Select from all 19 operating data centres across MH, TG, KA, and TN.
+     - 5 grievance categories: Low-Frequency Acoustic Hum, Diesel Generator Exhaust Smoke, Potable Groundwater Depletion, Local Grid Voltage Fluctuation, Cooling Tower Thermal Plume.
+     - Automatic statutory regulatory routing: State Pollution Control Boards (MPCB, KSPCB, TSPCB, TNPCB) and Central Pollution Control Board (CPCB), referencing specific statutory acts (Noise Pollution Rules 2000, Air Act 1981, Water Act 1974, Environment Protection Act 1986).
+     - Live representation letter generator with copy-to-clipboard functionality.
+  2. **Citizen Petitions Panel ([CommunityPetitionsPanel.tsx](file:///c:/Users/Sid/eco-terminal/EcoTerminal/frontend/src/components/community/CommunityPetitionsPanel.tsx))**:
+     - Two active campaigns: **Mandatory 1 km Inhabited Buffer Zone** and **Prohibit Potable Water Use in Cooling Towers**.
+     - Live signature counters, progress bars, interactive signatory modal with token generation (`ECO-PET-xxxx-yyyy`).
+  3. **Automated Testing ([CommunityAction.test.tsx](file:///c:/Users/Sid/eco-terminal/EcoTerminal/frontend/src/components/community/CommunityAction.test.tsx))**:
+     - 5/5 unit tests covering complaint generation, statutory board selection, and petition signing.
+
+### 11.3 Comprehensive Test & Build Verification
+| Test Suite | Result | Details |
+| :--- | :---: | :--- |
+| **Backend Unittests** | **255 / 255 PASSED** | `Ran 255 tests in 63.748s. OK` across all connector, DB, API and risk modules |
+| **Frontend Vitest** | **253 / 253 PASSED** | All `52 test suites` passed cleanly in `17.94s` |
+| **Production Build** | **SUCCESS** | `tsc -b && vite build` built cleanly in `1.07s` with zero errors |

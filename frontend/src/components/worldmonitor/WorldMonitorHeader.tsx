@@ -1,93 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import {
-  Search,
-  Layers,
-  Globe2,
-  MapPin,
-  Volume2,
-  VolumeX,
-  Compass,
-  Columns2,
-  Map as MapIcon,
-  LayoutGrid,
-  Key,
-  Database,
-  Server,
-  ShieldCheck,
-  ClipboardCheck,
-  UserPlus,
-  Newspaper,
-} from 'lucide-react';
+import React from 'react';
+import { NavLink, useLocation, useSearchParams } from 'react-router-dom';
+import { Search, Layers, Columns2, Map as MapIcon, LayoutGrid } from 'lucide-react';
 import { useDashboardStore } from '../../stores/dashboardStore';
-import { ApiKeyModal } from '../ui/ApiKeyModal';
-import { IconButton } from '../ui/Button';
-import type { TimeRange, DashboardViewMode } from '../../types';
-
-const NAV_MODULES = [
-  { to: '/dashboard', label: 'Dashboard', icon: <Globe2 className="h-3.5 w-3.5" /> },
-  { to: '/public-facilities', label: 'Registry', icon: <Server className="h-3.5 w-3.5" /> },
-  { to: '/ministry', label: 'Ministry', icon: <ShieldCheck className="h-3.5 w-3.5" /> },
-  { to: '/operator/register', label: 'Register', icon: <UserPlus className="h-3.5 w-3.5" /> },
-  { to: '/ministry/review', label: 'Review', icon: <ClipboardCheck className="h-3.5 w-3.5" /> },
-  { to: '/projects', label: 'DC site planning', icon: <MapPin className="h-3.5 w-3.5" /> },
-  { to: '/data-sources', label: 'DC data sources', icon: <Database className="h-3.5 w-3.5" /> },
-  { to: '/news', label: 'News', icon: <Newspaper className="h-3.5 w-3.5" /> },
-];
+import { AppNav } from '../layout/AppNav';
+import type { DashboardViewMode } from '../../types';
 
 const VIEW_MODES: Array<{ mode: DashboardViewMode; label: string; icon: React.ReactNode; title: string }> = [
-  { mode: 'split', label: 'Split', icon: <Columns2 className="h-3 w-3" />, title: 'Split view — map and intelligence panels' },
-  { mode: 'map_only', label: 'Map', icon: <MapIcon className="h-3 w-3" />, title: 'Maximized map' },
-  { mode: 'grid_only', label: 'Grid', icon: <LayoutGrid className="h-3 w-3" />, title: 'Data grid' },
+  { mode: 'split', label: 'Split', icon: <Columns2 className="h-3 w-3" />, title: 'Split view — map and insight rail' },
+  { mode: 'map_only', label: 'Map', icon: <MapIcon className="h-3 w-3" />, title: 'Maximised map' },
+  { mode: 'grid_only', label: 'Grid', icon: <LayoutGrid className="h-3 w-3" />, title: 'Panel grid' },
 ];
 
 export const WorldMonitorHeader: React.FC = () => {
   const {
-    timeRange,
-    setTimeRange,
     viewMode,
     setViewMode,
-    audioAlertsEnabled,
-    toggleAudioAlerts,
     searchQuery,
     setSearchQuery,
-    fitToIndia,
     toggleLeftSidebar,
     isLeftSidebarOpen,
     wmLayers,
   } = useDashboardStore();
 
-  const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
-
-  // Live ticking IST clock (UTC+5:30)
-  const [istTime, setIstTime] = useState('');
-
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        hour12: false,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      });
-      setIstTime(`IST ${timeStr} (+5:30)`);
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleTimeRangeChange = (tr: TimeRange) => {
-    setTimeRange(tr);
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set('timeRange', tr);
-    setSearchParams(newParams, { replace: true });
-  };
 
   const handleViewModeChange = (vm: DashboardViewMode) => {
     setViewMode(vm);
@@ -101,7 +37,7 @@ export const WorldMonitorHeader: React.FC = () => {
 
   return (
     <header className="z-30 flex h-14 shrink-0 select-none items-center justify-between border-b border-eco-border bg-eco-bg/95 px-4 backdrop-blur-md">
-      {/* Brand + live clock */}
+      {/* Brand */}
       <div className="flex shrink-0 items-center gap-3">
         <NavLink to="/dashboard" className="group flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-md border border-eco-primary/40 bg-eco-primary/10">
@@ -116,153 +52,67 @@ export const WorldMonitorHeader: React.FC = () => {
             <p className="mt-0.5 hidden text-micro text-eco-muted lg:block">Government data-centre oversight</p>
           </div>
         </NavLink>
-
-        <div className="hidden items-center gap-1.5 rounded-sm border border-eco-border bg-eco-surface px-2 py-0.5 font-mono text-micro text-eco-muted 2xl:flex">
-          <span className="h-1.5 w-1.5 rounded-full bg-eco-primary" />
-          <span>{istTime || 'IST --:--:-- (+5:30)'}</span>
-        </div>
-
-        {/* World Monitor Tactical DEFCON & Risk Pill */}
-        <div className="hidden xl:flex items-center gap-1.5 select-none">
-          <div
-            title="National DC Environmental Threat Condition: DEFCON 4 (Moderate regional groundwater and power stress)"
-            className="flex items-center gap-1.5 rounded bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-400"
-          >
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-            </span>
-            <span>DEFCON 4</span>
-            <span className="text-emerald-500/40">|</span>
-            <span className="text-eco-muted font-normal text-[9px] uppercase">WATER TIER 2</span>
-          </div>
-
-          <div
-            title="19 Data Centres monitored across 4 focus states (MH, TG, KA, TN)"
-            className="flex items-center gap-1 rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 font-mono text-[10px] font-bold text-amber-400"
-          >
-            <span>⚡ 19 DCS</span>
-          </div>
-        </div>
       </div>
 
-      {/* Primary navigation */}
-      <nav className="hidden items-center gap-1 rounded-md border border-eco-border/60 bg-eco-surface-secondary/60 p-1 md:flex">
-        {NAV_MODULES.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              `flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-meta font-medium transition-colors ${
-                isActive
-                  ? 'border border-eco-border bg-eco-surface text-eco-primary'
-                  : 'border border-transparent text-eco-muted hover:bg-eco-surface-secondary hover:text-eco-text'
-              }`
-            }
-          >
-            {item.icon}
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
+      <AppNav />
 
-      {/* Search · view · time · layers · utilities */}
+      {/* Dashboard tools: search · view mode · layers. Map actions live in the map. */}
       <div className="flex items-center gap-2">
-        {showDashboardTools && <>
-        <div className="relative w-36 sm:w-48">
-          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-eco-muted" />
-          <input
-            type="text"
-            aria-label="Search facilities"
-            placeholder="Search facilities"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-8 w-full rounded-sm border border-eco-border bg-eco-surface pl-8 pr-2.5 text-meta text-eco-text placeholder:text-eco-muted transition-colors focus-visible:border-eco-primary/60"
-          />
-        </div>
+        {showDashboardTools && (
+          <>
+            <div className="relative hidden w-36 sm:block sm:w-48">
+              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-eco-muted" />
+              <input
+                type="text"
+                aria-label="Search facilities"
+                placeholder="Search facilities"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-8 w-full rounded-sm border border-eco-border bg-eco-surface pl-8 pr-2.5 text-meta text-eco-text placeholder:text-eco-muted transition-colors focus-visible:border-eco-primary/60"
+              />
+            </div>
 
-        <div className="hidden items-center rounded-md border border-eco-border bg-eco-surface p-0.5 text-meta lg:flex">
-          {VIEW_MODES.map((view) => (
+            <div className="hidden items-center rounded-md border border-eco-border bg-eco-surface p-0.5 text-meta lg:flex">
+              {VIEW_MODES.map((view) => (
+                <button
+                  key={view.mode}
+                  type="button"
+                  onClick={() => handleViewModeChange(view.mode)}
+                  title={view.title}
+                  aria-pressed={viewMode === view.mode}
+                  className={`flex cursor-pointer items-center gap-1 rounded-sm px-2 py-1 transition-colors ${
+                    viewMode === view.mode
+                      ? 'bg-eco-surface-secondary font-semibold text-eco-primary'
+                      : 'text-eco-muted hover:text-eco-text'
+                  }`}
+                >
+                  {view.icon}
+                  <span className="hidden xl:inline">{view.label}</span>
+                </button>
+              ))}
+            </div>
+
             <button
-              key={view.mode}
               type="button"
-              onClick={() => handleViewModeChange(view.mode)}
-              title={view.title}
-              aria-pressed={viewMode === view.mode}
-              className={`flex cursor-pointer items-center gap-1 rounded-sm px-2 py-1 transition-colors ${
-                viewMode === view.mode
-                  ? 'bg-eco-surface-secondary font-semibold text-eco-primary'
-                  : 'text-eco-muted hover:text-eco-text'
+              onClick={toggleLeftSidebar}
+              aria-pressed={isLeftSidebarOpen}
+              className={`flex cursor-pointer items-center gap-1.5 rounded-md border px-2.5 py-1 text-meta transition-colors ${
+                isLeftSidebarOpen
+                  ? 'border-eco-primary/40 bg-eco-surface-secondary text-eco-primary'
+                  : 'border-eco-border bg-eco-surface text-eco-muted hover:text-eco-text'
               }`}
+              title="Toggle layers & filters panel"
+              aria-label={`Layers and filters, ${activeLayerCount} active`}
             >
-              {view.icon}
-              <span className="hidden xl:inline">{view.label}</span>
+              <Layers className="h-3.5 w-3.5" />
+              <span className="hidden font-medium sm:inline">Layers</span>
+              <span className="rounded-sm border border-eco-border bg-eco-bg px-1 font-mono text-micro text-eco-muted">
+                {activeLayerCount}
+              </span>
             </button>
-          ))}
-        </div>
-
-        <div className="hidden items-center rounded-md border border-eco-border bg-eco-surface p-0.5 font-mono text-micro sm:flex">
-          {(['24h', '7d', '30d'] as TimeRange[]).map((tr) => (
-            <button
-              key={tr}
-              type="button"
-              onClick={() => handleTimeRangeChange(tr)}
-              aria-pressed={timeRange === tr}
-              className={`cursor-pointer rounded-sm px-2 py-0.5 uppercase transition-colors ${
-                timeRange === tr
-                  ? 'border border-eco-primary/30 bg-eco-surface-secondary font-semibold text-eco-primary'
-                  : 'border border-transparent text-eco-muted hover:text-eco-text'
-              }`}
-            >
-              {tr}
-            </button>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          onClick={toggleLeftSidebar}
-          aria-pressed={isLeftSidebarOpen}
-          className={`flex cursor-pointer items-center gap-1.5 rounded-md border px-2.5 py-1 text-meta transition-colors ${
-            isLeftSidebarOpen
-              ? 'border-eco-primary/40 bg-eco-surface-secondary text-eco-primary'
-              : 'border-eco-border bg-eco-surface text-eco-muted hover:text-eco-text'
-          }`}
-          title="Toggle layers & filters panel"
-        >
-          <Layers className="h-3.5 w-3.5" />
-          <span className="hidden font-medium sm:inline">Layers</span>
-          <span className="rounded-sm border border-eco-border bg-eco-bg px-1 font-mono text-micro text-eco-muted">
-            {activeLayerCount}
-          </span>
-        </button>
-
-        <IconButton
-          label="Recenter map"
-          icon={<Compass className="h-4 w-4" />}
-          onClick={() => {
-            fitToIndia();
-            navigate('/dashboard');
-          }}
-        />
-
-        <IconButton
-          label={audioAlertsEnabled ? 'Mute audio alerts' : 'Enable audio alerts'}
-          aria-pressed={audioAlertsEnabled}
-          icon={audioAlertsEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-          onClick={toggleAudioAlerts}
-          className={audioAlertsEnabled ? 'text-eco-primary' : ''}
-        />
-
-        <IconButton
-          label="API keys & settings"
-          icon={<Key className="h-4 w-4" />}
-          onClick={() => setIsApiKeyModalOpen(true)}
-        />
-        </>}
+          </>
+        )}
       </div>
-
-      <ApiKeyModal isOpen={isApiKeyModalOpen} onClose={() => setIsApiKeyModalOpen(false)} />
     </header>
   );
 };

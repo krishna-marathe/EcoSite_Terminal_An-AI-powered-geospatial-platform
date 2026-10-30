@@ -5,7 +5,6 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { MainMap } from './MainMap';
 import { LeftSidebar } from '../layout/LeftSidebar';
 import { DataQualityBanner } from '../worldmonitor/DataQualityBanner';
-import { WorldMonitorLayerRibbon } from '../worldmonitor/WorldMonitorLayerRibbon';
 import { useDashboardStore } from '../../stores/dashboardStore';
 import { PILOT_FACILITIES } from '../../data/pilotCities';
 import { DEMO_LAYERS } from '../../data/demo/layers';
@@ -132,18 +131,14 @@ it('sidebar disables unavailable geometry without erasing user toggle preference
   setMode('demo'); expect(groundwater.getAttribute('aria-pressed')).toBe('true');
 });
 
-it('banner reports facility source status while the ribbon shows the registry count', () => {
+it('banner reports facility source status without restating the registry count', () => {
   const dataCentre = { ...PILOT_FACILITIES[0], type: 'data_centre' as const };
   setMode('api'); useDashboardStore.getState().setFacilities([dataCentre]);
-  render(<MemoryRouter><DataQualityBanner /><WorldMonitorLayerRibbon dataCentreCount={19} /></MemoryRouter>);
+  render(<MemoryRouter><DataQualityBanner /></MemoryRouter>);
   expect(screen.getByText(environmentalMessage('api'))).toBeTruthy();
   expect(screen.getByText(/Sources:/).textContent).toContain('(synthetic)');
-  fireEvent.click(screen.getByRole('button', { name: /Data centre markers/ }));
-  expect(screen.getByText(/only tracked facility layer/)).toBeTruthy();
-  const dataCentres = screen.getByRole('button', { name: /Data Centres/ });
-  expect(dataCentres.textContent).toContain('19');
-  expect(screen.queryByRole('button', { name: /Thermal Power/ })).toBeNull();
-  expect(screen.queryByRole('button', { name: /Grid Hubs/ })).toBeNull();
+  // The count is stated once, by the dashboard KPI; no other surface may restate it.
+  expect(screen.queryByText(/operating data cent/i)).toBeNull();
 });
 
 it('sidebar fixes facility scope to data centres and labels retained overlays as context', () => {

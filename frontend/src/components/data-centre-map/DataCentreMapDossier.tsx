@@ -1,11 +1,12 @@
-import React from 'react';
-import { Building2, ExternalLink, MapPin, ShieldCheck, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Building2, ExternalLink, MapPin, ShieldCheck, Users, X } from 'lucide-react';
 import type { EnvironmentalCurrentResponse } from '../../types/environmentalMonitoring';
 import type { CapacityType, PublicFacility } from '../../types/publicFacilities';
 import { Badge } from '../ui/Badge';
 import { Button, IconButton } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { DataCentreAiInsightsCard } from '../facilities/DataCentreAiInsightsCard';
+import { apiClient } from '../../services/api';
 
 const CAPACITY_LABELS: Record<CapacityType, string> = {
   it_load: 'IT load',
@@ -50,10 +51,35 @@ export const DataCentreMapDossier: React.FC<DataCentreMapDossierProps> = ({
 }) => {
   if (!facility) return null;
 
+  const [aiInsights, setAiInsights] = useState<any>(null);
+  const [insightsError, setInsightsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!facility) return;
+    let cancelled = false;
+    apiClient
+      .get<{ infrastructureTelemetry: { population: any } }>(`/public-facilities/${facility.id}/ai-assist`)
+      .then((res) => {
+        if (!cancelled) setAiInsights(res.data);
+      })
+      .catch((err) => {
+        if (!cancelled) setInsightsError(err.message);
+      });
+    return () => { cancelled = true; };
+  }, [facility?.id]);
+
   const source = facility.verification.source;
   const environmentalMetrics = environmentalCurrent?.facilityId === facility.id
     ? environmentalCurrent.metrics
     : [];
+
+  const popTelemetry = aiInsights?.infrastructureTelemetry?.population;
+  const pop1km = popTelemetry?.population1km ?? 0;
+  const pop5km = popTelemetry?.population5km ?? 0;
+  const density = popTelemetry?.densityPerKm2 ?? 0;
+  const band = popTelemetry?.densityBand ?? 'LOW';
+  const bufferAlert = popTelemetry?.bufferAlert ?? '';
+  const dataSource = popTelemetry?.dataSource ?? 'Data unavailable';
 
   return (
     <Card
@@ -102,6 +128,32 @@ export const DataCentreMapDossier: React.FC<DataCentreMapDossierProps> = ({
         ) : <p className="text-body text-eco-muted">No public capacity disclosure.</p>}
         {facility.capacityDisclosures.length > 1 && (
           <p className="mt-2 text-meta text-eco-muted">Capacity types are shown separately because their measurement boundaries may differ.</p>
+        )}
+      </section>
+
+      <section aria-labelledby="dc-population-heading">
+        <h4 id="dc-population-heading" className="mb-2 flex items-center justify-between text-meta font-semibold uppercase tracking-wide text-eco-muted">
+          <span className="flex items-center gap-1.5"><Users size={13} aria-hidden="true" /> Surrounding Population</span>
+          {insightsError && <span className="font-mono text-meta text-eco-critical font-normal">Load failed</span>}
+          {!insightsError && !aiInsights && <span className="font-mono text-meta text-eco-muted">Loading…</span>}
+          {aiInsights && <span className="font-mono text-meta text-eco-primary font-normal">{dataSource}</span>}
+        </h4>
+        {aiInsights && (
+          <div className="grid grid-cols-2 gap-2 font-mono text-micro">
+            <div className="rounded-sm border border-eco-border bg-eco-surface-secondary/50 p-2">
+              <span className="text-meta text-eco-muted uppercase block">1 km Immediate</span>
+              <strong className="text-body text-eco-text">{pop1km.toLocaleString()}</strong> <span className="text-meta text-eco-muted">people</span>
+            </div>
+            <div className="rounded-sm border border-eco-border bg-eco-surface-secondary/50 p-2">
+              <span className="text-meta text-eco-muted uppercase block">5 km Catchment</span>
+              <strong className="text-body text-eco-text">{pop5km.toLocaleString()}</strong> <span className="text-meta text-eco-muted">people</span>
+            </div>
+          </div>
+        )}
+        {aiInsights && (
+          <div className="mt-2 text-meta text-eco-muted">
+            Density: <strong className="text-eco-text">{density.toFixed(1)}</strong> /km² ({band}) · {bufferAlert}
+          </div>
         )}
       </section>
 

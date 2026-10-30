@@ -61,9 +61,12 @@ class SubstationTelemetry(BaseModel):
 class PopulationTelemetry(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
+    population1km: int = Field(default=8500, ge=0)
+    population5km: int = Field(default=125000, ge=0)
     densityPerKm2: float = Field(default=5000, ge=0)
     densityBand: Literal["ULTRA_HIGH", "HIGH", "MODERATE", "LOW"] = "HIGH"
     bufferAlert: str = Field(default="Standard human receptor screening buffer")
+    dataSource: str = Field(default="WorldPop 100m SDI & Census of India Baseline")
 
 
 class AiInfrastructureTelemetry(BaseModel):

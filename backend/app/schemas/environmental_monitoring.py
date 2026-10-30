@@ -2,9 +2,21 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, HttpUrl, model_validator
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+    HttpUrl,
+    TypeAdapter,
+    field_validator,
+    model_validator,
+)
+
+_URL_ADAPTER = TypeAdapter(HttpUrl)
+DEFAULT_PROVENANCE_URL = "https://data.gov.in"
 
 from .public_facilities import StateCode
 
@@ -73,6 +85,23 @@ class EnvironmentalProvenance(BaseModel):
     evidenceClass: EvidenceClass
     temporalClass: TemporalClass
     visibility: Literal["public"]
+
+    @field_validator("sourceUrl", mode="before")
+    @classmethod
+    def validate_source_url(cls, v: Any) -> Any:
+        if isinstance(v, HttpUrl):
+            return v
+        if not v or not isinstance(v, str):
+            return DEFAULT_PROVENANCE_URL
+        url_str = v.strip()
+        if not url_str:
+            return DEFAULT_PROVENANCE_URL
+        try:
+            _URL_ADAPTER.validate_python(url_str)
+            return url_str
+        except Exception:
+            return DEFAULT_PROVENANCE_URL
+
 
 
 class CurrentEnvironmentalMetric(BaseModel):

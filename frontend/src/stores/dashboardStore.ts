@@ -54,8 +54,6 @@ export interface DashboardState {
   setAllWmLayers: (active: boolean) => void;
   scenario: { type: ScenarioType; severity: number } | null;
   setScenario: (scenario: { type: ScenarioType; severity: number } | null) => void;
-  audioAlertsEnabled: boolean;
-  toggleAudioAlerts: () => void;
 
   // Live OSINT Signals
   signals: IntelligenceSignal[];
@@ -204,9 +202,6 @@ export const useDashboardStore = create<DashboardState>()(persist((set, get) => 
     ...state.savedScenarios.filter(record => !inContext(record, state.dataMode, state.cityId)),
     ...(scenario ? [saveRecord(state.dataMode, state.cityId, state.cityId, scenario)] : []),
   ] })),
-
-  audioAlertsEnabled: true,
-  toggleAudioAlerts: () => set((state) => ({ audioAlertsEnabled: !state.audioAlertsEnabled })),
 
   signals: [],
   signalFilter: 'all',

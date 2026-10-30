@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useQueries, useQuery } from '@tanstack/react-query';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { WorldMonitorLayerRibbon } from '../components/worldmonitor/WorldMonitorLayerRibbon';
-import { InfrastructurePredictionsPanel } from '../components/worldmonitor/InfrastructurePredictionsPanel';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { LeftSidebar } from '../components/layout/LeftSidebar';
 import { MainMap } from '../components/map/MainMap';
-import { EnvironmentalCoveragePanel, MinistryOperationsPanel, RegistryDistribution, RegistryKpiSummary } from '../components/data-centre-dashboard';
+import { EnvironmentalCoveragePanel, RegistryDistribution, RegistryKpiSummary } from '../components/data-centre-dashboard';
 import { DataCentreMapDossier } from '../components/data-centre-map';
 import { NewsFeedPanel } from '../components/news/NewsFeedPanel';
 import { useDashboardStore } from '../stores/dashboardStore';
@@ -48,31 +46,55 @@ export const Dashboard: React.FC = () => {
     }
   }, [fitToIndia, searchParams, setTimeRange, setTypeFilter, setViewMode, setWmLayer]);
 
-  const dashboardPanels = <>
-    <RegistryKpiSummary summary={registrySummary.data} isLoading={registrySummary.isLoading} error={errorMessage(registrySummary.error)} />
-    <RegistryDistribution summary={registrySummary.data} facilities={facilities.data?.items} isLoading={facilities.isLoading || registrySummary.isLoading} error={errorMessage(facilities.error ?? registrySummary.error)} />
+  // One-line orientation: how much of the registry has monitoring, and how healthy the feeds are.
+  const environmentalLoading = environmentalStates.some((query) => query.isLoading);
+  const coveredFacilities = environmentalData.reduce((sum, state) => sum + state.coveredFacilityCount, 0);
+  const totalFacilities = environmentalData.reduce((sum, state) => sum + state.facilityCount, 0);
+  const coverageLine = environmentalLoading
+    ? 'Loading monitoring coverage…'
+    : environmentalData.length === 0
+      ? 'Monitoring coverage unavailable'
+      : `${coveredFacilities} of ${totalFacilities} facilities with a linked public station`;
+  const overview = ministryOverview.data;
+  const connectedSources = overview ? overview.sourceHealth.filter((source) => source.status === 'CONNECTED').length : 0;
+  const sourcesLine = overview
+    ? `${connectedSources}/${overview.sourceHealth.length} sources connected · ${overview.freshnessQueue.length} facilities awaiting coverage`
+    : 'Source health unavailable';
+
+  const registryPanel = <RegistryKpiSummary summary={registrySummary.data} isLoading={registrySummary.isLoading} error={errorMessage(registrySummary.error)} />;
+  const distributionPanel = <RegistryDistribution summary={registrySummary.data} facilities={facilities.data?.items} isLoading={facilities.isLoading || registrySummary.isLoading} error={errorMessage(facilities.error ?? registrySummary.error)} />;
+  const newsPanel = <NewsFeedPanel compact limit={4} />;
+
+  const ministryLink = (
+    <div className="flex items-center justify-between rounded-lg border border-eco-border bg-eco-surface/50 px-3 py-2 text-meta">
+      <span className="text-eco-muted truncate pr-2">{coverageLine} · {sourcesLine}</span>
+      <Link to="/ministry" className="shrink-0 font-medium text-eco-primary hover:underline">Ministry workspace →</Link>
+    </div>
+  );
+
+  const railPanels = <>{registryPanel}{distributionPanel}{ministryLink}{newsPanel}</>;
+  const gridPanels = <>{registryPanel}{distributionPanel}
     <EnvironmentalCoveragePanel
       states={environmentalData}
-      isLoading={environmentalStates.some((query) => query.isLoading)}
+      isLoading={environmentalLoading}
       error={environmentalData.length === 0 ? errorMessage(environmentalError) : undefined}
       warning={environmentalData.length > 0 && failedEnvironmentalStates > 0 ? `${failedEnvironmentalStates} state summary could not be loaded; available states are shown.` : undefined}
     />
-    <MinistryOperationsPanel overview={ministryOverview.data} isLoading={ministryOverview.isLoading} error={errorMessage(ministryOverview.error)} />
-    <InfrastructurePredictionsPanel />
-    <div className="xl:col-span-2"><NewsFeedPanel /></div>
+    {ministryLink}
+    {newsPanel}
   </>;
+
   const facilitiesStatus = facilities.isLoading ? 'loading' as const : facilities.error ? 'error' as const : 'ready' as const;
   const map = <MainMap publicDataCentres={facilities.data?.items} publicDataCentresStatus={facilitiesStatus} suppressLegacyFacilities selectedPublicFacilityId={selectedFacility?.id} onSelectPublicFacility={setSelectedFacility} />;
   const dossier = selectedFacility && <DataCentreMapDossier className="h-full select-text" facility={selectedFacility} environmentalCurrent={selectedEnvironment.data} environmentalError={errorMessage(selectedEnvironment.error)} onClose={() => setSelectedFacility(null)} onOpenProfile={(facility) => navigate(`/public-facilities/${facility.id}`)} />;
 
   return <div className="flex h-full w-full flex-col overflow-hidden bg-eco-bg text-eco-text">
-    <WorldMonitorLayerRibbon dataCentreCount={facilities.data?.items.length} />
     <div className="relative flex flex-1 overflow-hidden">
       <LeftSidebar />
-      {viewMode === 'grid_only' ? <main className="grid flex-1 grid-cols-1 gap-4 overflow-y-auto bg-eco-bg p-4 xl:grid-cols-2" aria-label="Data-centre operations dashboard">{dashboardPanels}</main>
+      {viewMode === 'grid_only' ? <main className="grid flex-1 grid-cols-1 gap-4 overflow-y-auto bg-eco-bg p-4 xl:grid-cols-2" aria-label="Data-centre operations dashboard">{gridPanels}</main>
         : viewMode === 'split' ? <main className="flex min-w-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden" aria-label="Data-centre map and operations dashboard">
           <div className="relative min-h-[50vh] min-w-0 flex-1">{map}</div>
-          <aside className="w-full shrink-0 space-y-4 overflow-y-auto border-t border-eco-border bg-eco-bg p-3 lg:w-[410px] lg:border-l lg:border-t-0" aria-label="Registry and operational status">{dossier || dashboardPanels}</aside>
+          <aside className="w-full shrink-0 space-y-4 overflow-y-auto border-t border-eco-border bg-eco-bg p-3 lg:w-[360px] lg:border-l lg:border-t-0" aria-label="Registry and operational status">{dossier || railPanels}</aside>
         </main>
           : <main className="relative h-full min-w-0 flex-1 overflow-hidden" aria-label="Data-centre map">{map}{dossier && <aside className="absolute bottom-4 right-4 top-4 z-20 w-[min(390px,calc(100%-2rem))]" aria-label="Selected data-centre details">{dossier}</aside>}</main>}
     </div>

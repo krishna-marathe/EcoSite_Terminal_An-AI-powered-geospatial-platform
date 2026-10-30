@@ -328,6 +328,13 @@ def startup() -> None:
     with closing(sqlite3.connect(DB_PATH)) as connection, connection:
         # Safe before the data-plane migration: the seed returns 0 if the table is absent.
         seed_data_sources(connection)
+        try:
+            st_count = connection.execute("SELECT count(*) FROM monitoring_stations").fetchone()[0]
+            if st_count == 0:
+                from backend.scripts.seed_environmental_monitoring import run_seed as seed_env_monitoring
+                seed_env_monitoring()
+        except Exception:
+            pass
 
 
 @app.on_event("shutdown")

@@ -26,7 +26,21 @@ export function PublicFacilities() {
   const navigate = useNavigate();
   const [state, setState] = useState<PublicStateCode | 'all'>('all');
   const [query, setQuery] = useState('');
-  const [view, setView] = useState<'map' | 'list'>('map');
+  const [view, setView] = useState<'map' | 'list'>(() => {
+    try {
+      const saved = localStorage.getItem('eco-public-facilities-view');
+      if (saved === 'map' || saved === 'list') return saved;
+    } catch {}
+    return 'list';
+  });
+
+  const handleSetView = (nextView: 'map' | 'list') => {
+    setView(nextView);
+    try {
+      localStorage.setItem('eco-public-facilities-view', nextView);
+    } catch {}
+  };
+
   const facilities = useQuery({ queryKey: ['public-facilities', state], queryFn: () => getPublicFacilities(state === 'all' ? {} : { state }), retry: false });
   const summary = useQuery({ queryKey: ['public-facility-summary'], queryFn: getPublicFacilitySummary, retry: false });
   const filtered = useMemo(() => {
@@ -44,7 +58,7 @@ export function PublicFacilities() {
       <Card title="Operators"><p className="font-mono text-h1 text-eco-text">{summary.data?.operatorCount ?? 0}</p><p className="text-meta text-eco-muted">Across public records</p></Card>
       <Card title="Geographic scope"><p className="font-mono text-h1 text-eco-text">4</p><p className="text-meta text-eco-muted">Target states</p></Card>
     </div>}
-    <Card title="Facility registry" subtitle={`${facilities.data?.total ?? filtered.length} facilities · ${operators} operators`} actions={<div className="flex rounded border border-eco-border p-0.5"><button type="button" aria-pressed={view === 'map'} onClick={() => setView('map')} className={`flex items-center gap-1 rounded px-2 py-1 text-meta ${view === 'map' ? 'bg-eco-surface-secondary text-eco-primary' : 'text-eco-muted'}`}><MapIcon className="h-3.5 w-3.5" />Map</button><button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')} className={`flex items-center gap-1 rounded px-2 py-1 text-meta ${view === 'list' ? 'bg-eco-surface-secondary text-eco-primary' : 'text-eco-muted'}`}><List className="h-3.5 w-3.5" />List</button></div>}>
+    <Card title="Facility registry" subtitle={`${facilities.data?.total ?? filtered.length} facilities · ${operators} operators`} actions={<div className="flex rounded border border-eco-border p-0.5"><button type="button" aria-pressed={view === 'map'} onClick={() => handleSetView('map')} className={`flex items-center gap-1 rounded px-2 py-1 text-meta ${view === 'map' ? 'bg-eco-surface-secondary text-eco-primary' : 'text-eco-muted'}`}><MapIcon className="h-3.5 w-3.5" />Map</button><button type="button" aria-pressed={view === 'list'} onClick={() => handleSetView('list')} className={`flex items-center gap-1 rounded px-2 py-1 text-meta ${view === 'list' ? 'bg-eco-surface-secondary text-eco-primary' : 'text-eco-muted'}`}><List className="h-3.5 w-3.5" />List</button></div>}>
       <div className="mb-4 grid gap-3 md:grid-cols-[220px_1fr]"><Select aria-label="Filter by state" value={state} onChange={(event) => setState(event.target.value as PublicStateCode | 'all')}><option value="all">All four states</option>{STATES.map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}</Select><div className="relative"><Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-eco-muted" /><Input aria-label="Search public registry" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search facility, operator, city or locality" className="pl-8" /></div></div>
       {facilities.isLoading ? <LoadingSkeleton rows={6} /> : facilities.error ? <ErrorState title="Public registry unavailable" cause="The read-only registry API could not be reached." onRetry={() => void facilities.refetch()} /> : view === 'map' ? (
         filtered.length ? <PublicFacilityMap facilities={filtered} onSelectFacility={(facility) => navigate(`/public-facilities/${facility.id}`)} /> : <EmptyState title="No operating facilities match" body="Change the state or search filters." icon={<Server className="h-5 w-5" />} />

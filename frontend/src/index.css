@@ -17,6 +17,11 @@
   --color-eco-critical: #ff5d68;
   --color-eco-text: #e7f1e8;
   --color-eco-muted: #85998d;
+  /* Aliases used by the projects/evidence surfaces. They were referenced in
+   * markup before they existed here, so the classes compiled to nothing and
+   * those panels rendered on a transparent background with default-colour text. */
+  --color-eco-accent: #ff5d68;
+  --color-eco-surface-2: #171c19;
 
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
