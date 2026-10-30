@@ -137,7 +137,7 @@ export function CommunityPetitionsPanel() {
   };
 
   const handleCopyShare = async () => {
-    const text = `I just signed the civic petition: "${petition.title}" on the EcoSite Terminal public platform. Join the movement for responsible data centre siting in India: ${window.location.origin}/learn`;
+    const text = `I just signed the civic petition: "${petition.title}" on the Eco Terminal public platform. Join the movement for responsible data centre siting in India: ${window.location.origin}/learn`;
     try {
       await navigator.clipboard.writeText(text);
       setCopiedShare(true);

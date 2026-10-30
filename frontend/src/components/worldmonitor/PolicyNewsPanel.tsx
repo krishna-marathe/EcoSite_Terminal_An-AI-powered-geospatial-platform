@@ -23,10 +23,10 @@ const isNewsItem = (value: unknown): value is NewsItem => {
 
 const newsErrorCause = (error: unknown): string => {
   if (axios.isAxiosError(error)) {
-    if (!error.response) return 'The EcoSite backend is not reachable. Start it and retry.';
+    if (!error.response) return 'The Eco Terminal backend is not reachable. Start it and retry.';
     const body = error.response.data;
     if (typeof body === 'string' && /^\s*</.test(body)) {
-      return 'The API URL returned HTML instead of JSON. Another service may be occupying port 8000; start the EcoSite backend on that port and retry.';
+      return 'The API URL returned HTML instead of JSON. Another service may be occupying port 8000; start the Eco Terminal backend on that port and retry.';
     }
     return `The news relay returned HTTP ${error.response.status}. Verify backend and outbound feed access.`;
   }
@@ -49,7 +49,7 @@ export const PolicyNewsPanel: React.FC = () => {
         if (!active) return;
         if (typeof response.data === 'string') {
           throw new Error(
-            'The API URL returned HTML instead of JSON. Another service may be occupying port 8000; start the EcoSite backend on that port and retry.'
+            'The API URL returned HTML instead of JSON. Another service may be occupying port 8000; start the Eco Terminal backend on that port and retry.'
           );
         }
         setItems(expectArray<unknown>(response.data, 'News feed').filter(isNewsItem));

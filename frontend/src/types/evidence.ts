@@ -1,5 +1,5 @@
 /**
- * EcoSite India — Evidence, Document & Assertion TypeScript Interfaces
+ * Eco Terminal — Evidence, Document & Assertion TypeScript Interfaces
  *
  * Author: Omar (Frontend & UX Lead)
  * Based on API_CONTRACTS.md and Four-Member Master Implementation Plan.

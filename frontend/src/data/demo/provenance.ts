@@ -137,9 +137,9 @@ export const DATA_PROVENANCE_CATALOG: ProvenanceRecord[] = [
   },
   {
     id: 'prov-ecosite-ml',
-    datasetName: 'EcoSite Terminal Environmental Forecasting & Stress Simulation Engine',
+    datasetName: 'Eco Terminal Environmental Forecasting & Stress Simulation Engine',
     category: 'Predictive ML',
-    organization: 'EcoSite Terminal Research Engine (Ensemble ML)',
+    organization: 'Eco Terminal Research Engine (Ensemble ML)',
     organizationType: 'Scientific Institution',
     portalUrl: 'https://ecosite.ai/models',
     updateFrequency: 'On-demand model inference',

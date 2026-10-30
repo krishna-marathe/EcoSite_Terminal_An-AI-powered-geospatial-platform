@@ -169,7 +169,7 @@ export const AppNav: React.FC = () => {
           >
             <div className="flex h-14 shrink-0 items-center justify-between border-b border-eco-border px-4">
               <span className="font-mono text-body font-semibold text-eco-text">
-                EcoSite<span className="text-eco-primary"> Terminal</span>
+                Eco<span className="text-eco-primary"> Terminal</span>
               </span>
               <button
                 ref={drawerCloseRef}

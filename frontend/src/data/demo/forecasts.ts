@@ -110,7 +110,7 @@ export const DEMO_FORECASTS: Record<string, ForecastResponse> = {
     locationId: 'panindia',
     locationName: 'National Infrastructure Stress Index',
     unit: 'Composite Stress Index (0-100)',
-    model: 'EcoSite Terminal Multi-Vector Risk Engine',
+    model: 'Eco Terminal Multi-Vector Risk Engine',
     modelVersion: 'v1.5-ensemble',
     horizonMonths: 24,
     dataStatus: 'synthetic',

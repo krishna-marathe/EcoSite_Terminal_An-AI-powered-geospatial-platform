@@ -2,7 +2,7 @@
 @import "maplibre-gl/dist/maplibre-gl.css";
 
 /*
- * Canonical EcoSite design tokens.
+ * Canonical Eco Terminal design tokens.
  * See docs/design/2026-10-18-frontend-clarity-spec.md §4 — do not introduce
  * new colors outside this @theme block (chart/map palettes live in src/theme/tokens.ts).
  */

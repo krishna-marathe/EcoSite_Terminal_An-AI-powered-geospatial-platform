@@ -318,7 +318,7 @@ export function SitePassport({
 
         {/* Footer */}
         <div className="border-t border-eco-border pt-4 text-[10px] text-eco-muted flex flex-col sm:flex-row justify-between items-center gap-2 print:border-black print:text-gray-600">
-          <p>EcoSite India Platform · One Earth Hackathon 2026 · Evaluated by Antigravity OS</p>
+          <p>Eco Terminal Platform · One Earth Hackathon 2026 · Evaluated by Antigravity OS</p>
           <p className="font-mono">Passport Digest: {site.id.substring(0, 8)}-{project.id.substring(0, 8)}</p>
         </div>
       </div>

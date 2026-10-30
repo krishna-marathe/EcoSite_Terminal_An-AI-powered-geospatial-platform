@@ -1,11 +1,11 @@
 {
-  "name": "ecosite-terminal",
+  "name": "eco-terminal",
   "private": true,
   "version": "1.0.0",
   "scripts": {
     "dev": "npm --prefix frontend run dev",
     "backend": "backend\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --reload --port 8000 --app-dir backend",
-    "backend:install": "py -m venv backend\\.venv && backend\\.venv\\Scripts\\python.exe -m pip install -r backend\\requirements.txt",
+    "db:init": "python -m backend.scripts.init_db",
     "build": "npm --prefix frontend run build",
     "preview": "npm --prefix frontend run preview"
   },

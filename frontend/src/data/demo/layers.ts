@@ -304,7 +304,7 @@ const catalogue: EnvironmentalLayer[] = [
     unit: 'Projected Stress Ratio',
     isAvailable: true,
     provenance: {
-      sourceOrganization: 'EcoSite Terminal Predictive Model (CGWB-CMIP6 Ensemble)',
+      sourceOrganization: 'Eco Terminal Predictive Model (CGWB-CMIP6 Ensemble)',
       publicationDate: '2024-10-01',
       lastUpdated: '2024-10-01',
       geographicResolution: 'Sub-basin watershed polygon',
@@ -323,7 +323,7 @@ const catalogue: EnvironmentalLayer[] = [
     unit: 'Compound Annual MW Growth',
     isAvailable: true,
     provenance: {
-      sourceOrganization: 'EcoSite Terminal / CEA 20th Electric Power Survey Projections',
+      sourceOrganization: 'Eco Terminal / CEA 20th Electric Power Survey Projections',
       publicationDate: '2024-09-15',
       lastUpdated: '2024-09-15',
       geographicResolution: 'State grid node',
@@ -342,7 +342,7 @@ const catalogue: EnvironmentalLayer[] = [
     unit: 'Forecast AQI Tier',
     isAvailable: true,
     provenance: {
-      sourceOrganization: 'EcoSite Terminal WRF-Chem atmospheric modeling proxy',
+      sourceOrganization: 'Eco Terminal WRF-Chem atmospheric modeling proxy',
       publicationDate: '2024-08-20',
       lastUpdated: '2024-08-20',
       geographicResolution: '25km regional grid',
@@ -361,7 +361,7 @@ const catalogue: EnvironmentalLayer[] = [
     unit: 'Days/Year >42°C',
     isAvailable: true,
     provenance: {
-      sourceOrganization: 'EcoSite Terminal / IMD High-Resolution Climate Scenarios',
+      sourceOrganization: 'Eco Terminal / IMD High-Resolution Climate Scenarios',
       publicationDate: '2024-07-10',
       lastUpdated: '2024-07-10',
       geographicResolution: 'Regional meteorological grid',

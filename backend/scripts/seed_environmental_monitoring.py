@@ -476,9 +476,10 @@ REGIONAL_PROFILES = {
 }
 
 
-def run_seed():
-    print(f"Opening database: {DB_PATH}")
-    engine = make_engine(DB_PATH)
+def run_seed(database_path: Path | None = None):
+    db_target = database_path or DB_PATH
+    print(f"Opening database: {db_target}")
+    engine = make_engine(db_target)
     now = datetime.now(timezone.utc)
     now_iso = now.isoformat()
 

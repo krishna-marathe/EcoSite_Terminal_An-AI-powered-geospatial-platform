@@ -22,7 +22,7 @@ const catalogue: WorldMonitorLayerDef[] = [
     count: 7,
     unit: 'Clusters >75 Risk',
     description: 'High-risk cumulative industrial stress zones requiring urgent statutory intervention.',
-    source: 'EcoSite Terminal Risk Engine',
+    source: 'Eco Terminal Risk Engine',
   },
   {
     key: 'conflicts',

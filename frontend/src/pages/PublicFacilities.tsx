@@ -53,7 +53,7 @@ export function PublicFacilities() {
   return <PageShell>
     <PageHeader eyebrow="Public registry" title="Operational data centres" purpose="Publicly disclosed operating facilities in the four-state scope, with source and verification freshness." meta={<><Badge variant="primary" size="xs">Operational only</Badge><Badge variant="outline" size="xs">Locality-level map data</Badge></>} />
     <InlineAlert>Capacity values retain the publisher&apos;s original measurement boundary. IT load, total power and campus design capacity are not added together.</InlineAlert>
-    {summary.isLoading ? <LoadingSkeleton variant="tiles" rows={3} /> : summary.error ? <ErrorState title="Registry summary unavailable" cause="Start the EcoSite backend and retry." onRetry={() => void summary.refetch()} /> : <div className="grid gap-3 sm:grid-cols-3">
+    {summary.isLoading ? <LoadingSkeleton variant="tiles" rows={3} /> : summary.error ? <ErrorState title="Registry summary unavailable" cause="Start the Eco Terminal backend and retry." onRetry={() => void summary.refetch()} /> : <div className="grid gap-3 sm:grid-cols-3">
       <Card title="Operating facilities"><p className="font-mono text-h1 text-eco-primary">{summary.data?.operationalFacilityCount ?? 0}</p><p className="text-meta text-eco-muted">Verified within the last 90 days</p></Card>
       <Card title="Operators"><p className="font-mono text-h1 text-eco-text">{summary.data?.operatorCount ?? 0}</p><p className="text-meta text-eco-muted">Across public records</p></Card>
       <Card title="Geographic scope"><p className="font-mono text-h1 text-eco-text">4</p><p className="text-meta text-eco-muted">Target states</p></Card>

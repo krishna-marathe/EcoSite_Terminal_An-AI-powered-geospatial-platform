@@ -323,10 +323,17 @@ app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS or ["*"], allow_cr
 
 @app.on_event("startup")
 def startup() -> None:
+    import sys
+    is_testing = "unittest" in sys.modules or "pytest" in sys.modules or os.getenv("ECOSITE_TEST_MODE") == "1"
+    if not is_testing:
+        try:
+            from backend.scripts.init_db import bootstrap_database
+            bootstrap_database(DB_PATH)
+        except Exception as exc:
+            print(f"[EcoSite DB] Startup bootstrap notice: {exc}")
     ensure_database()
     seed_facilities()
     with closing(sqlite3.connect(DB_PATH)) as connection, connection:
-        # Safe before the data-plane migration: the seed returns 0 if the table is absent.
         seed_data_sources(connection)
         try:
             st_count = connection.execute("SELECT count(*) FROM monitoring_stations").fetchone()[0]

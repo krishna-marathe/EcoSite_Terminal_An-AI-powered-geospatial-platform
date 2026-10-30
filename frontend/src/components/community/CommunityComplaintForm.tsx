@@ -177,7 +177,7 @@ Respectfully submitted,
 
 ___________________________________
 ${residentName || (keepAnonymous ? 'Local Citizen Representative (Identity Protected)' : 'Authorized Resident')}
-Verified via EcoSite Terminal Community Portal (ecosite.gov.in / learn)`;
+Verified via Eco Terminal Community Portal (ecosite.gov.in / learn)`;
 
     setGeneratedLetter(letter);
     setSubmissionStatus('letter_generated');
@@ -196,11 +196,13 @@ Verified via EcoSite Terminal Community Portal (ecosite.gov.in / learn)`;
 
   const handleDownloadLetter = () => {
     if (!generatedLetter) return;
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const fileName = 'grievance_' + facility.id + '_' + dateStr + '.txt';
     const blob = new Blob([generatedLetter], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `grievance_${facility.id}_${new Date().toISOString().slice(0, 10)}.txt`;
+    link.setAttribute('download', fileName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -339,9 +341,9 @@ Verified via EcoSite Terminal Community Portal (ecosite.gov.in / learn)`;
               className="mt-1 w-full rounded border border-eco-border bg-eco-surface px-3 py-2 text-body text-eco-text focus:border-eco-primary focus:outline-none"
             >
               <option value="< 250 metres">Immediate Boundary (&lt; 250 metres)</option>
-              <option value="250m – 500m">Near Vicinity (250m – 500m)</option>
-              <option value="500m – 1 km">1 km Core Buffer (500m – 1,000m)</option>
-              <option value="1 km – 3 km">Municipal Catchment (1 km – 3 km)</option>
+              <option value="250m - 500m">Near Vicinity (250m - 500m)</option>
+              <option value="500m - 1 km">1 km Core Buffer (500m – 1,000m)</option>
+              <option value="1 km - 3 km">Municipal Catchment (1 km - 3 km)</option>
             </select>
           </div>
         </div>

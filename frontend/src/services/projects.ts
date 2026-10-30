@@ -15,7 +15,7 @@ export const getProjects = async (signal?: AbortSignal): Promise<ProjectPage> =>
     !Array.isArray((data as { items?: unknown }).items) ||
     typeof (data as { total?: unknown }).total !== 'number'
   ) {
-    throw new Error('Project list returned an unexpected response. Check that the EcoSite backend is running.');
+    throw new Error('Project list returned an unexpected response. Check that the Eco Terminal backend is running.');
   }
   return data as ProjectPage;
 };

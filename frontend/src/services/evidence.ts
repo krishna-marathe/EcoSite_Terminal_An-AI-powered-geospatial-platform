@@ -1,5 +1,5 @@
 /**
- * EcoSite India — Evidence, Document & Assertion Service
+ * Eco Terminal — Evidence, Document & Assertion Service
  *
  * Author: Omar (Frontend & UX Lead)
  * Handles uploading artifacts, listing assertions, and review actions.
@@ -64,7 +64,7 @@ export const INITIAL_MOCK_ARTIFACTS: EvidenceArtifact[] = [
     mime_type: 'application/pdf',
     file_size_bytes: 4210400,
     sha256: '4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a',
-    issuer: 'EcoSite Engineering Consultants',
+    issuer: 'Eco Terminal Engineering Consultants',
     reference: 'DPR-IN-MH-2026-02',
     issued_on: '2026-08-01',
     valid_until: null,
@@ -109,7 +109,7 @@ export const INITIAL_MOCK_ASSERTIONS: Assertion[] = [
     scope_type: 'CAMPUS',
     scope_detail: 'Full Campus (Phase 3 cumulative)',
     status: 'DOCUMENTED',
-    asserted_by: 'EcoSite Engineering Consultants',
+    asserted_by: 'Eco Terminal Engineering Consultants',
     asserted_at: '2026-10-22T09:15:00Z',
     evidence_artifact_ids: ['art-003'],
     supporting_pages: [14],

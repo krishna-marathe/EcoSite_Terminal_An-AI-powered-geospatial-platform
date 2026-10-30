@@ -93,7 +93,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-4 text-meta">
-          <InlineAlert tone="info" title="No API key is required to use EcoSite Terminal">
+          <InlineAlert tone="info" title="No API key is required to use Eco Terminal">
             All maps, facilities, forecasts, risk screening and mitigation catalogues run out of the box
             with open-source basemaps and built-in models. Keys are completely optional.
           </InlineAlert>

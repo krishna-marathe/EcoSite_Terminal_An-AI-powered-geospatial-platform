@@ -46,7 +46,7 @@ export const WorldMonitorHeader: React.FC = () => {
           <div>
             <div className="flex items-center gap-1.5 leading-tight">
               <span className="font-mono text-body font-semibold tracking-tight text-eco-text transition-colors group-hover:text-eco-primary">
-                EcoSite<span className="text-eco-primary"> Terminal</span>
+                Eco<span className="text-eco-primary"> Terminal</span>
               </span>
             </div>
             <p className="mt-0.5 hidden text-micro text-eco-muted lg:block">Government data-centre oversight</p>

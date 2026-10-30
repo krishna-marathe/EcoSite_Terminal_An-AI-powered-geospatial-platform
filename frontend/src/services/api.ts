@@ -29,7 +29,7 @@ export function expectArray<T>(data: unknown, label: string): T[] {
   if (!Array.isArray(data)) {
     throw new Error(
       `${label} returned an unexpected response instead of a list. ` +
-        `Check that the EcoSite backend is running at ${API_BASE_URL}.`
+        `Check that the Eco Terminal backend is running at ${API_BASE_URL}.`
     );
   }
   return data as T[];
@@ -50,7 +50,7 @@ export function apiErrorMessage(error: unknown, fallback: string): string {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.warn(`[EcoSite API] Request failed (${error.config?.url || 'unknown'}).`);
+    console.warn(`[Eco Terminal API] Request failed (${error.config?.url || 'unknown'}).`);
     return Promise.reject(error);
   }
 );

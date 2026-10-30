@@ -58,7 +58,7 @@ export const Reports: React.FC = () => {
 
   useEffect(() => {
     const previousTitle = document.title;
-    document.title = `EcoSite dossier — ${city.name}`;
+    document.title = `Eco Terminal dossier — ${city.name}`;
     return () => { document.title = previousTitle; };
   }, [city.name]);
 
