@@ -1,0 +1,58 @@
+{
+  "dataset_name": "EcoSite Resource Outlook \u2014 Maharashtra Real Reservoir Storage Inventory",
+  "last_updated": "2026-10-30",
+  "ml_phase": "ML-F3.3 Complete Water Training Data",
+  "multi_year_calendar_coverage": {
+    "window": "2022-01-06 to 2024-06-27 (130 weeks)",
+    "total_calendar_weeks": 130,
+    "bhatsa_observed_weeks": 119,
+    "bhatsa_missing_weeks": 11,
+    "bhatsa_coverage_pct": 91.5,
+    "statewide_observed_weeks": 119,
+    "statewide_missing_weeks": 11,
+    "statewide_coverage_pct": 91.5
+  },
+  "curated_datasets": {
+    "bhatsa_weekly_continuous_calendar": {
+      "file": "bhatsa_weekly_continuous_calendar.csv",
+      "description": "Continuous 130-week calendar for Bhatsa Reservoir (2022-2024) with missing weeks explicitly flagged",
+      "monitored_capacity_mcm": 942.1,
+      "frl_m": 142.07
+    },
+    "maharashtra_statewide_weekly_continuous_calendar": {
+      "file": "maharashtra_statewide_weekly_continuous_calendar.csv",
+      "description": "Continuous 130-week calendar for Maharashtra Statewide aggregate with normalized 32-reservoir capacity scaling",
+      "monitored_capacity_benchmark_bcm": 19.166
+    },
+    "maharashtra_major_reservoirs_cwc": {
+      "file": "maharashtra_major_reservoirs_cwc.csv",
+      "record_count": 487,
+      "unique_dates": 151,
+      "reservoirs": [
+        "Bhatsa",
+        "Bhima (Ujjani)",
+        "Jayakwadi (Paithan)",
+        "Koyna"
+      ]
+    },
+    "maharashtra_statewide_storage_cwc": {
+      "file": "maharashtra_statewide_storage_cwc.csv",
+      "record_count": 122,
+      "unique_dates": 122
+    }
+  },
+  "feasibility_verdict": {
+    "bhatsa_standalone_model": "BLOCKED (Insufficient pre-monsoon dry season observations; cannot evaluate Jan-Jun summer drawdown)",
+    "seasonal_naive_baseline_backtest": "READY (Multi-year 2022-2023 training series established to evaluate 2024-H1 held-out test horizon)",
+    "lightgbm_water_model": "HOLD (Awaiting baseline seasonal-naive benchmark performance review)"
+  },
+  "operational_model": {
+    "selected_model": "Candidate 2: Trend-Adjusted Seasonal Baseline",
+    "evaluation_window": "2024-H1 (26 weeks: 2024-01-04 to 2024-06-27)",
+    "bhatsa_mae_mcm": 10.23,
+    "bhatsa_rmse_mcm": 11.56,
+    "bhatsa_mape_pct": 2.89,
+    "error_pct_of_capacity": 1.09,
+    "status": "ML-F3.4 READY"
+  }
+}

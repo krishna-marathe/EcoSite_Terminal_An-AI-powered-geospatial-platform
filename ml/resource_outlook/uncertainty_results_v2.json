@@ -1,0 +1,12 @@
+{
+  "calibration_method": "OUT_OF_SAMPLE_RESIDUAL_CONFORMAL",
+  "calibration_source": "Rolling-origin validation windows strictly prior to 2023-10-31",
+  "calibration_samples_count": 843,
+  "nominal_target_coverage": "80% (P10 to P90)",
+  "calibrated_q10_offset_mw": -620.2,
+  "calibrated_q90_offset_mw": 4912.2,
+  "mean_interval_width_mw": 5532.4,
+  "untouched_test_set_coverage_pct": 81.82,
+  "calibration_verdict": "CALIBRATED_EMPIRICAL_RELIABILITY",
+  "notes": "Calibration uses strictly earlier out-of-sample residuals. Achieves 81.82% empirical coverage on the untouched held-out 6-month test set, successfully matching the nominal 80% target within +1.82% margin."
+}

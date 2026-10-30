@@ -1,0 +1,40 @@
+{
+  "model_name": "Seasonal-Naive Water Storage Baseline",
+  "model_type": "SEASONAL_NAIVE_ANNUAL_52W",
+  "evaluation_window": "2024-01-04 to 2024-06-27 (26 weeks / 2024-H1)",
+  "forecast_origin": "2024-01-04 (Fixed Origin / 26 weeks forward)",
+  "historical_training_reference": "2023-01-05 to 2023-06-29 (26 matching weeks)",
+  "earlier_training_context": "2022 (41 observed weeks available)",
+  "bhatsa_reservoir_metrics": {
+    "reservoir_name": "Bhatsa Lake",
+    "capacity_mcm": 942.1,
+    "target_unit": "MCM (Million Cubic Metres)",
+    "mae_mcm": 39.85,
+    "rmse_mcm": 40.3,
+    "mape_pct": 10.8,
+    "mean_bias_mcm": -39.85,
+    "actual_storage_range_2024": "197.0 to 705.0 MCM",
+    "pred_storage_range_2023": "230.0 to 735.0 MCM"
+  },
+  "maharashtra_statewide_metrics": {
+    "monitored_reservoirs": 32,
+    "benchmark_capacity_bcm": 19.166,
+    "benchmark_capacity_mcm": 19166.0,
+    "normalized_storage_mcm_metrics": {
+      "mae_mcm": 2720.15,
+      "rmse_mcm": 2871.79,
+      "mape_pct": 40.24,
+      "mean_bias_mcm": -2720.15
+    },
+    "storage_percent_metrics": {
+      "mae_percent_points": 14.19,
+      "rmse_percent_points": 14.98,
+      "mean_bias_percent_points": -14.19
+    }
+  },
+  "verdict": {
+    "data_sufficiency": "SUFFICIENT (100% weekly coverage across 2023 and 2024-H1 enables strict out-of-sample seasonal backtesting)",
+    "seasonal_naive_baseline_status": "BENCHMARKED",
+    "lightgbm_training_status": "HOLD (Baseline benchmarks recorded; LightGBM can be developed with weather/inflow predictors if authorized)"
+  }
+}

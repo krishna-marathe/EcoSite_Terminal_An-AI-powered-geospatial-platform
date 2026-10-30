@@ -1,0 +1,139 @@
+{
+  "evaluation_regimes": {
+    "test_set_winter_to_summer": {
+      "origin_date": "2023-10-31",
+      "horizon_dates": "2023-11-01 to 2024-04-27",
+      "total_calendar_days": 179,
+      "evaluated_days": 176,
+      "excluded_missing_days": 3,
+      "seasonal_naive_baseline": {
+        "mae_mw": 1230.17,
+        "rmse_mw": 1696.53,
+        "mape_pct": 4.62,
+        "bias_mw": -543.49
+      },
+      "lightgbm_p50": {
+        "mae_mw": 1593.37,
+        "rmse_mw": 1927.19,
+        "mape_pct": 6.04,
+        "bias_mw": 923.68
+      },
+      "lead_month_breakdown": {
+        "month_1": {
+          "evaluated_days": 29,
+          "baseline": {
+            "mae_mw": 2606.48,
+            "rmse_mw": 2947.63,
+            "mape_pct": 9.71,
+            "bias_mw": -1800.0
+          },
+          "lightgbm": {
+            "mae_mw": 2216.44,
+            "rmse_mw": 2657.87,
+            "mape_pct": 8.45,
+            "bias_mw": -766.27
+          }
+        },
+        "month_2": {
+          "evaluated_days": 30,
+          "baseline": {
+            "mae_mw": 1107.73,
+            "rmse_mw": 1520.45,
+            "mape_pct": 4.59,
+            "bias_mw": 770.73
+          },
+          "lightgbm": {
+            "mae_mw": 2064.64,
+            "rmse_mw": 2329.75,
+            "mape_pct": 8.35,
+            "bias_mw": 2064.64
+          }
+        },
+        "month_3": {
+          "evaluated_days": 30,
+          "baseline": {
+            "mae_mw": 878.37,
+            "rmse_mw": 1273.51,
+            "mape_pct": 3.23,
+            "bias_mw": -582.7
+          },
+          "lightgbm": {
+            "mae_mw": 1227.68,
+            "rmse_mw": 1466.51,
+            "mape_pct": 4.56,
+            "bias_mw": 1017.23
+          }
+        },
+        "month_4": {
+          "evaluated_days": 31,
+          "baseline": {
+            "mae_mw": 521.1,
+            "rmse_mw": 645.19,
+            "mape_pct": 1.85,
+            "bias_mw": -396.52
+          },
+          "lightgbm": {
+            "mae_mw": 1609.06,
+            "rmse_mw": 1684.13,
+            "mape_pct": 5.76,
+            "bias_mw": 1609.06
+          }
+        },
+        "month_5": {
+          "evaluated_days": 29,
+          "baseline": {
+            "mae_mw": 1162.26,
+            "rmse_mw": 1409.87,
+            "mape_pct": 4.29,
+            "bias_mw": -699.64
+          },
+          "lightgbm": {
+            "mae_mw": 1178.12,
+            "rmse_mw": 1564.58,
+            "mape_pct": 4.4,
+            "bias_mw": 902.66
+          }
+        },
+        "month_6": {
+          "evaluated_days": 27,
+          "baseline": {
+            "mae_mw": 1165.93,
+            "rmse_mw": 1563.96,
+            "mape_pct": 4.28,
+            "bias_mw": -611.63
+          },
+          "lightgbm": {
+            "mae_mw": 1234.82,
+            "rmse_mw": 1522.03,
+            "mape_pct": 4.58,
+            "bias_mw": 602.79
+          }
+        }
+      }
+    },
+    "validation_set_monsoon_to_postmonsoon": {
+      "origin_date": "2023-04-30",
+      "horizon_dates": "2023-05-01 to 2023-10-31",
+      "total_calendar_days": 184,
+      "evaluated_days": 183,
+      "excluded_missing_days": 1,
+      "seasonal_naive_baseline": {
+        "mae_mw": 3125.57,
+        "rmse_mw": 3769.37,
+        "mape_pct": 12.2,
+        "bias_mw": -2803.54
+      },
+      "lightgbm_p50": {
+        "mae_mw": 2940.14,
+        "rmse_mw": 3504.88,
+        "mape_pct": 11.52,
+        "bias_mw": -2193.64
+      }
+    }
+  },
+  "model_comparison_verdict": {
+    "monsoon_improvement": "LightGBM improves over seasonal-naive by 185.43 MW MAE (11.52% vs 12.2% MAPE) during erratic monsoon swings.",
+    "winter_summer_comparison": "Seasonal-naive achieves 4.62% MAPE (1230.17 MW) while LightGBM achieves 6.04% MAPE (1593.37 MW) due to steady baseline continuity.",
+    "complementary_role": "LightGBM provides valuable thermodynamic weather responsiveness and peak upper bounds (P90) where persistence fails."
+  }
+}
