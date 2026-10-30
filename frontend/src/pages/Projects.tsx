@@ -64,7 +64,7 @@ export function Projects() {
   return (
     <PageShell>
       <PageHeader
-        title="Four-state data-centre site planning"
+        title="Project candidate polygons"
         purpose="Create and compare candidate polygons in Maharashtra, Telangana, Karnataka and Tamil Nadu. Screening evidence supports planning; it is not a legal clearance."
         eyebrow="Projects"
       />
@@ -309,20 +309,54 @@ function ProjectEvidence({ projectId, onBusy }: { projectId: string; onBusy: (bu
 }
 
 function ProjectSites({ project, onBusy }: { project: Project; onBusy: (busy: boolean) => void }) {
-  const mounted = useMounted();
+  const [params, setParams] = useSearchParams();
   const queryClient = useQueryClient();
   const sites = useQuery({
     queryKey: ['project-sites', project.id],
-    queryFn: () => getSites(project.id),
+    queryFn: ({ signal }) => getSites(project.id, signal),
+    retry: false,
   });
-  const data = sites.data || [];
 
-  const [selectedId, selectId] = useState<string | undefined>();
-  const [selected, setSelected] = useState<CandidateSite | undefined>();
-  const [name, setName] = useState('');
-  const [state, setState] = useState('IN-MH');
-  const [district, setDistrict] = useState('');
-  const [geometry, setGeometry] = useState<PolygonGeometry | null>(null);
+  if (sites.isPending) return <p className="text-meta text-eco-muted">Loading candidates…</p>;
+  if (sites.error || !sites.data) return <p role="alert" className="text-meta text-eco-accent">{projectError(sites.error)}</p>;
+
+  const requested = params.get('site');
+  const initialSite = sites.data.find((site) => site.id === requested);
+
+  return (
+    <LoadedProjectSites
+      key={project.id + ':' + (requested || 'new')}
+      project={project}
+      onBusy={onBusy}
+      initialSite={initialSite}
+      data={sites.data}
+      selectId={(id) => setParams(id ? { project: project.id, site: id } : { project: project.id })}
+      queryClient={queryClient}
+    />
+  );
+}
+
+function LoadedProjectSites({
+  project,
+  onBusy,
+  initialSite,
+  data,
+  selectId,
+  queryClient,
+}: {
+  project: Project;
+  onBusy: (busy: boolean) => void;
+  initialSite?: CandidateSite;
+  data: CandidateSite[];
+  selectId: (id?: string) => void;
+  queryClient: ReturnType<typeof useQueryClient>;
+}) {
+  const mounted = useMounted();
+  const [selected, setSelected] = useState<CandidateSite | undefined>(initialSite);
+  const [name, setName] = useState(initialSite?.name || '');
+  const [state, setState] = useState(initialSite?.state_code || 'IN-MH');
+  const [district, setDistrict] = useState(initialSite?.district || '');
+  const [geometry, setGeometry] = useState<PolygonGeometry | null>(initialSite?.geometry || null);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [busy, updateBusy] = useState(false);

@@ -689,9 +689,9 @@ describe('Projects Page Real End-to-End Demo Integration Flow', () => {
 
     await screen.findByRole('heading', { name: /Project candidate polygons/i });
     expect(await screen.findByText('3 / 3 active candidates')).toBeInTheDocument();
-    expect(screen.getByText('Chakan Greenfield Parcel A')).toBeInTheDocument();
-    expect(screen.getByText('Talegaon MIDC Parcel B')).toBeInTheDocument();
-    expect(screen.getByText('Ranjangaon Industrial Parcel C')).toBeInTheDocument();
+    expect(screen.getAllByText('Chakan Greenfield Parcel A')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Talegaon MIDC Parcel B')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Ranjangaon Industrial Parcel C')[0]).toBeInTheDocument();
   });
 
   it('renders ResourceReadinessTimeline with backend phase readiness data and commitment disclaimer', async () => {

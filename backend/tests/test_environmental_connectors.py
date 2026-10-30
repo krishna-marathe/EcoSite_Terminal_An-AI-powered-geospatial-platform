@@ -354,7 +354,7 @@ class StacConnectorTests(unittest.TestCase):
 
         with patch("backend.app.data.connectors.copernicus_stac.http_post_json", side_effect=fake_post):
             # Pagination is the subject here; the pixel stage is covered separately.
-            with patch.dict(os.environ, {"ECOSITE_S2_NDVI": "0"}, clear=False):
+            with patch.dict(os.environ, {"ECOSITE_S2_NDVI": "0", "ECOSITE_STAC_SEARCH_URL": "https://stac.opensearch.dataspace.copernicus.eu/v1/search"}, clear=False):
                 payloads = CopernicusStacConnector().fetch(request())
 
         self.assertEqual(len(payloads), 2)
