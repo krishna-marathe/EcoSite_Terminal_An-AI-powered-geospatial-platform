@@ -1,18 +1,27 @@
-node_modules
+node_modules/
 .env
+.env.local
 frontend/.env
+frontend/.env.local
+backend/.env
+backend/.venv*
 .aws/
 .codex/
-.pyest_cache/
 
 # Runtime connector snapshots: large and reproducible from the source.
 backend/data/raw/
 
 # Local SQLite safety backups created before migrations/retention.
 backend/data/backups/
+backend/data/*.db
 
 # Python caches
 __pycache__/
-*.pyc
+*.py[cod]
 .pytest_cache/
 .vscode/
+
+# Build and log artifacts
+frontend/dist/
+*.log
+.vitest-cache/

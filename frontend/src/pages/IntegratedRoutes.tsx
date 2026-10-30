@@ -16,7 +16,7 @@ import { MinistryDashboard } from './MinistryDashboard';
 import { MinistryReview } from './MinistryReview';
 import { OperatorRegistration } from './OperatorRegistration';
 import { PublicFacilityDetail } from './PublicFacilityDetail';
-import { buildPublicPreview, publicPreviewBlockReason } from './publicationPreview';
+import { buildPublicPreview, publicPreviewBlockReason } from '../utils/publicationPreview';
 
 const CURRENT_METRICS: EnvironmentalMetricKey[] = ['aqi', 'pm25', 'temperature', 'relative_humidity', 'rainfall', 'groundwater_depth'];
 

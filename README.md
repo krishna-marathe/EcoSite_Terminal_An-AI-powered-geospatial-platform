@@ -122,12 +122,44 @@ require a reviewed production database and operational architecture.
 
 ```text
 EcoTerminal/
-├── backend/                 FastAPI service, migrations, tests and SQLite data
-├── data/research/           ministry parameters, sources and benchmark research
-├── docs/implementation/     architecture, delivery boards and runbooks
-├── frontend/                React application
-├── plan.md                  phased implementation plan
-└── tracker.md               implementation and research status
+├── backend/                  FastAPI service, migrations, CLI scripts, tests and SQLite DB
+│   ├── app/                  Domain core, API routers, Pydantic schemas, SQLAlchemy models & services
+│   │   ├── data/             Connector pipelines (NASA SRTM, STAC, CPCB, WorldPop, etc.)
+│   │   ├── jobs/             Scheduled ingestion background jobs
+│   │   ├── models/           SQLAlchemy ORM models
+│   │   ├── routers/          REST API endpoints (/api/v1/*)
+│   │   ├── schemas/          Pydantic validation schemas
+│   │   └── services/         Database repositories & business logic services
+│   ├── data/                 SQLite database (ecosite.db), boundaries, raw caches & backups
+│   ├── migrations/           Alembic schema version migrations (revision 04c_001)
+│   ├── scripts/              CLI utilities (init_db, database_maintenance, seeders, audits)
+│   └── tests/                Complete unittest test suite (255 unit & integration tests)
+├── data/                     Authoritative data catalogs, datasets & research
+│   ├── official_documents/   Statutory PDFs, gazettes, policies and DISCOM schedules
+│   └── research/             11 product, data & regulatory research papers
+├── docs/                     System architecture, contracts, runbooks & UX specs
+│   ├── assets/               Architecture diagrams, screenshots and references
+│   ├── contracts/            API & database specifications
+│   ├── data/                 Data source registry & verification protocols
+│   ├── design/               Frontend clarity & UI/UX design specifications
+│   ├── implementation/       Technical architecture, ingestion backbone & delivery boards
+│   └── operations/           SQLite database operations runbook
+├── frontend/                 React 19 + TypeScript + Vite SPA
+│   └── src/
+│       ├── app/              Application routing and React Query providers
+│       ├── components/       Feature-based components (community, dashboard, facilities, map, etc.)
+│       ├── data/             Geospatial overlays, reference layers & mitigations
+│       ├── hooks/            Custom React hooks
+│       ├── pages/            Route view pages (Dashboard, Projects, PublicFacilities, etc.)
+│       ├── services/         API client and query service layers
+│       ├── stores/           Zustand reactive state stores
+│       ├── types/            TypeScript domain interfaces and types
+│       └── utils/            Formatters, calculations, insights and GIS utilities
+├── shared/                   Shared cross-stack schemas and pilot facility references
+├── package.json              Unified monorepo workspace commands (backend, dev, db:init, test)
+├── plan.md                   Phased implementation plan
+├── tracker.md                Technical milestone and delivery status tracker
+└── workdone.md               Comprehensive implementation and delivery record
 ```
 
 ## Local development

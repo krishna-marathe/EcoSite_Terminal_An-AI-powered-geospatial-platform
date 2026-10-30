@@ -269,7 +269,7 @@ flowchart TD
 c:\Users\Sid\eco-terminal\EcoTerminal/
 ├── .env                                       # Local Mapbox and NASA Earthdata bearer tokens
 ├── tracker.md                                 # Technical delivery milestone tracker
-├── APIplan.md                                 # External API specifications and ticket ECO-842
+├── docs/implementation/data-ingestion-backbone.md # Ingestion backbone & API specifications (ECO-842)
 ├── backend/
 │   ├── app/
 │   │   ├── main.py                            # FastAPI application root, CORS, router mounting
@@ -347,7 +347,7 @@ c:\Users\Sid\eco-terminal\EcoTerminal/
 3. **Indian Standard Time (IST / UTC+5:30):** Replaced all UTC clocks with `Asia/Kolkata` IST across both the map overlay and the global navigation header.
 4. **Compact SVG & Marker Refactor:** Scaled down map markers from 34px/42px to 22px/28px and SVGs from 16px/14px to 11px/10px for high-density GIS visibility.
 5. **Full Test & Build Verification:** Succeeded across all 50 frontend test suites (239 tests passed) and clean production build with zero errors.
-6. **API Architecture Blueprint:** Drafted comprehensive technical specification in [`APIplan.md`](file:///c:/Users/Sid/eco-terminal/APIplan.md) covering all 12 data vectors.
+6. **API Architecture Blueprint:** Drafted comprehensive technical specification in [`docs/implementation/data-ingestion-backbone.md`](file:///c:/Users/Sid/eco-terminal/EcoTerminal/docs/implementation/data-ingestion-backbone.md) covering all 12 data vectors.
 
 
 ---
@@ -552,3 +552,45 @@ Instead of adversarial or alarmist phrasing (*High human hazard / risk violation
 | **Backend Unittests** | **255 / 255 PASSED** | `Ran 255 tests in 63.748s. OK` across all connector, DB, API and risk modules |
 | **Frontend Vitest** | **253 / 253 PASSED** | All `52 test suites` passed cleanly in `17.94s` |
 | **Production Build** | **SUCCESS** | `tsc -b && vite build` built cleanly in `1.07s` with zero errors |
+
+
+---
+
+## 12. Codebase Structure Re-Organization & Workspace Hardening (October 30, 2026)
+
+To ensure enterprise-grade repository cleanliness, maintainability, and reproducibility for evaluation and production deployment, the entire repository was systematically reorganized:
+
+1. **Workspace Root Cleanliness:**
+   - Purged over 30 temporary scratch/experiment scripts from the workspace root.
+   - Preserved and committed the comprehensive API ingestion specification to [docs/implementation/data-ingestion-backbone.md](file:///c:/Users/Sid/eco-terminal/EcoTerminal/docs/implementation/data-ingestion-backbone.md).
+   - Removed obsolete runner batch files and duplicate report snapshots.
+2. **Repository Directory Layout Streamlining:**
+   - Moved research notes on NITI Aayog framework from root info.md into [data/research/11-niti-aayog-evaluation-framework.md](file:///c:/Users/Sid/eco-terminal/EcoTerminal/data/research/11-niti-aayog-evaluation-framework.md).
+   - Relocated historical root screenshot into [docs/assets/Screenshot 2026-10-10 141522.png](file:///c:/Users/Sid/eco-terminal/EcoTerminal/docs/assets/Screenshot%202026-10-10%20141522.png).
+   - Removed unreferenced samples/image.png (1.2 MB) and deleted empty dataset/ directory.
+   - Purged obsolete committed scratch scripts (ppend_workdone.py, 	est_all_ranges.py, etc.) from EcoTerminal/scratch/.
+3. **Storage & Virtual Environment Optimization:**
+   - Purged duplicate .venv311 backup (1.3 GB) and broken Python 3.15 backup .venv_py315_backup (1.2 GB), saving 2.5 GB of disk space.
+   - Purged transient test databases (ecositing.db 0B, 	est_fresh_build.db 20MB) and runtime log artifacts.
+   - Updated operational runbooks ([docs/operations/database-runbook.md](file:///c:/Users/Sid/eco-terminal/EcoTerminal/docs/operations/database-runbook.md)) to reflect standardized paths.
+4. **Frontend Architecture & Domain Separation:**
+   - Migrated publication preview logic from rontend/src/pages/publicationPreview.ts to [rontend/src/utils/publicationPreview.ts](file:///c:/Users/Sid/eco-terminal/EcoTerminal/frontend/src/utils/publicationPreview.ts).
+   - Maintained 100% backward compatibility via clean re-export in pages/publicationPreview.ts.
+5. **Unified Monorepo Developer Experience:**
+   - Reorganized root [package.json](file:///c:/Users/Sid/eco-terminal/EcoTerminal/package.json) with single-command workflows:
+     - 
+pm run dev: Launch Vite frontend development server
+     - 
+pm run backend: Launch FastAPI backend server on port 8000
+     - 
+pm run db:init: Bootstrap, migrate and seed SQLite database
+     - 
+pm run test: Run both backend (255 tests) and frontend (253 tests) suites
+     - 
+pm run test:backend: Run full Python unittest suite
+     - 
+pm run test:frontend: Run full Vitest suite
+     - 
+pm run build: Compile and verify TypeScript production build
+6. **Hardened Version Control Hygiene:**
+   - Updated root .gitignore to prevent future tracking of virtual environments, test databases, .vitest-cache, and runtime logs.

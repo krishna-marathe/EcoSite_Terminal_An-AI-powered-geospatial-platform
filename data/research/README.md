@@ -32,6 +32,9 @@ Maharashtra, Telangana, Karnataka and Tamil Nadu.
   contracts, access/licence decisions, refresh cadences, blockers and acceptance
   gates for facility, environmental, grid, biodiversity and population data.
 
+- `11-niti-aayog-evaluation-framework.md` - NITI Aayog Data Centre Evaluation
+  Framework parameters covering power, water, siting, sustainability and governance.
+
 ## Product statement
 
 EcoSite Terminal is a government decision-support system for:

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FacilitySubmission } from '../types/submissions';
-import { buildPublicPreview, publicPreviewBlockReason } from './publicationPreview';
+import { buildPublicPreview, publicPreviewBlockReason } from '../utils/publicationPreview';
 
 const submission = (overrides: Partial<FacilitySubmission> = {}): FacilitySubmission => ({
   id: 'SUB_01', status: 'submitted', revision: 2,
