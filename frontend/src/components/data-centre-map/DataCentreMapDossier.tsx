@@ -7,6 +7,8 @@ import { Button, IconButton } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { DataCentreAiInsightsCard } from '../facilities/DataCentreAiInsightsCard';
 import { apiClient } from '../../services/api';
+import { fetchFacilityAiAssist } from '../../services/aiAssist';
+import { generateDataCentreInsights } from '../../utils/dataCentreInsights';
 import { mlService } from '@/services/mlService';
 
 const CAPACITY_LABELS: Record<CapacityType, string> = {
@@ -58,37 +60,56 @@ export const DataCentreMapDossier: React.FC<DataCentreMapDossierProps> = ({
     if (!facility) return;
     let cancelled = false;
 
-    // Fetch AI insights
-    apiClient
-      .get<{ infrastructureTelemetry: { population: any } }>(
-        `/public-facilities/${facility.id}/ai-assist`
-      )
-      .then((res) => {
-        if (!cancelled) setAiInsights(res.data);
+    // Fetch AI insights & population telemetry
+    fetchFacilityAiAssist(facility.id, undefined, facility, environmentalCurrent)
+      .then((data) => {
+        if (!cancelled) {
+          setAiInsights(data);
+          setInsightsError(null);
+        }
       })
       .catch((err) => {
-        if (!cancelled) setInsightsError(err.message);
+        if (!cancelled) {
+          try {
+            const fallback = generateDataCentreInsights(facility, environmentalCurrent);
+            setAiInsights(fallback);
+            setInsightsError(null);
+          } catch {
+            setInsightsError(err?.message || 'Telemetry unavailable');
+          }
+        }
       });
 
-    // Fetch ML predictions for 6, 9, 12 months
-    const primaryCapacity = facility.capacityDisclosures?.[0]?.value ?? 40;
-    const estimatedPowerMw = primaryCapacity * 1.35;
-    const estimatedWaterKld = primaryCapacity * 1.6 * 24;
+    // Fetch deterministic engineering projections for 6, 9, 12 months
+    const primaryCapacity = facility.capacityDisclosures?.[0]?.value ?? 0;
+    if (primaryCapacity <= 0) {
+      setMlLoading(false);
+      setMlPredictions(null);
+      setMlError("Facility capacity is unspecified (0 MW); cannot evaluate deterministic power requirement.");
+      return;
+    }
 
     setMlLoading(true);
+    setMlError(null);
     mlService
       .getMultiMonthPredictions({
         capacity_mw: primaryCapacity,
-        water_demand_kl_day: estimatedWaterKld,
-        power_demand_mw: estimatedPowerMw,
-        location: facility.stateCode ?? "IN-MH",
-        model_version: "ML-F2.1",
+        water_demand_kl_day: 0, // Undisclosed; never fabricate water consumption without audited WUE
+        power_demand_mw: 0, // Deterministic engine computes power from capacity * standard PUE 1.35
+        location: (facility.stateCode as any) || "IN-MH",
+        model_version: "ML-F4.1",
       })
       .then((res) => {
-        if (!cancelled) setMlPredictions(res);
+        if (!cancelled) {
+          setMlPredictions(res);
+          setMlLoading(false);
+        }
       })
       .catch((err) => {
-        if (!cancelled) setMlError(err.message);
+        if (!cancelled) {
+          setMlError(String(err?.message || "Scenario calculation request failed"));
+          setMlLoading(false);
+        }
       });
 
     return () => {
@@ -115,16 +136,30 @@ export const DataCentreMapDossier: React.FC<DataCentreMapDossierProps> = ({
   ): {
     power: string;
     water: string;
+    waterSubtitle: string;
     capacity: string;
-    confidence: string;
+    classification: string;
     horizon: string;
-  } => ({
-    power: `${pred.power_demand_mw_pred?.toFixed(1) || 0} MW`,
-    water: `${pred.water_demand_kl_day_pred?.toFixed(1) || 0} kL/day`,
-    capacity: `${pred.capacity_mw_pred?.toFixed(1) || 0} MW`,
-    confidence: `${(pred.confidence_score ?? 0.85) * 100}%`,
-    horizon: `${pred.prediction_horizon_months} months`,
-  });
+  } => {
+    let waterStr = "Not Disclosed";
+    let waterSubtitle = "Undisclosed";
+    if (pred?.water_demand_kl_day_pred != null && pred.water_demand_kl_day_pred > 0) {
+      waterStr = `${pred.water_demand_kl_day_pred.toFixed(1)} kL/day`;
+      waterSubtitle = "Reported Water Baseline";
+    } else if (pred?.benchmark_cooling_water_kl_day != null && pred.benchmark_cooling_water_kl_day > 0) {
+      waterStr = `${pred.benchmark_cooling_water_kl_day.toFixed(1)} kL/day`;
+      waterSubtitle = "Est. Cooling Make-up";
+    }
+
+    return {
+      power: pred?.power_demand_mw_pred != null ? `${pred.power_demand_mw_pred.toFixed(1)} MW` : "N/A",
+      water: waterStr,
+      waterSubtitle,
+      capacity: pred?.capacity_mw_pred != null ? `${pred.capacity_mw_pred.toFixed(1)} MW IT` : "N/A",
+      classification: pred?.classification ? pred.classification.replaceAll('_', ' ') : "Deterministic Scenario",
+      horizon: `${pred?.prediction_horizon_months ?? 6} months`,
+    };
+  };
 
   return (
     <Card
@@ -215,14 +250,58 @@ export const DataCentreMapDossier: React.FC<DataCentreMapDossierProps> = ({
         </a>
       </section>
 
-      <section aria-labelledby="dc-verification-heading">
-        <h4 className="mb-2 text-meta font-semibold uppercase tracking-wide text-eco-muted">
-          <ShieldCheck size={13} aria-hidden="true" /> ML Forecast
-        </h4>
-        {mlLoading && <p className="text-meta text-eco-muted">Loading ML forecast…</p>}
-        {mlError && <p className="text-meta text-eco-critical">{mlError}</p>}
+      <section aria-labelledby="dc-engineering-heading">
+        <div className="mb-2 flex items-center justify-between">
+          <h4 id="dc-engineering-heading" className="text-meta font-semibold uppercase tracking-wide text-eco-muted flex items-center gap-1.5">
+            <ShieldCheck size={13} aria-hidden="true" /> Facility Engineering Scenarios
+          </h4>
+          <span className="font-mono text-[9px] uppercase tracking-wider text-eco-muted border border-eco-border px-1.5 py-0.5 rounded">
+            PUE 1.35 Benchmark
+          </span>
+        </div>
+        <p className="mb-3 text-meta text-eco-muted">
+          Deterministic facility engineering requirement based on disclosed capacity. Not an unvalidated ML prediction.
+        </p>
+        {mlLoading && (
+          <div className="flex items-center gap-2 p-3 rounded border border-eco-border bg-eco-surface-secondary/40 text-meta text-eco-muted">
+            <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-eco-primary border-t-transparent" />
+            <span>Evaluating facility engineering scenario…</span>
+          </div>
+        )}
+        {mlError && (
+          <div className="p-3 rounded border border-eco-critical/40 bg-eco-critical/10 text-meta text-eco-critical flex items-start justify-between gap-2">
+            <span>{mlError}</span>
+            <button
+              type="button"
+              className="text-micro underline hover:text-eco-text uppercase tracking-wider font-semibold"
+              onClick={() => {
+                const primaryCap = facility.capacityDisclosures?.[0]?.value ?? 0;
+                setMlLoading(true);
+                setMlError(null);
+                mlService
+                  .getMultiMonthPredictions({
+                    capacity_mw: primaryCap,
+                    water_demand_kl_day: 0,
+                    power_demand_mw: 0,
+                    location: (facility.stateCode as any) || "IN-MH",
+                    model_version: "ML-F4.1",
+                  })
+                  .then((res) => {
+                    setMlPredictions(res);
+                    setMlLoading(false);
+                  })
+                  .catch((err) => {
+                    setMlError(String(err?.message || "Scenario calculation request failed"));
+                    setMlLoading(false);
+                  });
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        )}
         {!mlLoading && !mlError && mlPredictions && (
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2">
             {[6, 9, 12].map((months) => {
               const pred = mlPredictions[`month_${months}`];
               if (!pred) return null;
@@ -230,20 +309,27 @@ export const DataCentreMapDossier: React.FC<DataCentreMapDossierProps> = ({
               const formatted = formatPrediction(pred);
 
               return (
-                <div key={months} className="p-4 rounded bg-eco-surface/95 border border-eco-border text-center">
-                  <div className="text-2xl font-bold text-eco-primary">{formatted.power}</div>
-                  <p className="text-meta text-eco-muted">Power Forecast</p>
-                  <hr className="my-2 border border-eco-border/50" />
-                  <p className="text-sm text-eco-muted">{formatted.water}</p>
-                  <hr className="my-2 border border-eco-border/50" />
-                  <div className="mt-3">
-                    <p className="text-meta text-eco-muted">Confidence: {formatted.confidence}</p>
-                    <p className="text-micro text-eco-muted">Forecast horizon: {formatted.horizon}</p>
+                <div key={months} className="p-2.5 rounded bg-eco-surface-secondary/50 border border-eco-border text-center">
+                  <div className="font-mono text-body font-bold text-eco-primary">{formatted.power}</div>
+                  <p className="text-micro uppercase tracking-wider text-eco-muted mt-0.5">Power Demand</p>
+                  <span className="text-[10px] text-eco-text block font-mono mt-0.5">{formatted.capacity}</span>
+                  <hr className="my-1.5 border-eco-border/50" />
+                  <p className="text-micro font-mono text-eco-text font-semibold">{formatted.water}</p>
+                  <span className="text-[9px] text-eco-muted block truncate">{formatted.waterSubtitle}</span>
+                  <hr className="my-1.5 border-eco-border/50" />
+                  <div className="mt-1 text-micro text-eco-muted">
+                    <span className="font-mono text-eco-text font-bold">{formatted.horizon}</span>
+                    <span className="block text-[9px] text-eco-muted truncate mt-0.5">Phased Ramp</span>
                   </div>
                 </div>
               );
             })}
           </div>
+        )}
+        {!mlLoading && !mlError && !mlPredictions && (
+          <p className="text-meta text-eco-muted p-2 border border-dashed border-eco-border rounded">
+            Facility engineering scenario data unavailable.
+          </p>
         )}
       </section>
 

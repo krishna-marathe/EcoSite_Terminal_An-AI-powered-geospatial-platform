@@ -542,15 +542,25 @@ def run_seed(database_path: Path | None = None):
         for fac in facilities:
             mapping = FACILITY_STATION_MAP.get(fac.id)
             if not mapping:
-                # Default to Mahape for MH, Gachibowli for TG, ECity for KA, Ambattur for TN
-                if fac.state_code == "IN-MH":
+                # Check locality/city before assigning nearby defaults; Pune must not be mapped to Navi Mumbai!
+                fac_city = (getattr(fac, "city", "") or "").lower()
+                fac_locality = (getattr(fac, "locality", "") or "").lower()
+                if "pune" in fac_city or "pune" in fac_locality:
+                    # No CPCB / IMD stations configured for Pune in ambient seed; return SOURCE_UNAVAILABLE
+                    mapping = None
+                elif fac.state_code == "IN-MH" and any(k in fac_city or k in fac_locality for k in ("mumbai", "thane", "navi", "panvel", "rabale", "mahape")):
                     mapping = ("station-cpcb-mahape", "station-imd-navimumbai", "station-cgwb-navimumbai", 2.5)
                 elif fac.state_code == "IN-TG":
                     mapping = ("station-cpcb-gachibowli", "station-imd-hyderabad", "station-cgwb-hyderabad", 2.2)
                 elif fac.state_code == "IN-KA":
                     mapping = ("station-cpcb-ecity", "station-imd-bengaluru", "station-cgwb-bengaluru", 2.0)
-                else:
+                elif fac.state_code == "IN-TN":
                     mapping = ("station-cpcb-ambattur", "station-imd-chennai", "station-cgwb-chennai", 2.0)
+                else:
+                    mapping = None
+
+            if not mapping:
+                continue
 
             air_st, wx_st, gw_st, dist = mapping
             links_to_create = [

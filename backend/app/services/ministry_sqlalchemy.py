@@ -78,20 +78,30 @@ class SqlAlchemyMinistryOperationsRepository(MinistryOperationsRepository):
         result = []
         for state, facilities in by_state.items():
             statuses = {facility: [item.status for item in freshness if item.facility_id == facility] for facility in facilities}
-            current = sum(any(status == "current" for status in values) for values in statuses.values())
-            stale = sum(any(status == "stale" for status in values) for values in statuses.values())
-            unavailable = sum(not any(status in ("current", "stale") for status in values) for values in statuses.values())
+            current = 0
+            stale = 0
+            unavailable = 0
+            for values in statuses.values():
+                if not values or all(s in ("unavailable", "not_covered") for s in values):
+                    unavailable += 1
+                elif any(s == "stale" for s in values):
+                    stale += 1
+                elif any(s == "current" for s in values):
+                    current += 1
+                else:
+                    unavailable += 1
             result.append(MinistryStateSummary(state, len(facilities), current, stale, unavailable))
         return result
 
     def source_health(self):
         def query(session):
             result = []
+            freshness_list = self.facility_freshness()
             for source in session.scalars(select(DataSource)).all():
                 failures = session.scalar(select(func.count()).select_from(IngestionRun).where(
                     IngestionRun.source_id == source.id, IngestionRun.status == "failed"
                 )) or 0
-                stale = len({row.facility_id for row in self.facility_freshness() if row.source_id == source.id and row.status == "stale"})
+                stale = len({row.facility_id for row in freshness_list if row.source_id == source.id and row.status == "stale"})
                 result.append(MinistrySourceHealth(source.id, source.provider, source.runtime_status, _dt(source.last_checked_at), _dt(source.last_success_at), stale, failures))
             return result
         return self._run(query)

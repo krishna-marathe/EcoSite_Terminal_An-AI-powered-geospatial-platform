@@ -481,6 +481,11 @@ class PublicEnvironmentalApiTests(unittest.TestCase):
                         for m_key in standard_metrics:
                             self.assertIn(m_key, returned, f"Facility {fid} missing metric {m_key}")
                             m_obj = returned[m_key]
+                            if fid == "stt-pune-5":
+                                self.assertEqual(m_obj["availability"], "NOT_COVERED")
+                                self.assertIsNone(m_obj["value"])
+                                self.assertIsNone(m_obj["station"])
+                                continue
                             self.assertEqual(
                                 m_obj["availability"],
                                 "AVAILABLE",
@@ -556,6 +561,10 @@ class PublicEnvironmentalApiTests(unittest.TestCase):
                             self.assertEqual(len(series_list), len(standard_metrics))
 
                             for series in series_list:
+                                if fid == "stt-pune-5":
+                                    self.assertEqual(series["availability"], "NOT_COVERED")
+                                    self.assertEqual(len(series.get("points", [])), 0)
+                                    continue
                                 self.assertEqual(
                                     series["availability"],
                                     "AVAILABLE",

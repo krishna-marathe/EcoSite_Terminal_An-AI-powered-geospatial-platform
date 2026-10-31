@@ -66,4 +66,57 @@ class MLPredictionsApiTests(unittest.TestCase):
         water_data = res_water.json()
         self.assertEqual(water_data["scope"], "BASIN_RESERVOIR_STORAGE_ONLY")
         self.assertIn("Bhatsa", water_data["name"])
+    def test_multimonth_horizon_differentiates_capacity_and_cooling_resources(self):
+        """Planning horizons (6, 9, 12 months) return distinct phased capacity, power demand, and cooling benchmarks."""
+        res_6 = self.client.post(
+            "/api/v1/ml/predict",
+            json={
+                "capacity_mw": 24,
+                "power_demand_mw": 0,
+                "water_demand_kl_day": 0,
+                "location": "IN-MH",
+                "months_ahead": 6,
+                "model_version": "ML-F4.1",
+            },
+        )
+        data_6 = res_6.json()
+        self.assertEqual(data_6["capacity_mw_pred"], 24.0)
+        self.assertEqual(data_6["power_demand_mw_pred"], 32.4)
+        self.assertGreater(data_6["benchmark_cooling_water_kl_day"], 0)
+
+        res_9 = self.client.post(
+            "/api/v1/ml/predict",
+            json={
+                "capacity_mw": 24,
+                "power_demand_mw": 0,
+                "water_demand_kl_day": 0,
+                "location": "IN-MH",
+                "months_ahead": 9,
+                "model_version": "ML-F4.1",
+            },
+        )
+        data_9 = res_9.json()
+        self.assertEqual(data_9["capacity_mw_pred"], 27.0)
+        self.assertEqual(data_9["power_demand_mw_pred"], 36.45)
+
+        res_12 = self.client.post(
+            "/api/v1/ml/predict",
+            json={
+                "capacity_mw": 24,
+                "power_demand_mw": 0,
+                "water_demand_kl_day": 0,
+                "location": "IN-MH",
+                "months_ahead": 12,
+                "model_version": "ML-F4.1",
+            },
+        )
+        data_12 = res_12.json()
+        self.assertEqual(data_12["capacity_mw_pred"], 30.0)
+        self.assertEqual(data_12["power_demand_mw_pred"], 40.5)
+
+        # Differentiated across horizons
+        self.assertLess(data_6["power_demand_mw_pred"], data_9["power_demand_mw_pred"])
+        self.assertLess(data_9["power_demand_mw_pred"], data_12["power_demand_mw_pred"])
+        self.assertIn("evaporative_hybrid_kld", data_12["benchmark_cooling_options"])
+        self.assertIn("air_cooled_dry_kld", data_12["benchmark_cooling_options"])
 

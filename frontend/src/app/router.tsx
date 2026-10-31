@@ -6,6 +6,7 @@ import { DataSources } from '../pages/DataSources';
 import { News } from '../pages/News';
 import { CommunityGuide } from '../pages/CommunityGuide';
 import { PublicFacilities } from '../pages/PublicFacilities';
+import { MLForecastAnalysis } from '../pages/MLForecastAnalysis';
 import { MinistryDashboardRoute, MinistryReviewRoute, OperatorRegistrationRoute, PublicFacilityDetailRoute } from '../pages/IntegratedRoutes';
 
 export const router = createBrowserRouter([
@@ -32,7 +33,7 @@ export const router = createBrowserRouter([
       { path: 'operator/register', element: <OperatorRegistrationRoute /> },
       { path: 'ministry/review', element: <MinistryReviewRoute /> },
       { path: 'risk-analysis', element: <Navigate to="/ministry" replace /> },
-      { path: 'forecast', element: <Navigate to="/ministry" replace /> },
+      { path: 'forecast', element: <MLForecastAnalysis /> },
       { path: 'mitigation', element: <Navigate to="/ministry" replace /> },
       { path: 'reports', element: <Navigate to="/public-facilities" replace /> },
       {

@@ -237,6 +237,13 @@ export const DataCentreAiInsightsCard: React.FC<DataCentreAiInsightsCardProps> =
               <span className="hidden sm:inline-block rounded border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.2 font-mono text-[9px] font-bold text-emerald-400 uppercase">
                 GROUNDED INSIGHTS
               </span>
+              <span className={`hidden sm:inline-block rounded border px-1.5 py-0.2 font-mono text-[9px] font-bold uppercase ${
+                aiData?.status === 'live_ai'
+                  ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
+                  : 'border-amber-500/40 bg-amber-500/10 text-amber-400'
+              }`}>
+                {aiData?.status === 'live_ai' ? 'AI-GENERATED ADVISORY' : 'DETERMINISTIC RULE-BASED ADVISORY'}
+              </span>
               {aiData && (
                 <span className="inline-flex items-center gap-1 rounded border border-sky-500/40 bg-sky-500/10 px-1.5 py-0.2 font-mono text-[9px] font-bold text-sky-400 uppercase">
                   <Cpu className="h-2.5 w-2.5" />
@@ -342,7 +349,11 @@ export const DataCentreAiInsightsCard: React.FC<DataCentreAiInsightsCardProps> =
               </button>
 
               <span className="text-eco-muted truncate">
-                Active Prompt Engine: <strong className="text-emerald-400">{aiData?.modelUsed || aiServiceStatus?.primaryModel || 'gemini-3.8-flash'}</strong>
+                Advisory Engine: <strong className={aiData?.status === 'live_ai' ? 'text-emerald-400' : 'text-amber-400'}>
+                  {aiData?.status === 'live_ai'
+                    ? (aiData?.modelUsed || aiServiceStatus?.primaryModel || 'Gemini 2.5 Flash')
+                    : 'Deterministic Rule Engine (Offline Fallback)'}
+                </strong>
               </span>
             </div>
 

@@ -82,6 +82,8 @@ class SqlAlchemyEnvironmentalRepository(EnvironmentalRepository):
         ).order_by(FacilityStationLink.effective_at.desc()))
         if link is None:
             return None
+        if link.distance_km is not None and link.distance_km > 30.0:
+            return None
         station = session.get(MonitoringStation, link.station_id)
         definition = session.get(MetricDefinition, metric)
         source = session.get(DataSource, station.source_id) if station else None

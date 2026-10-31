@@ -444,13 +444,10 @@ def collect(latitude: float, longitude: float, today: date | None = None) -> Pro
     except ProviderUnavailable as error:
         errors.append(f"flood: {error}")
 
-    # If all dynamic station providers failed, suspend contextual scoring to avoid false confidence
-    if len(errors) >= 3:
-        readings["water.groundwater_depth"] = Missing("Dynamic providers unavailable; water assessment suspended.")
-        readings["water.surface_water_occurrence"] = Missing("Dynamic providers unavailable; surface water assessment suspended.")
-    else:
-        readings["water.groundwater_depth"] = _cgwb_groundwater_reading(latitude, longitude)
-        readings["water.surface_water_occurrence"] = _surface_water_reading(latitude, longitude)
+    # Groundwater depth and surface water occurrence parameters are reported unavailable for public facility points.
+    # CGWB feeds are not connected as machine-readable APIs, and JRC GSW runs on candidate polygons only.
+    # We strictly refuse to inject synthetic/static readings to artificially maintain 100% coverage.
+    readings.update(UNAVAILABLE_PARAMETERS)
 
     # A failed provider must not leave its parameters looking healthy; fill the
     # gaps with explicit missing reasons.

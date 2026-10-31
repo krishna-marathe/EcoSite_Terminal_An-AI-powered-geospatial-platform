@@ -65,6 +65,18 @@ export const Dashboard: React.FC = () => {
   const distributionPanel = <RegistryDistribution summary={registrySummary.data} facilities={facilities.data?.items} isLoading={facilities.isLoading || registrySummary.isLoading} error={errorMessage(facilities.error ?? registrySummary.error)} />;
   const newsPanel = <NewsFeedPanel compact limit={4} />;
 
+  const mlForecastBanner = (
+    <div className="flex items-center justify-between rounded-lg border border-eco-primary/40 bg-eco-primary/10 px-3 py-2 text-meta">
+      <span className="text-eco-text truncate pr-2 flex items-center gap-1.5">
+        <span className="h-2 w-2 rounded-full bg-eco-primary animate-pulse" />
+        <strong>Resource Outlook ML:</strong> 182-day Maharashtra forecast (32,161 MW Peak)
+      </span>
+      <Link to="/forecast" className="shrink-0 font-semibold text-eco-primary hover:underline">
+        ML Forecast &amp; Analysis →
+      </Link>
+    </div>
+  );
+
   const ministryLink = (
     <div className="flex items-center justify-between rounded-lg border border-eco-border bg-eco-surface/50 px-3 py-2 text-meta">
       <span className="text-eco-muted truncate pr-2">{coverageLine} · {sourcesLine}</span>
@@ -72,7 +84,7 @@ export const Dashboard: React.FC = () => {
     </div>
   );
 
-  const railPanels = <>{registryPanel}{distributionPanel}{ministryLink}{newsPanel}</>;
+  const railPanels = <>{registryPanel}{mlForecastBanner}{distributionPanel}{ministryLink}{newsPanel}</>;
   const gridPanels = <>{registryPanel}{distributionPanel}
     <EnvironmentalCoveragePanel
       states={environmentalData}

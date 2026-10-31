@@ -40,7 +40,12 @@ class MLPredictionResponse(BaseModel):
     """Response model for facility engineering scenarios with epistemic transparency."""
     power_demand_mw_pred: Optional[float] = None
     water_demand_kl_day_pred: Optional[float] = None
+    benchmark_cooling_water_kl_day: Optional[float] = None
+    benchmark_cooling_options: Optional[dict[str, float]] = None
     capacity_mw_pred: Optional[float] = None
+    pue_applied: Optional[float] = None
+    wue_applied: Optional[float] = None
+    cooling_architecture_assumed: Optional[str] = None
     confidence_score: Optional[float] = None
     prediction_horizon_months: int
     model_name: str

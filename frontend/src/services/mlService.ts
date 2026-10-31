@@ -12,7 +12,12 @@ export interface MLPredictionInput {
 export interface MLPredictionOutput {
   power_demand_mw_pred?: number | null;
   water_demand_kl_day_pred?: number | null;
+  benchmark_cooling_water_kl_day?: number | null;
+  benchmark_cooling_options?: Record<string, number> | null;
   capacity_mw_pred?: number | null;
+  pue_applied?: number | null;
+  wue_applied?: number | null;
+  cooling_architecture_assumed?: string | null;
   confidence_score?: number | null;
   prediction_horizon_months: number;
   model_name: string;

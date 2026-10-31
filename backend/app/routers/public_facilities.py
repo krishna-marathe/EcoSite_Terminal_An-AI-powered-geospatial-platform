@@ -202,6 +202,7 @@ def public_facility_detail(
         )
 
 
+@router.get("/{facility_id}/ai-assist", response_model=FacilityAiAssistResponse, responses=ERROR_RESPONSES)
 @router.post("/{facility_id}/ai-assist", response_model=FacilityAiAssistResponse, responses=ERROR_RESPONSES)
 def public_facility_ai_assist(
     request: Request,

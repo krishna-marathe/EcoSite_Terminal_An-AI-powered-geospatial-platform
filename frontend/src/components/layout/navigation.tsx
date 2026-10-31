@@ -2,6 +2,7 @@ import React from 'react';
 import {
   BookOpen,
   ClipboardCheck,
+  Cpu,
   Database,
   Globe2,
   MapPin,
@@ -33,6 +34,7 @@ export interface NavGroup {
 export const PRIMARY_NAV: NavItem[] = [
   { to: '/dashboard', label: 'Overview', icon: <Globe2 className="h-3.5 w-3.5" />, description: 'Map and screening summary' },
   { to: '/public-facilities', label: 'Registry', icon: <Server className="h-3.5 w-3.5" />, description: 'Verified operating data centres' },
+  { to: '/forecast', label: 'ML Forecast & Analysis', icon: <Cpu className="h-3.5 w-3.5" />, description: 'Operational electricity forecast, facility scenarios & model benchmarks' },
   { to: '/learn', label: 'Community Guide', icon: <BookOpen className="h-3.5 w-3.5" />, description: 'Public guide, grievances & citizen petitions' },
   { to: '/news', label: 'News', icon: <Newspaper className="h-3.5 w-3.5" />, description: 'India and world media context' },
 ];
