@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-ELECTRO_DIR = Path("C:/Users/marat/EcoTerminal/ml/resource_outlook/electricity_recent")
+ELECTRO_DIR = Path(__file__).resolve().parent
 COMBINED_PATH = ELECTRO_DIR / "maharashtra_daily_combined_2013_2026.csv"
 COMP_PATH = ELECTRO_DIR / "electricity_model_comparison_v3.csv"
 METRICS_PATH = ELECTRO_DIR / "electricity_evaluation_metrics_v3.json"

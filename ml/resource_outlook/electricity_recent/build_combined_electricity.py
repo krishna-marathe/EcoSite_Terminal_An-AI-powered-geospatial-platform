@@ -3,7 +3,7 @@ import json
 import hashlib
 from pathlib import Path
 
-BASE_DIR = Path('C:/Users/marat/EcoTerminal')
+BASE_DIR = Path(__file__).resolve().parents[3]
 ELECTRO_DIR = BASE_DIR / 'ml/resource_outlook/electricity_recent'
 ZENODO_FILE = BASE_DIR / 'ml/resource_outlook/maharashtra_daily_demand_clean.csv'
 MSLDC_FILE = ELECTRO_DIR / 'maharashtra_daily_sldc_2024_2026.csv'

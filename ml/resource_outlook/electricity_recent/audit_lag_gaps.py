@@ -1,7 +1,7 @@
 import pandas as pd
 from pathlib import Path
 
-BASE_DIR = Path("C:/Users/marat/EcoTerminal")
+BASE_DIR = Path(__file__).resolve().parents[3]
 ELECTRO_DIR = BASE_DIR / "ml/resource_outlook/electricity_recent"
 COMBINED_PATH = ELECTRO_DIR / "maharashtra_daily_combined_2013_2026.csv"
 

@@ -14,8 +14,8 @@ ctx = ssl.create_default_context()
 ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
 
-ELECTRO_DIR = Path('C:/Users/marat/EcoTerminal/ml/resource_outlook/electricity_recent')
-SCRATCH_DIR = Path('C:/Users/marat/.gemini/antigravity/brain/93a74033-3984-41f2-b395-ff6480216c94/scratch')
+ELECTRO_DIR = Path(__file__).resolve().parent
+SCRATCH_DIR = ELECTRO_DIR
 
 with open(SCRATCH_DIR / 'msldc_catalog.json', 'r') as f:
     cat = json.load(f)

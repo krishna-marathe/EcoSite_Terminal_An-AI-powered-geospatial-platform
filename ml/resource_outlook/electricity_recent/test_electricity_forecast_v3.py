@@ -7,8 +7,8 @@ import unittest
 import pandas as pd
 from pathlib import Path
 
-ELECTRO_DIR = Path("C:/Users/marat/EcoTerminal/ml/resource_outlook/electricity_recent")
-WATER_DIR = Path("C:/Users/marat/EcoTerminal/ml/resource_outlook/water")
+ELECTRO_DIR = Path(__file__).resolve().parent
+WATER_DIR = ELECTRO_DIR.parent / "water"
 
 class TestElectricityForecastV3(unittest.TestCase):
     def test_data_quality_report(self):

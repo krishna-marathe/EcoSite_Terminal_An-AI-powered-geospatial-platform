@@ -17,12 +17,12 @@ from pathlib import Path
 import lightgbm as lgb
 from datetime import datetime
 
-ELECTRO_DIR = Path("C:/Users/marat/EcoTerminal/ml/resource_outlook/electricity_recent")
-MODEL_V3_DIR = Path("C:/Users/marat/EcoTerminal/ml/resource_outlook/models/v3")
+ELECTRO_DIR = Path(__file__).resolve().parent
+MODEL_V3_DIR = ELECTRO_DIR.parent / "models" / "v3"
 MODEL_V3_DIR.mkdir(parents=True, exist_ok=True)
 
 COMBINED_PATH = ELECTRO_DIR / "maharashtra_daily_combined_2013_2026.csv"
-WEATHER_ALIGNED_PATH = Path("C:/Users/marat/EcoTerminal/ml/resource_outlook/maharashtra_demand_weather_aligned.csv")
+WEATHER_ALIGNED_PATH = ELECTRO_DIR.parent / "maharashtra_demand_weather_aligned.csv"
 
 def load_data():
     df = pd.read_csv(COMBINED_PATH)

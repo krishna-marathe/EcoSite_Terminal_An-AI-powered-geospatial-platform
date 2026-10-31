@@ -13,11 +13,11 @@ import numpy as np
 from pathlib import Path
 import hashlib
 
-ELECTRO_DIR = Path("C:/Users/marat/EcoTerminal/ml/resource_outlook/electricity_recent")
-ZENODO_PATH = Path("C:/Users/marat/EcoTerminal/ml/resource_outlook/maharashtra_daily_demand_clean.csv")
+ELECTRO_DIR = Path(__file__).resolve().parent
+ZENODO_PATH = ELECTRO_DIR.parent / "maharashtra_daily_demand_clean.csv"
 MSLDC_PATH = ELECTRO_DIR / "maharashtra_daily_sldc_2024_2026.csv"
 COMBINED_PATH = ELECTRO_DIR / "maharashtra_daily_combined_2013_2026.csv"
-SCRATCH_DIR = Path("C:/Users/marat/.gemini/antigravity/brain/93a74033-3984-41f2-b395-ff6480216c94/scratch")
+SCRATCH_DIR = ELECTRO_DIR
 
 def run_quality_audit():
     print("Loading MSLDC dataset...")
@@ -36,8 +36,11 @@ def run_quality_audit():
     print(f"Missing dates count: {len(missing_dates)} days")
     
     # Check against raw catalog
-    with open(SCRATCH_DIR / "msldc_catalog.json", "r") as f:
-        cat = json.load(f)
+    cat = []
+    cat_file = SCRATCH_DIR / "msldc_catalog.json"
+    if cat_file.exists():
+        with open(cat_file, "r") as f:
+            cat = json.load(f)
         
     missing_diagnostics = []
     for md in missing_list:

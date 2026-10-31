@@ -11,7 +11,7 @@ import numpy as np
 from pathlib import Path
 from datetime import datetime
 
-WATER_DIR = Path("C:/Users/marat/EcoTerminal/ml/resource_outlook/water")
+WATER_DIR = Path(__file__).resolve().parent
 BHATSA_PATH = WATER_DIR / "bhatsa_weekly_2022_2025_cwc.csv"
 MANIFEST_PATH = WATER_DIR / "water_dataset_manifest_v2.json"
 
