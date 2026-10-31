@@ -8,8 +8,10 @@ import {
   Database,
   Droplets,
   ExternalLink,
+  FileText,
   Info,
   Layers,
+  ShieldAlert,
   ShieldCheck,
   Zap,
 } from 'lucide-react';
@@ -28,7 +30,11 @@ import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { apiClient } from '../services/api';
-import { mlService, type MLPredictionsOutput } from '../services/mlService';
+import {
+  mlService,
+  type MLPredictionsOutput,
+  type RegulatoryWaterObservation,
+} from '../services/mlService';
 import type { PublicFacility } from '../types/publicFacilities';
 
 interface ForecastPoint {
@@ -52,11 +58,54 @@ interface CurrentForecastResponse {
   metadata?: any;
 }
 
+interface TooltipEntry {
+  dataKey: string;
+  value: number;
+  color: string;
+}
+
+const ForecastChartTooltip = ({ active, payload, label }: { active?: boolean; payload?: TooltipEntry[]; label?: string }) => {
+  if (!active || !payload || !payload.length) return null;
+  return (
+    <div className="rounded border border-[#29362f] bg-[#111514] p-2.5 text-[11px] shadow-xl font-mono">
+      <div className="text-eco-muted border-b border-eco-border/40 pb-1 mb-1.5 font-semibold">
+        Date: {label}
+      </div>
+      {payload.map((entry, index) => {
+        const key = entry.dataKey;
+        const displayName =
+          key === 'p90'
+            ? 'Upper Bound (P90)'
+            : key === 'p10'
+            ? 'Lower Bound (P10)'
+            : 'Operational Forecast';
+        return (
+          <div key={index} className="flex items-center justify-between gap-3 py-0.5">
+            <div className="flex items-center gap-1.5">
+              <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
+              <span className="text-eco-muted">{displayName}:</span>
+            </div>
+            <span className="font-bold text-eco-text">
+              {Number(entry.value).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} MW
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 export function MLForecastAnalysis() {
   const [activeTab, setActiveTab] = useState<'regional' | 'facility' | 'evaluation'>('regional');
   const [forecastData, setForecastData] = useState<CurrentForecastResponse | null>(null);
   const [forecastLoading, setForecastLoading] = useState<boolean>(true);
   const [forecastError, setForecastError] = useState<string | null>(null);
+
+  // Live LightGBM inference state
+  const [lgbmTargetDate, setLgbmTargetDate] = useState<string>('2026-11-15');
+  const [lgbmLoading, setLgbmLoading] = useState<boolean>(false);
+  const [lgbmResult, setLgbmResult] = useState<any | null>(null);
+  const [lgbmError, setLgbmError] = useState<string | null>(null);
 
   // Facility analysis state
   const [facilities, setFacilities] = useState<PublicFacility[]>([]);
@@ -64,6 +113,10 @@ export function MLForecastAnalysis() {
   const [facilityLoading, setFacilityLoading] = useState<boolean>(false);
   const [predictions, setPredictions] = useState<MLPredictionsOutput | null>(null);
   const [predError, setPredError] = useState<string | null>(null);
+
+  // Regulatory Water Evidence state
+  const [waterObservations, setWaterObservations] = useState<RegulatoryWaterObservation[]>([]);
+  const [waterObsLoading, setWaterObsLoading] = useState<boolean>(false);
 
   // Load operational electricity forecast
   useEffect(() => {
@@ -108,6 +161,27 @@ export function MLForecastAnalysis() {
     };
   }, []);
 
+  // Load regulatory water observations
+  useEffect(() => {
+    let cancelled = false;
+    setWaterObsLoading(true);
+    mlService
+      .getRegulatoryWaterObservations()
+      .then((res) => {
+        if (!cancelled && res?.observations) {
+          setWaterObservations(res.observations);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setWaterObsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const selectedFacility = facilities.find((f) => f.id === selectedFacilityId) || null;
 
   // Run deterministic facility calculations when selected facility changes
@@ -123,20 +197,30 @@ export function MLForecastAnalysis() {
       return;
     }
 
-    queueMicrotask(() => {
-      if (!cancelled) {
-        setFacilityLoading(true);
-        setPredError(null);
-      }
-    });
+    setFacilityLoading(true);
+    setPredError(null);
+
+    const coolingType =
+      selectedFacility.id === 'stt-pune-5'
+        ? 'CHILLED_WATER_AIR_COOLED_CHILLERS'
+        : selectedFacility.id === 'stt-mumbai-dc-2'
+        ? 'DX_AIR_COOLED'
+        : undefined;
 
     mlService
       .getMultiMonthPredictions({
         capacity_mw: primaryCapacity,
         water_demand_kl_day: 0, // Undisclosed WUE; never invent water consumption
         power_demand_mw: 0, // Deterministic engine computes power from capacity * standard PUE 1.35
-        location: (selectedFacility.stateCode === 'IN-TG' || selectedFacility.stateCode === 'IN-KA' || selectedFacility.stateCode === 'IN-TN') ? selectedFacility.stateCode : 'IN-MH',
+        location:
+          selectedFacility.stateCode === 'IN-TG' ||
+          selectedFacility.stateCode === 'IN-KA' ||
+          selectedFacility.stateCode === 'IN-TN'
+            ? selectedFacility.stateCode
+            : 'IN-MH',
         model_version: 'ML-F4.1',
+        capacity_boundary: selectedFacility.capacityDisclosures?.[0]?.capacityType,
+        cooling_system_type: coolingType,
       })
       .then((res) => {
         if (!cancelled) {
@@ -156,7 +240,7 @@ export function MLForecastAnalysis() {
     };
   }, [selectedFacilityId, selectedFacility]);
 
-  // Downsample electricity chart points for smooth rendering (1 point per 3 days or weekly)
+  // Downsample electricity chart points for smooth rendering
   const chartPoints = (forecastData?.electricity?.points || [])
     .filter((_, idx) => idx % 2 === 0)
     .map((p) => ({
@@ -167,28 +251,41 @@ export function MLForecastAnalysis() {
       p90: p.p90_upper_bound_mw,
     }));
 
+  const handleRunLgbmInference = async (targetDate: string) => {
+    setLgbmLoading(true);
+    setLgbmError(null);
+    try {
+      const res = await mlService.getRegionalLgbmInference(targetDate);
+      setLgbmResult(res);
+    } catch (err: any) {
+      setLgbmError(err?.message || 'Failed to execute live LightGBM inference');
+    } finally {
+      setLgbmLoading(false);
+    }
+  };
+
   const isMaharashtra = selectedFacility?.stateCode === 'IN-MH';
 
   return (
     <PageShell>
       <PageHeader
-        eyebrow="AI-Assisted Infrastructure & Resource Intelligence"
+        eyebrow="Intelligence & Modeling"
         title="ML Forecast & Resource Analysis"
-        purpose="Operational 182-day electricity demand forecasting for Maharashtra, deterministic facility resource scenarios, and evaluated model benchmarks."
+        purpose="Operational 182-day electricity demand forecasting for Maharashtra, deterministic facility resource scenarios, statutory water clearances, and evaluated model benchmarks."
       />
 
-      {/* Epistemic Guard Banner */}
-      <div className="rounded border border-eco-primary/30 bg-eco-surface-secondary/60 p-3.5 text-meta">
-        <div className="flex items-start gap-2.5">
-          <ShieldCheck className="h-4 w-4 text-eco-primary shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <p className="font-semibold text-eco-text">
+      {/* Epistemic Framework Banner */}
+      <div className="rounded-lg border border-eco-border bg-eco-surface-secondary/60 p-4">
+        <div className="flex items-start gap-3">
+          <ShieldCheck className="h-5 w-5 text-eco-primary shrink-0 mt-0.5" />
+          <div className="text-meta space-y-1">
+            <span className="font-semibold text-eco-text block">
               Epistemic Framework: Clear Distinction Between Forecast Scopes
-            </p>
+            </span>
             <p className="text-eco-muted leading-relaxed">
-              <strong>1. Regional Macro-Grid Forecasting:</strong> Operational statistical forecast of statewide peak demand (Maharashtra only), with empirical conformal uncertainty bands.{' '}
-              <strong>2. Facility Engineering Analysis:</strong> Deterministic calculations from declared IT capacity and benchmark PUE (1.35). Not trained ML.{' '}
-              <strong>3. Model Benchmarks:</strong> LightGBM is preserved as an offline evaluated benchmark model; it is not deployed for online facility inference.
+              <strong>1. Regional Macro-Grid Forecasting:</strong> Operational statistical forecast of statewide peak demand (Maharashtra only), with empirical conformal uncertainty bands.
+              &nbsp;<strong>2. Facility Engineering Analysis:</strong> Deterministic calculations from declared IT capacity and benchmark PUE (1.35). Not trained ML.
+              &nbsp;<strong>3. Model Benchmarks:</strong> LightGBM is preserved as an evaluated benchmark forecaster and accessible for live regional inference; it is not deployed for individual facility resource projections.
             </p>
           </div>
         </div>
@@ -271,20 +368,7 @@ export function MLForecastAnalysis() {
                       <CartesianGrid strokeDasharray="3 3" stroke="#232f28" />
                       <XAxis dataKey="date" tick={{ fill: '#87988e', fontSize: 10 }} />
                       <YAxis domain={['auto', 'auto']} tick={{ fill: '#87988e', fontSize: 10 }} width={55} />
-                      <Tooltip
-                        contentStyle={{ background: '#111514', border: '1px solid #29362f', color: '#e7f1e8', fontSize: '11px' }}
-                        labelFormatter={(label) => `Date: ${label}`}
-                        formatter={(val: unknown, name: unknown) => {
-                          const n = String(name);
-                          const label =
-                            n === 'p90' || n.includes('P90') || n.includes('Upper')
-                              ? 'Upper Bound (P90)'
-                              : n === 'p10' || n.includes('P10') || n.includes('Lower')
-                              ? 'Lower Bound (P10)'
-                              : 'Operational Forecast';
-                          return [`${Number(val).toLocaleString()} MW`, label];
-                        }}
-                      />
+                      <Tooltip content={<ForecastChartTooltip />} />
                       <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
                       <Line type="monotone" dataKey="p90" name="P90 Upper Bound" stroke="#eab308" strokeDasharray="4 4" dot={false} strokeWidth={1.5} />
                       <Line type="monotone" dataKey="demand" name="Operational Forecast" stroke="#39f58b" dot={false} strokeWidth={2.2} />
@@ -319,44 +403,46 @@ export function MLForecastAnalysis() {
           {/* Facility Selector Card */}
           <Card title="Facility Engineering Sizing & Analysis" subtitle="Select a public data centre facility to inspect deterministic load calculations">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-              <div>
-                <label htmlFor="facility-select" className="block text-meta text-eco-muted mb-1 font-mono uppercase">
-                  Select Facility:
-                </label>
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="text-meta font-medium text-eco-muted">Public Data Centre Facility:</label>
                 <select
-                  id="facility-select"
                   value={selectedFacilityId}
                   onChange={(e) => setSelectedFacilityId(e.target.value)}
-                  className="w-full rounded border border-eco-border bg-eco-surface-secondary px-3 py-1.5 text-body text-eco-text focus:border-eco-primary focus:outline-none"
+                  className="w-full rounded border border-eco-border bg-eco-surface px-3 py-2 text-body text-eco-text focus:outline-none focus:border-eco-primary font-mono"
                 >
-                  {facilities.map((fac) => (
-                    <option key={fac.id} value={fac.id}>
-                      {fac.name} ({fac.city}, {fac.stateCode})
-                    </option>
-                  ))}
+                  {facilities.map((fac) => {
+                    const cap = fac.capacityDisclosures?.[0];
+                    return (
+                      <option key={fac.id} value={fac.id}>
+                        {fac.name} — {fac.city || fac.state} ({fac.operator}) · {cap ? `${cap.value} ${cap.unit}` : 'Unstated'}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
               {selectedFacility && (
-                <div className="md:col-span-2 flex flex-wrap gap-2 items-center text-meta">
-                  <Badge variant="outline">{selectedFacility.operator}</Badge>
-                  <Badge variant="outline">{selectedFacility.city}, {selectedFacility.state}</Badge>
-                  <Badge variant={isMaharashtra ? 'primary' : 'warning'}>
-                    {isMaharashtra ? 'MH Regional Forecast Linked' : `${selectedFacility.stateCode} Regional Forecast Unavailable`}
-                  </Badge>
+                <div className="rounded border border-eco-border bg-eco-surface-secondary/50 p-3 space-y-1 text-meta">
+                  <div className="flex justify-between">
+                    <span className="text-eco-muted">Status:</span>
+                    <Badge variant={isMaharashtra ? 'primary' : 'outline'} size="xs">
+                      {isMaharashtra ? 'Maharashtra Pilot Scope' : `${selectedFacility.stateCode} Expansion Scope`}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-eco-muted">Operator:</span>
+                    <strong className="text-eco-text">{selectedFacility.operator}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-eco-muted">Operational:</span>
+                    <strong className="text-eco-text">{selectedFacility.operationalSince || 'N/A'}</strong>
+                  </div>
                 </div>
               )}
             </div>
-
-            {/* Regional Scope Warning for Non-MH Facilities */}
-            {!isMaharashtra && selectedFacility && (
-              <div className="mt-4 p-3 rounded border border-amber-500/40 bg-amber-500/10 text-meta text-amber-300">
-                <strong>Regional Boundary Notice:</strong> {selectedFacility.name} is located in {selectedFacility.state} ({selectedFacility.stateCode}). The Maharashtra regional electricity forecast does NOT apply to this facility. Only deterministic facility engineering sizing is available.
-              </div>
-            )}
           </Card>
 
-          {/* Sizing & Capacity Reconciliation Box */}
+          {/* Sizing Calculations Card */}
           {selectedFacility && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card title="Published Capacity vs Evaluated Scenarios" subtitle="Reconciling disclosures, engineering benchmarks and utility commitments">
@@ -376,21 +462,39 @@ export function MLForecastAnalysis() {
 
                   {selectedFacility.id === 'stt-pune-5' && (
                     <div className="rounded border border-eco-primary/30 bg-eco-surface-secondary/60 p-3 space-y-2 text-[11px] text-eco-muted">
-                      <strong className="text-eco-text block text-meta">STT Pune 5 Reconciliation Breakdown:</strong>
+                      <strong className="text-eco-text block text-meta">STT Pune 5 Factsheet Specifications:</strong>
                       <p>
-                        • <strong>24.0 MW:</strong> Published facility capacity from STT GDC INFRAINTEL newsletter (boundary unspecified).
+                        • <strong>24.0 MW IT Load:</strong> Verified design IT capacity from official operator factsheet (STT GDC India Pune 5 Factsheet, July 2025). Operational since 2025 in Dighi, Pune.
                       </p>
                       <p>
-                        • <strong>32.4 MW Engineering Sizing:</strong> Treats 24.0 MW as design IT load × standard 1.35 PUE benchmark.
+                        • <strong>100 MVA, 220 kV Incoming Substation:</strong> Incoming dual GIS substation equipment rating. This is hardware rating and does NOT represent confirmed spare utility capacity.
                       </p>
                       <p>
-                        • <strong>17.78 MW IT in Resource Stress Outlook:</strong> Backed out from 24.0 MW total power sanction (24 / 1.35 = 17.78 MW IT).
+                        • <strong>Chilled-Water with Air-Cooled Chillers:</strong> Primary cooling uses air-cooled chillers. Operational evaporative water consumption is near-zero during standard operation.
                       </p>
                       <p>
-                        • <strong>1.62 PUE:</strong> STT GDC India ESG Report 2023 fleet-wide weighted average (28 facilities). Resulting total power is 17.78 × 1.62 = 28.80 MW.
+                        • <strong>800,000 Litres On-Site Storage:</strong> Massive on-site dedicated water storage providing emergency buffer and high operational resilience.
                       </p>
                       <p>
-                        • <strong>Firm Power Gap:</strong> 28.80 MW demand − 24.00 MW documented grid sanction = <strong>4.80 MW gap</strong>.
+                        • <strong>32.4 MW Facility Sizing:</strong> Design IT load (24.0 MW) × standard operational PUE benchmark (1.35) = 32.4 MW total power requirement.
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedFacility.id === 'stt-mumbai-dc-2' && (
+                    <div className="rounded border border-eco-primary/30 bg-eco-surface-secondary/60 p-3 space-y-2 text-[11px] text-eco-muted">
+                      <strong className="text-eco-text block text-meta">STT Mumbai DC2 Factsheet Specifications:</strong>
+                      <p>
+                        • <strong>1.7 MW IT Load:</strong> Verified design IT load from official operator factsheet (STT GDC India Mumbai DC2 Factsheet, May 2025). Operational since 2006 in Andheri East, Mumbai.
+                      </p>
+                      <p>
+                        • <strong>6.0 MVA Power Infrastructure:</strong> 3 × 2 MVA transformers with two 22 kV HT feeds.
+                      </p>
+                      <p>
+                        • <strong>DX-Based Cooling (N+1):</strong> Direct Expansion refrigerant-based cooling system with zero operational process water requirement.
+                      </p>
+                      <p>
+                        • <strong>2.3 MW Facility Sizing:</strong> Design IT load (1.7 MW) × standard operational PUE benchmark (1.35) = 2.3 MW total power requirement.
                       </p>
                     </div>
                   )}
@@ -433,7 +537,11 @@ export function MLForecastAnalysis() {
                           pred?.water_demand_kl_day_pred != null && pred.water_demand_kl_day_pred > 0
                             ? 'Reported Baseline Water'
                             : pred?.benchmark_cooling_water_kl_day != null && pred.benchmark_cooling_water_kl_day > 0
-                            ? 'Est. Cooling Make-up'
+                            ? (selectedFacility.id === 'stt-pune-5'
+                                ? 'Air-Cooled Make-up'
+                                : selectedFacility.id === 'stt-mumbai-dc-2'
+                                ? 'DX (Zero Water)'
+                                : 'Est. Cooling Make-up')
                             : 'Not Disclosed';
 
                         return (
@@ -479,6 +587,7 @@ export function MLForecastAnalysis() {
                     <p className="text-meta text-eco-muted">
                       Resource requirements depend heavily on mechanical cooling architecture. Compare grid electricity draw and daily evaporative cooling water consumption across standard industry architectures for this campus (modeled at 80% Capacity Factor):
                     </p>
+
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-meta border-collapse">
                         <thead>
@@ -554,12 +663,94 @@ export function MLForecastAnalysis() {
                         </tbody>
                       </table>
                     </div>
-                    <div className="rounded border border-eco-border/60 bg-eco-surface-secondary/30 p-3 text-micro text-eco-muted space-y-1">
-                      <p className="font-semibold text-eco-text">Planning &amp; Verification Guidance:</p>
-                      <p>• <strong>6-Month Horizon:</strong> Evaluates initial operational phase with summer peak ambient wet-bulb surge.</p>
-                      <p>• <strong>12-Month Horizon:</strong> Evaluates campus full design capacity ramp (+25% contractual expansion ceiling).</p>
-                      <p>• <strong>Resource Transition:</strong> Switching from Evaporative Hybrid to Direct-to-Chip Liquid Cooling saves approximately 79% of cooling water while reducing facility power demand by ~8%.</p>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Statutory Regulatory Water Evidence & Consents Section */}
+              <div className="md:col-span-2">
+                <Card
+                  title="Statutory Regulatory Water Evidence & Environmental Consents"
+                  subtitle="Official SEIAA Environmental Clearances, MPCB Form V Statements & Fleet ESG Disclosures"
+                  icon={<Droplets className="h-4 w-4 text-sky-400" />}
+                >
+                  <div className="space-y-4">
+                    <div className="rounded border border-amber-500/30 bg-amber-500/10 p-3 text-meta text-eco-muted flex items-start gap-2.5">
+                      <ShieldAlert className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                      <div className="text-[11px] space-y-1">
+                        <strong className="text-amber-400 block">Epistemic Regulatory Boundary Rule:</strong>
+                        <p>
+                          Statutory environmental clearances and Form V audit statements are site-specific legal filings.
+                          The observations below for <strong>STT Navi Mumbai</strong> apply strictly to that verified campus and <strong>must NEVER be attached to STT Pune 5 or STT Mumbai 2</strong> without verified site matches.
+                          Similarly, portfolio ESG metrics represent national aggregate averages and must never be used as single-facility measured WUE.
+                        </p>
+                      </div>
                     </div>
+
+                    {waterObsLoading ? (
+                      <div className="py-8 text-center text-meta text-eco-muted">
+                        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-eco-primary border-t-transparent mr-2 align-middle" />
+                        Loading statutory regulatory water evidence…
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {waterObservations.map((obs) => (
+                          <div
+                            key={obs.id}
+                            className="rounded border border-eco-border bg-eco-surface-secondary/40 p-3.5 space-y-2 text-meta"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <span className="font-semibold text-eco-text block text-body">
+                                  {obs.reporting_facility}
+                                </span>
+                                <span className="text-[10px] text-eco-muted font-mono block">
+                                  {obs.locality} · {obs.regulatory_authority}
+                                </span>
+                              </div>
+                              <Badge
+                                variant={obs.site_match_status.includes('PORTFOLIO') ? 'outline' : 'primary'}
+                                size="xs"
+                              >
+                                {obs.document_type}
+                              </Badge>
+                            </div>
+
+                            <div className="rounded bg-eco-surface p-2 border border-eco-border/60 text-[11px] space-y-1">
+                              <span className="text-micro uppercase text-eco-muted font-mono block">
+                                Ref: {obs.identification_number} {obs.proposal_number ? `(${obs.proposal_number})` : ''}
+                              </span>
+                              <div className="space-y-1 font-mono pt-1">
+                                {obs.parameters?.map((p, idx) => (
+                                  <div key={idx} className="flex justify-between border-b border-eco-border/30 pb-0.5">
+                                    <span className="text-eco-muted">{p.parameter_name}:</span>
+                                    <strong className="text-eco-text">
+                                      {p.actual_quantity != null ? `${p.actual_quantity} ${p.unit}` : p.consented_quantity != null ? `${p.consented_quantity} ${p.unit} (Cap)` : 'Unpublished'}
+                                    </strong>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <p className="text-[11px] text-eco-muted leading-relaxed">
+                              <strong>Cooling / Wastewater:</strong> {obs.cooling_configuration}. {obs.wastewater_management}
+                            </p>
+
+                            <div className="text-[10px] text-eco-muted font-mono pt-1 border-t border-eco-border/40 flex items-center justify-between">
+                              <span className="truncate max-w-[280px]">Source: {obs.source_document}</span>
+                              <a
+                                href={obs.source_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-eco-primary hover:underline inline-flex items-center gap-1"
+                              >
+                                Order <ExternalLink className="h-3 w-3" />
+                              </a>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </Card>
               </div>
@@ -569,18 +760,18 @@ export function MLForecastAnalysis() {
       )}
 
       {/* ========================================================================= */}
-      {/* SECTION C: MODEL EVALUATION & BENCHMARKS                                 */}
+      {/* SECTION C: MODEL EVALUATION & BENCHMARKS                                  */}
       {/* ========================================================================= */}
       {activeTab === 'evaluation' && (
         <div className="space-y-4">
           <Card
             title="Rigorous 7-Window Chronological Backtest Comparison"
-            subtitle="Evaluating Seasonal Naive vs Trend-Adjusted Baseline vs Offline LightGBM Forecaster (v3)"
+            subtitle="Evaluating 180-day forecast accuracy across 7 holdout periods (2020–2026) using continuous SLDC foundation"
             icon={<Database className="h-4 w-4" />}
           >
             <div className="space-y-4">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-meta">
+                <table className="w-full text-left text-meta border-collapse">
                   <thead>
                     <tr className="border-b border-eco-border text-micro uppercase tracking-wider text-eco-muted">
                       <th className="pb-2.5 pr-4 font-semibold">Model Architecture</th>
@@ -631,7 +822,7 @@ export function MLForecastAnalysis() {
                         <Badge variant="outline" size="xs">Evaluated Benchmark</Badge>
                       </td>
                       <td className="py-3 text-eco-muted text-micro">
-                        <strong>Offline Research Benchmark</strong> (Artifact: lgbm_demand_production_v3.txt)
+                        <strong>Operational &amp; Research Benchmark</strong> (Artifact: lgbm_demand_production_v3.txt, Live API: /api/v1/ml/regional-lgbm-inference)
                       </td>
                     </tr>
                   </tbody>
@@ -651,6 +842,111 @@ export function MLForecastAnalysis() {
                   3. <strong>Zero Fake Inference:</strong> <code>POST /api/v1/ml/predict</code> performs deterministic facility engineering projections and does NOT execute LightGBM. EcoSite refuses to pretend deterministic formulas are live machine learning.
                 </p>
               </div>
+            </div>
+          </Card>
+
+          {/* Live LightGBM Inference Verification Panel */}
+          <Card
+            title="Live LightGBM Regional Inference Verification"
+            subtitle="Real-time inference using genuine model artifact ml/resource_outlook/models/v3/lgbm_demand_production_v3.txt"
+            icon={<Cpu className="h-4 w-4 text-eco-primary" />}
+          >
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="text-meta text-eco-muted font-medium">Target Forecast Date:</label>
+                <input
+                  type="date"
+                  min="2026-10-28"
+                  max="2027-10-27"
+                  value={lgbmTargetDate}
+                  onChange={(e) => setLgbmTargetDate(e.target.value)}
+                  className="rounded border border-eco-border bg-eco-surface px-3 py-1.5 font-mono text-body text-eco-text"
+                />
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => handleRunLgbmInference(lgbmTargetDate)}
+                  disabled={lgbmLoading}
+                >
+                  {lgbmLoading ? 'Running Booster Inference…' : 'Execute LightGBM Inference'}
+                </Button>
+                <div className="flex items-center gap-1.5 text-micro text-eco-muted">
+                  <span>Quick Presets:</span>
+                  {['2026-11-15', '2026-12-01', '2027-01-15', '2027-04-15'].map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      className="underline hover:text-eco-text font-mono"
+                      onClick={() => {
+                        setLgbmTargetDate(d);
+                        handleRunLgbmInference(d);
+                      }}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {lgbmError && (
+                <div className="p-3 rounded border border-eco-critical/40 bg-eco-critical/10 text-meta text-eco-critical">
+                  {lgbmError}
+                </div>
+              )}
+
+              {lgbmResult && (
+                <div className="rounded border border-eco-border bg-eco-surface-secondary/40 p-4 space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <div className="rounded border border-eco-border bg-eco-surface p-3">
+                      <span className="text-micro uppercase text-eco-muted font-mono block">LightGBM Peak Met</span>
+                      <strong className="text-h3 font-mono text-eco-primary">
+                        {lgbmResult.predictions?.lightgbm_predicted_peak_met_mw?.toLocaleString()} MW
+                      </strong>
+                    </div>
+                    <div className="rounded border border-eco-border bg-eco-surface p-3">
+                      <span className="text-micro uppercase text-eco-muted font-mono block">Seasonal Naive Base</span>
+                      <strong className="text-h3 font-mono text-eco-text">
+                        {lgbmResult.predictions?.seasonal_naive_baseline_mw?.toLocaleString()} MW
+                      </strong>
+                    </div>
+                    <div className="rounded border border-eco-border bg-eco-surface p-3">
+                      <span className="text-micro uppercase text-eco-muted font-mono block">Booster Residual</span>
+                      <strong className={`text-h3 font-mono ${lgbmResult.predictions?.lightgbm_residual_adjustment_mw >= 0 ? 'text-amber-400' : 'text-sky-400'}`}>
+                        {lgbmResult.predictions?.lightgbm_residual_adjustment_mw >= 0 ? '+' : ''}
+                        {lgbmResult.predictions?.lightgbm_residual_adjustment_mw?.toLocaleString()} MW
+                      </strong>
+                    </div>
+                    <div className="rounded border border-eco-border bg-eco-surface p-3">
+                      <span className="text-micro uppercase text-eco-muted font-mono block">Horizon Status</span>
+                      <Badge variant={lgbmResult.horizon_status === 'OPERATIONALLY_BACKTESTED_HORIZON' ? 'primary' : 'outline'} size="xs">
+                        {lgbmResult.lead_days} Lead Days ({lgbmResult.lead_weeks} wks)
+                      </Badge>
+                      <p className="text-[10px] text-eco-muted mt-1">{lgbmResult.horizon_notice}</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded border border-eco-border bg-eco-surface p-3 text-[11px] text-eco-muted space-y-1">
+                    <span className="font-semibold text-eco-text block">Model Artifact &amp; Telemetry:</span>
+                    <p>Artifact: <code>{lgbmResult.model_metadata?.model_artifact}</code> ({lgbmResult.model_metadata?.num_trees} trees, {lgbmResult.model_metadata?.num_features} features, L1 loss)</p>
+                    <p>Evaluated 7-Window Accuracy: <strong>{lgbmResult.model_metadata?.backtest_7window_mae_mw} MW MAE ({lgbmResult.model_metadata?.backtest_7window_mape_pct}%)</strong> | Recent 3-Window MAE: <strong>{lgbmResult.model_metadata?.recent_3window_mae_mw} MW</strong></p>
+                    <p className="text-eco-muted">{lgbmResult.model_metadata?.operational_model_comparison?.reason_for_selection}</p>
+                  </div>
+
+                  <details className="text-micro">
+                    <summary className="cursor-pointer text-eco-primary hover:underline font-mono">
+                      View 20 Extracted Meteorological &amp; Lag Features for {lgbmResult.target_date}
+                    </summary>
+                    <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 font-mono text-[10px] p-2 bg-eco-surface rounded border border-eco-border">
+                      {Object.entries(lgbmResult.features || {}).map(([k, v]) => (
+                        <div key={k} className="flex justify-between border-b border-eco-border/40 py-0.5">
+                          <span className="text-eco-muted">{k}:</span>
+                          <span className="text-eco-text font-bold">{String(v)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                </div>
+              )}
             </div>
           </Card>
         </div>

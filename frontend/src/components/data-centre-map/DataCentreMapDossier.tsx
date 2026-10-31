@@ -98,6 +98,7 @@ export const DataCentreMapDossier: React.FC<DataCentreMapDossierProps> = ({
         power_demand_mw: 0, // Deterministic engine computes power from capacity * standard PUE 1.35
         location: (facility.stateCode as any) || "IN-MH",
         model_version: "ML-F4.1",
+        capacity_boundary: facility.capacityDisclosures?.[0]?.capacityType,
       })
       .then((res) => {
         if (!cancelled) {
@@ -155,7 +156,11 @@ export const DataCentreMapDossier: React.FC<DataCentreMapDossierProps> = ({
       power: pred?.power_demand_mw_pred != null ? `${pred.power_demand_mw_pred.toFixed(1)} MW` : "N/A",
       water: waterStr,
       waterSubtitle,
-      capacity: pred?.capacity_mw_pred != null ? `${pred.capacity_mw_pred.toFixed(1)} MW IT` : "N/A",
+      capacity: pred?.capacity_mw_pred != null
+        ? (facility.capacityDisclosures?.[0]?.capacityType === 'power_capacity_unspecified'
+            ? `${pred.capacity_mw_pred.toFixed(1)} MW IT (Scenario B)`
+            : `${pred.capacity_mw_pred.toFixed(1)} MW IT`)
+        : "N/A",
       classification: pred?.classification ? pred.classification.replaceAll('_', ' ') : "Deterministic Scenario",
       horizon: `${pred?.prediction_horizon_months ?? 6} months`,
     };
@@ -301,7 +306,14 @@ export const DataCentreMapDossier: React.FC<DataCentreMapDossierProps> = ({
           </div>
         )}
         {!mlLoading && !mlError && mlPredictions && (
-          <div className="grid grid-cols-3 gap-2">
+          <>
+            {facility.capacityDisclosures?.[0]?.capacityType === 'power_capacity_unspecified' && (
+              <div className="mb-2 p-2 rounded bg-eco-surface-secondary/70 border border-amber-500/30 text-[10px] text-eco-muted space-y-0.5">
+                <span className="font-semibold text-amber-400 block font-mono">Boundary Unspecified ({facility.capacityDisclosures[0].value} MW)</span>
+                <p>Public filings do not clarify IT load vs grid intake boundary. Cards below show Scenario B (IT load sizing). Scenario A (grid intake limit) yields {(facility.capacityDisclosures[0].value / 1.35).toFixed(1)} MW IT load.</p>
+              </div>
+            )}
+            <div className="grid grid-cols-3 gap-2">
             {[6, 9, 12].map((months) => {
               const pred = mlPredictions[`month_${months}`];
               if (!pred) return null;
@@ -324,7 +336,8 @@ export const DataCentreMapDossier: React.FC<DataCentreMapDossierProps> = ({
                 </div>
               );
             })}
-          </div>
+            </div>
+          </>
         )}
         {!mlLoading && !mlError && !mlPredictions && (
           <p className="text-meta text-eco-muted p-2 border border-dashed border-eco-border rounded">

@@ -1,6 +1,11 @@
 {
-  "registryVersion": "2026-10-29-research-pass-1",
-  "scope": ["IN-MH", "IN-TG", "IN-KA", "IN-TN"],
+  "registryVersion": "2026-10-31-official-factsheets-pass-2",
+  "scope": [
+    "IN-MH",
+    "IN-TG",
+    "IN-KA",
+    "IN-TN"
+  ],
   "note": "Prototype seed of publicly disclosed operational facilities. Coordinates are deliberately generalized and are not parcel locations.",
   "facilities": [
     {
@@ -13,11 +18,32 @@
       "state": "Maharashtra",
       "city": "Navi Mumbai",
       "locality": "Navi Mumbai",
-      "publicCoordinates": [73.0169, 19.0330],
+      "publicCoordinates": [
+        73.0169,
+        19.033
+      ],
       "locationPrecision": "locality",
       "operationalSince": 2015,
-      "capacityDisclosures": [{"value": 2.3, "unit": "MW", "capacityType": "total_power", "scope": "facility"}],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "Mumbai data centers", "publisher": "Iron Mountain", "url": "https://www.ironmountain.com/en-in/data-centers/locations/apac/mumbai", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 2.3,
+          "unit": "MW",
+          "capacityType": "total_power",
+          "scope": "facility"
+        }
+      ],
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "Mumbai data centers",
+          "publisher": "Iron Mountain",
+          "url": "https://www.ironmountain.com/en-in/data-centers/locations/apac/mumbai",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "iron-mountain-mum-2",
@@ -29,11 +55,32 @@
       "state": "Maharashtra",
       "city": "Navi Mumbai",
       "locality": "Navi Mumbai",
-      "publicCoordinates": [73.0169, 19.0330],
+      "publicCoordinates": [
+        73.0169,
+        19.033
+      ],
       "locationPrecision": "locality",
       "operationalSince": 2023,
-      "capacityDisclosures": [{"value": 6, "unit": "MW", "capacityType": "it_load", "scope": "facility"}],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "Mumbai data centers", "publisher": "Iron Mountain", "url": "https://www.ironmountain.com/en-in/data-centers/locations/apac/mumbai", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 6,
+          "unit": "MW",
+          "capacityType": "it_load",
+          "scope": "facility"
+        }
+      ],
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "Mumbai data centers",
+          "publisher": "Iron Mountain",
+          "url": "https://www.ironmountain.com/en-in/data-centers/locations/apac/mumbai",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "ctrls-mumbai-dc-1-2",
@@ -45,10 +92,31 @@
       "state": "Maharashtra",
       "city": "Navi Mumbai",
       "locality": "Navi Mumbai",
-      "publicCoordinates": [73.0169, 19.0330],
+      "publicCoordinates": [
+        73.0169,
+        19.033
+      ],
       "locationPrecision": "locality",
-      "capacityDisclosures": [{"value": 40, "unit": "MW", "capacityType": "power_capacity", "scope": "combined_facilities"}],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "Rated-4 Data Center in Mumbai", "publisher": "CtrlS Datacenters", "url": "https://www.ctrls.com/datacenter-mumbai/", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 40,
+          "unit": "MW",
+          "capacityType": "power_capacity",
+          "scope": "combined_facilities"
+        }
+      ],
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "Rated-4 Data Center in Mumbai",
+          "publisher": "CtrlS Datacenters",
+          "url": "https://www.ctrls.com/datacenter-mumbai/",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "ctrls-mumbai-dc-3",
@@ -60,10 +128,31 @@
       "state": "Maharashtra",
       "city": "Navi Mumbai",
       "locality": "Navi Mumbai",
-      "publicCoordinates": [73.0169, 19.0330],
+      "publicCoordinates": [
+        73.0169,
+        19.033
+      ],
       "locationPrecision": "locality",
-      "capacityDisclosures": [{"value": 10, "unit": "MW", "capacityType": "power_capacity", "scope": "facility"}],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "Rated-4 Data Center in Mumbai", "publisher": "CtrlS Datacenters", "url": "https://www.ctrls.com/datacenter-mumbai/", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 10,
+          "unit": "MW",
+          "capacityType": "power_capacity",
+          "scope": "facility"
+        }
+      ],
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "Rated-4 Data Center in Mumbai",
+          "publisher": "CtrlS Datacenters",
+          "url": "https://www.ctrls.com/datacenter-mumbai/",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "ctrls-mumbai-dc-4",
@@ -75,10 +164,31 @@
       "state": "Maharashtra",
       "city": "Navi Mumbai",
       "locality": "Navi Mumbai",
-      "publicCoordinates": [73.0169, 19.0330],
+      "publicCoordinates": [
+        73.0169,
+        19.033
+      ],
       "locationPrecision": "locality",
-      "capacityDisclosures": [{"value": 36.8, "unit": "MW", "capacityType": "power_capacity", "scope": "facility"}],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "Rated-4 Data Center in Mumbai", "publisher": "CtrlS Datacenters", "url": "https://www.ctrls.com/datacenter-mumbai/", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 36.8,
+          "unit": "MW",
+          "capacityType": "power_capacity",
+          "scope": "facility"
+        }
+      ],
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "Rated-4 Data Center in Mumbai",
+          "publisher": "CtrlS Datacenters",
+          "url": "https://www.ctrls.com/datacenter-mumbai/",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "ctrls-mumbai-dc-5",
@@ -90,10 +200,31 @@
       "state": "Maharashtra",
       "city": "Navi Mumbai",
       "locality": "Navi Mumbai",
-      "publicCoordinates": [73.0169, 19.0330],
+      "publicCoordinates": [
+        73.0169,
+        19.033
+      ],
       "locationPrecision": "locality",
-      "capacityDisclosures": [{"value": 32, "unit": "MW", "capacityType": "power_capacity", "scope": "facility"}],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "Rated-4 Data Center in Mumbai", "publisher": "CtrlS Datacenters", "url": "https://www.ctrls.com/datacenter-mumbai/", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 32,
+          "unit": "MW",
+          "capacityType": "power_capacity",
+          "scope": "facility"
+        }
+      ],
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "Rated-4 Data Center in Mumbai",
+          "publisher": "CtrlS Datacenters",
+          "url": "https://www.ctrls.com/datacenter-mumbai/",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "stt-mumbai-dc-2",
@@ -105,11 +236,38 @@
       "state": "Maharashtra",
       "city": "Mumbai",
       "locality": "Andheri East",
-      "publicCoordinates": [72.8690, 19.1130],
+      "publicCoordinates": [
+        72.869,
+        19.113
+      ],
       "locationPrecision": "locality",
       "operationalSince": 2006,
-      "capacityDisclosures": [{"value": 1.7, "unit": "MW", "capacityType": "it_load", "scope": "facility"}],
-      "verification": {"status": "credible_public_report", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "STT Mumbai DC2 Factsheet", "publisher": "STT GDC India", "url": "https://assets.sttelemediagdc.com/sttgdc/global_en/public/2023-11/Mumbai%20Factsheet%202_0.pdf", "sourceClass": "operator_factsheet", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 1.7,
+          "unit": "MW",
+          "capacityType": "it_load",
+          "scope": "facility"
+        },
+        {
+          "value": 6.0,
+          "unit": "MVA",
+          "capacityType": "power_capacity",
+          "scope": "facility"
+        }
+      ],
+      "verification": {
+        "status": "credible_public_report",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "STT Mumbai DC2 Factsheet",
+          "publisher": "STT GDC India",
+          "url": "https://assets.sttelemediagdc.com/sttgdc/global_en/public/2025-05/stt-gdc-india-mumbai-factsheet-2.pdf",
+          "sourceClass": "operator_factsheet",
+          "retrievedAt": "2026-10-31"
+        }
+      }
     },
     {
       "id": "stt-pune-5",
@@ -120,12 +278,39 @@
       "stateCode": "IN-MH",
       "state": "Maharashtra",
       "city": "Pune",
-      "locality": "Pune",
-      "publicCoordinates": [73.8567, 18.5204],
+      "locality": "Dighi",
+      "publicCoordinates": [
+        73.8567,
+        18.5204
+      ],
       "locationPrecision": "locality",
       "operationalSince": 2025,
-      "capacityDisclosures": [{"value": 24, "unit": "MW", "capacityType": "power_capacity_unspecified", "scope": "facility"}],
-      "verification": {"status": "credible_public_report", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "INFRAINTEL Newsletter", "publisher": "STT GDC India", "url": "https://assets.sttelemediagdc.com/sttgdc/global_en/public/2026-05/STT-Newsletter-INFRAINTEL.pdf", "sourceClass": "operator_factsheet", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 24.0,
+          "unit": "MW",
+          "capacityType": "it_load",
+          "scope": "facility"
+        },
+        {
+          "value": 100.0,
+          "unit": "MVA",
+          "capacityType": "power_capacity",
+          "scope": "facility"
+        }
+      ],
+      "verification": {
+        "status": "credible_public_report",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "STT Pune 5 Factsheet",
+          "publisher": "STT GDC India",
+          "url": "https://assets.sttelemediagdc.com/sttgdc/global_en/public/2025-07/stt-gdc-india-fs-pune-5.pdf",
+          "sourceClass": "operator_factsheet",
+          "retrievedAt": "2026-10-31"
+        }
+      }
     },
     {
       "id": "stt-hyderabad-1",
@@ -137,11 +322,32 @@
       "state": "Telangana",
       "city": "Hyderabad",
       "locality": "HITEC City / Madhapur",
-      "publicCoordinates": [78.3910, 17.4480],
+      "publicCoordinates": [
+        78.391,
+        17.448
+      ],
       "locationPrecision": "locality",
       "operationalSince": 2007,
-      "capacityDisclosures": [{"value": 4, "unit": "MW", "capacityType": "it_load", "scope": "facility"}],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "Data Centre in Hyderabad", "publisher": "STT GDC India", "url": "https://www.sttelemediagdc.com/in-en/locations/hyderabad", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 4,
+          "unit": "MW",
+          "capacityType": "it_load",
+          "scope": "facility"
+        }
+      ],
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "Data Centre in Hyderabad",
+          "publisher": "STT GDC India",
+          "url": "https://www.sttelemediagdc.com/in-en/locations/hyderabad",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "ctrls-hyderabad-dc-1",
@@ -153,10 +359,31 @@
       "state": "Telangana",
       "city": "Hyderabad",
       "locality": "Hyderabad",
-      "publicCoordinates": [78.4867, 17.3850],
+      "publicCoordinates": [
+        78.4867,
+        17.385
+      ],
       "locationPrecision": "locality",
-      "capacityDisclosures": [{"value": 6, "unit": "MW", "capacityType": "power_capacity", "scope": "facility"}],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "CtrlS Data Center Footprint", "publisher": "CtrlS Datacenters", "url": "https://www.ctrls.com/", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 6,
+          "unit": "MW",
+          "capacityType": "power_capacity",
+          "scope": "facility"
+        }
+      ],
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "CtrlS Data Center Footprint",
+          "publisher": "CtrlS Datacenters",
+          "url": "https://www.ctrls.com/",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "ctrls-hyderabad-dc-2",
@@ -168,10 +395,31 @@
       "state": "Telangana",
       "city": "Hyderabad",
       "locality": "Hyderabad",
-      "publicCoordinates": [78.4867, 17.3850],
+      "publicCoordinates": [
+        78.4867,
+        17.385
+      ],
       "locationPrecision": "locality",
-      "capacityDisclosures": [{"value": 7.4, "unit": "MW", "capacityType": "power_capacity", "scope": "facility"}],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "CtrlS Data Center Footprint", "publisher": "CtrlS Datacenters", "url": "https://www.ctrls.com/", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 7.4,
+          "unit": "MW",
+          "capacityType": "power_capacity",
+          "scope": "facility"
+        }
+      ],
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "CtrlS Data Center Footprint",
+          "publisher": "CtrlS Datacenters",
+          "url": "https://www.ctrls.com/",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "ctrls-hyderabad-dc-3",
@@ -183,10 +431,31 @@
       "state": "Telangana",
       "city": "Hyderabad",
       "locality": "Hyderabad",
-      "publicCoordinates": [78.4867, 17.3850],
+      "publicCoordinates": [
+        78.4867,
+        17.385
+      ],
       "locationPrecision": "locality",
-      "capacityDisclosures": [{"value": 13, "unit": "MW", "capacityType": "power_capacity", "scope": "facility"}],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "AI-Ready Data Center Infrastructure", "publisher": "CtrlS Datacenters", "url": "https://www.ctrls.com/ai-ready-datacenter-infrastructure/", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 13,
+          "unit": "MW",
+          "capacityType": "power_capacity",
+          "scope": "facility"
+        }
+      ],
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "AI-Ready Data Center Infrastructure",
+          "publisher": "CtrlS Datacenters",
+          "url": "https://www.ctrls.com/ai-ready-datacenter-infrastructure/",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "ctrls-bangalore-dc-1",
@@ -198,10 +467,31 @@
       "state": "Karnataka",
       "city": "Bengaluru",
       "locality": "Bengaluru",
-      "publicCoordinates": [77.5946, 12.9716],
+      "publicCoordinates": [
+        77.5946,
+        12.9716
+      ],
       "locationPrecision": "locality",
-      "capacityDisclosures": [{"value": 13, "unit": "MW", "capacityType": "power_capacity", "scope": "facility"}],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "CtrlS Data Center Footprint", "publisher": "CtrlS Datacenters", "url": "https://www.ctrls.com/", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 13,
+          "unit": "MW",
+          "capacityType": "power_capacity",
+          "scope": "facility"
+        }
+      ],
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "CtrlS Data Center Footprint",
+          "publisher": "CtrlS Datacenters",
+          "url": "https://www.ctrls.com/",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "ntt-bengaluru-2",
@@ -213,10 +503,24 @@
       "state": "Karnataka",
       "city": "Bengaluru",
       "locality": "Bengaluru",
-      "publicCoordinates": [77.5946, 12.9716],
+      "publicCoordinates": [
+        77.5946,
+        12.9716
+      ],
       "locationPrecision": "locality",
       "capacityDisclosures": [],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "Global Data Centers India", "publisher": "NTT", "url": "https://services.global.ntt/en-au/services-and-products/global-data-centers/global-locations/india", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "Global Data Centers India",
+          "publisher": "NTT",
+          "url": "https://services.global.ntt/en-au/services-and-products/global-data-centers/global-locations/india",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "ntt-bengaluru-3",
@@ -228,10 +532,24 @@
       "state": "Karnataka",
       "city": "Bengaluru",
       "locality": "Bengaluru",
-      "publicCoordinates": [77.5946, 12.9716],
+      "publicCoordinates": [
+        77.5946,
+        12.9716
+      ],
       "locationPrecision": "locality",
       "capacityDisclosures": [],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "Global Data Centers India", "publisher": "NTT", "url": "https://services.global.ntt/en-au/services-and-products/global-data-centers/global-locations/india", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "Global Data Centers India",
+          "publisher": "NTT",
+          "url": "https://services.global.ntt/en-au/services-and-products/global-data-centers/global-locations/india",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "adaniconnex-chennai-1",
@@ -243,10 +561,31 @@
       "state": "Tamil Nadu",
       "city": "Chennai",
       "locality": "SIPCOT IT Park, Siruseri",
-      "publicCoordinates": [80.2270, 12.8350],
+      "publicCoordinates": [
+        80.227,
+        12.835
+      ],
       "locationPrecision": "locality",
-      "capacityDisclosures": [{"value": 17, "unit": "MW", "capacityType": "it_load", "scope": "live_phase"}],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "Chennai 1 Data Center", "publisher": "Adani Enterprises / AdaniConneX", "url": "https://www.adanienterprises.com/digital-reports/enterprises/2026/data-center.html", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 17,
+          "unit": "MW",
+          "capacityType": "it_load",
+          "scope": "live_phase"
+        }
+      ],
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "Chennai 1 Data Center",
+          "publisher": "Adani Enterprises / AdaniConneX",
+          "url": "https://www.adanienterprises.com/digital-reports/enterprises/2026/data-center.html",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "stt-chennai-2",
@@ -258,10 +597,31 @@
       "state": "Tamil Nadu",
       "city": "Chennai",
       "locality": "Ambattur",
-      "publicCoordinates": [80.1548, 13.1143],
+      "publicCoordinates": [
+        80.1548,
+        13.1143
+      ],
       "locationPrecision": "locality",
-      "capacityDisclosures": [{"value": 20, "unit": "MW", "capacityType": "it_load", "scope": "design_minimum"}],
-      "verification": {"status": "credible_public_report", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "STT Chennai DC2 Factsheet", "publisher": "STT GDC India", "url": "https://assets.sttelemediagdc.com/sttgdc/global_en/public/2024-02/STT-Chennai-DC2_2_0.pdf", "sourceClass": "operator_factsheet", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 20,
+          "unit": "MW",
+          "capacityType": "it_load",
+          "scope": "design_minimum"
+        }
+      ],
+      "verification": {
+        "status": "credible_public_report",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "STT Chennai DC2 Factsheet",
+          "publisher": "STT GDC India",
+          "url": "https://assets.sttelemediagdc.com/sttgdc/global_en/public/2024-02/STT-Chennai-DC2_2_0.pdf",
+          "sourceClass": "operator_factsheet",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "stt-chennai-7",
@@ -273,11 +633,32 @@
       "state": "Tamil Nadu",
       "city": "Chennai",
       "locality": "SIPCOT IT Park, Siruseri",
-      "publicCoordinates": [80.2270, 12.8350],
+      "publicCoordinates": [
+        80.227,
+        12.835
+      ],
       "locationPrecision": "locality",
       "operationalSince": 2026,
-      "capacityDisclosures": [{"value": 7.2, "unit": "MW", "capacityType": "it_load", "scope": "phase_1"}],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "STT GDC India Chennai expansion", "publisher": "STT GDC India", "url": "https://www.sttgdc.com/in-en/newsroom/stt-gdc-india-strengthens-market-presence-chennai-multi-campus-expansion-and-inr-4200", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 7.2,
+          "unit": "MW",
+          "capacityType": "it_load",
+          "scope": "phase_1"
+        }
+      ],
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "STT GDC India Chennai expansion",
+          "publisher": "STT GDC India",
+          "url": "https://www.sttgdc.com/in-en/newsroom/stt-gdc-india-strengthens-market-presence-chennai-multi-campus-expansion-and-inr-4200",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     },
     {
       "id": "ctrls-chennai-datacenter-park",
@@ -289,11 +670,32 @@
       "state": "Tamil Nadu",
       "city": "Chennai",
       "locality": "Ambattur Industrial Estate",
-      "publicCoordinates": [80.1548, 13.1143],
+      "publicCoordinates": [
+        80.1548,
+        13.1143
+      ],
       "locationPrecision": "locality",
       "operationalSince": 2025,
-      "capacityDisclosures": [{"value": 72, "unit": "MW", "capacityType": "it_load", "scope": "campus_design"}],
-      "verification": {"status": "public_operator_confirmed", "verifiedAt": "2026-10-29", "expiresAt": "2027-01-27", "source": {"title": "CtrlS launches Chennai Datacenter Park", "publisher": "CtrlS Datacenters", "url": "https://www.ctrls.com/ctrls-powers-indias-digital-revolution-new-chennai-datacenter-park-backed-by-rs-4000-crore-direct-and-rs-50000-crore-indirect-investment/", "sourceClass": "operator", "retrievedAt": "2026-10-29"}}
+      "capacityDisclosures": [
+        {
+          "value": 72,
+          "unit": "MW",
+          "capacityType": "it_load",
+          "scope": "campus_design"
+        }
+      ],
+      "verification": {
+        "status": "public_operator_confirmed",
+        "verifiedAt": "2026-10-29",
+        "expiresAt": "2027-01-27",
+        "source": {
+          "title": "CtrlS launches Chennai Datacenter Park",
+          "publisher": "CtrlS Datacenters",
+          "url": "https://www.ctrls.com/ctrls-powers-indias-digital-revolution-new-chennai-datacenter-park-backed-by-rs-4000-crore-direct-and-rs-50000-crore-indirect-investment/",
+          "sourceClass": "operator",
+          "retrievedAt": "2026-10-29"
+        }
+      }
     }
   ]
 }

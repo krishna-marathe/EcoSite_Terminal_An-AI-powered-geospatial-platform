@@ -219,3 +219,51 @@ class EnvironmentalStateSummaryResponse(BaseModel):
     coveredFacilityCount: int = Field(ge=0)
     metrics: list[EnvironmentalSummaryMetric]
     sourceHealth: list[SourceHealth]
+
+
+class RegulatoryWaterParameter(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    parameter_name: str
+    consented_quantity: float | None = None
+    actual_quantity: float | None = None
+    unit: str
+    status: str
+
+
+class RegulatoryWaterObservation(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    id: str
+    reporting_facility: str
+    operator: str
+    site_code: str
+    state: str
+    district: str
+    locality: str
+    regulatory_authority: str
+    document_type: str
+    identification_number: str
+    proposal_number: str | None = None
+    reporting_period: str
+    measurement_boundary: str
+    parameters: list[RegulatoryWaterParameter]
+    water_source: str
+    cooling_configuration: str
+    wastewater_management: str
+    source_document: str
+    source_url: str
+    page_or_reference: str
+    site_match_status: str
+    cross_site_prohibition: str
+
+
+class RegulatoryWaterRegistryResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    registry_version: str
+    generated_at: str
+    description: str
+    epistemic_guards: list[str]
+    count: int
+    observations: list[RegulatoryWaterObservation]

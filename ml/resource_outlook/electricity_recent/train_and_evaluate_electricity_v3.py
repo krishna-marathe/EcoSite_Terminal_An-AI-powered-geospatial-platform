@@ -35,7 +35,7 @@ def get_static_climatology():
     df_w = pd.read_csv(WEATHER_ALIGNED_PATH)
     df_w["date"] = pd.to_datetime(df_w["date"])
     df_w = df_w[df_w["date"] <= "2022-12-31"].copy()
-    df_w["doy"] = df_w["date"].dt.dayofyear
+    df_w["doy"] = df_w["date"].dt.day_of_year
     
     climo = df_w.groupby("doy").agg({
         "2m_temperature_max": "mean",
@@ -58,8 +58,8 @@ def extract_features(dt, origin_date, df_known, climo_table):
     origin = pd.Timestamp(origin_date)
     dt = pd.Timestamp(dt)
     h = (dt - origin).days
-    doy = dt.dayofyear
-    dow = dt.dayofweek
+    doy = dt.day_of_year
+    dow = dt.day_of_week
     month = dt.month
 
     # Seasonal lags strictly known at origin
@@ -307,7 +307,7 @@ def run_evaluation_suite():
     prod_lgb_model.booster_.save_model(str(MODEL_V3_DIR / "lgbm_demand_production_v3.txt"))
 
     # Generate Current 26-Week Operational Forecast (Origin: 2026-10-27)
-    forecast_26w_dates = pd.date_range("2026-10-28", "2027-04-28", freq="D")
+    forecast_26w_dates = pd.date_range("2026-10-28", "2027-04-27", freq="D")
     df_known_prod = df[df.index <= prod_origin]
 
     # Annual trend at production origin

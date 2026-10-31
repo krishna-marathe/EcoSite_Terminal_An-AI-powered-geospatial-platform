@@ -1,0 +1,218 @@
+{
+  "registry_version": "2026.10-regulatory-water-v1",
+  "generated_at": "2026-10-31T12:00:00Z",
+  "description": "Primary-source statutory environmental clearances, Form V environmental audit statements, and ESG water disclosures for data centre facilities in Maharashtra.",
+  "epistemic_guards": [
+    "Navi Mumbai regulatory observations apply strictly to verified Navi Mumbai sites and must NEVER be attached to STT Pune 5 or STT Mumbai 2.",
+    "Portfolio-wide ESG metrics are aggregate figures and must NEVER be presented as measured facility WUE.",
+    "Approved/consented quantities reflect statutory regulatory caps, not measured daily draw.",
+    "Actual quantities reflect audited utility meters or Form V statements."
+  ],
+  "observations": [
+    {
+      "id": "reg-obs-stt-nm-ec-2024",
+      "reporting_facility": "STT Navi Mumbai Data Centre Campus",
+      "operator": "STT Global Data Centres India Private Limited",
+      "site_code": "IN-MH-NAV-STT-01",
+      "state": "Maharashtra",
+      "district": "Thane",
+      "locality": "TTC Industrial Area, MIDC, Navi Mumbai",
+      "regulatory_authority": "State Environment Impact Assessment Authority (SEIAA), Maharashtra",
+      "document_type": "Environmental Clearance (EC)",
+      "identification_number": "EC24B038MH162952",
+      "proposal_number": "SIA/MH/INFRA2/434015/2023",
+      "reporting_period": "Operational Phase Approval (2024-2031)",
+      "measurement_boundary": "Campus plot boundary (Full Campus)",
+      "parameters": [
+        {
+          "parameter_name": "Consented Freshwater Intake",
+          "consented_quantity": 21.78,
+          "actual_quantity": null,
+          "unit": "kL/day",
+          "status": "STATUTORY_CEILING"
+        },
+        {
+          "parameter_name": "On-Site STP Capacity",
+          "consented_quantity": 30.0,
+          "actual_quantity": 30.0,
+          "unit": "kL/day",
+          "status": "INSTALLED_INFRASTRUCTURE"
+        }
+      ],
+      "water_source": "MIDC Piped Industrial Water Supply (Barvi / Morbe catchment)",
+      "cooling_configuration": "High-efficiency chilled water cooling plant with closed-loop piping; treated wastewater recycled for HVAC make-up",
+      "wastewater_management": "On-site Sewage Treatment Plant (STP) with 100% recycling for toilet flushing, landscaping, and HVAC make-up; zero unauthorized discharge to storm drains",
+      "source_document": "SEIAA Maharashtra Environmental Clearance Order EC24B038MH162952",
+      "source_url": "https://environmentclearance.nic.in/",
+      "page_or_reference": "Specific Conditions - Water Environment & STP, Condition II.(a)",
+      "site_match_status": "VERIFIED_SITE_NAVI_MUMBAI_ONLY",
+      "cross_site_prohibition": "Applies strictly to STT Navi Mumbai campus. Prohibited from cross-site attachment to STT Pune 5 or STT Mumbai 2."
+    },
+    {
+      "id": "reg-obs-stt-nm-formv-fy25",
+      "reporting_facility": "STT Navi Mumbai Data Centre Campus",
+      "operator": "STT Global Data Centres India Private Limited",
+      "site_code": "IN-MH-NAV-STT-01",
+      "state": "Maharashtra",
+      "district": "Thane",
+      "locality": "TTC Industrial Area, MIDC, Navi Mumbai",
+      "regulatory_authority": "Maharashtra Pollution Control Board (MPCB)",
+      "document_type": "Environmental Statement Form V (Rule 14)",
+      "identification_number": "MPCB-ENV-STMT-2025-STT-NM",
+      "proposal_number": null,
+      "reporting_period": "FY2024-25 (2024-04-01 to 2025-03-31)",
+      "measurement_boundary": "Campus meter readings (Part-B Water Consumption)",
+      "parameters": [
+        {
+          "parameter_name": "Domestic Water Consumption",
+          "consented_quantity": 5.00,
+          "actual_quantity": 2.20,
+          "unit": "kL/day",
+          "status": "AUDITED_METERED"
+        },
+        {
+          "parameter_name": "Cooling Make-up & Utility Water",
+          "consented_quantity": 16.78,
+          "actual_quantity": 14.00,
+          "unit": "kL/day",
+          "status": "AUDITED_METERED"
+        },
+        {
+          "parameter_name": "Process Water Consumption",
+          "consented_quantity": 0.00,
+          "actual_quantity": 0.00,
+          "unit": "kL/day",
+          "status": "NOT_APPLICABLE"
+        },
+        {
+          "parameter_name": "Total Operational Freshwater Consumption",
+          "consented_quantity": 21.78,
+          "actual_quantity": 16.20,
+          "unit": "kL/day",
+          "status": "AUDITED_METERED"
+        },
+        {
+          "parameter_name": "Domestic Sewage Generation",
+          "consented_quantity": 4.00,
+          "actual_quantity": 1.76,
+          "unit": "kL/day",
+          "status": "AUDITED_METERED"
+        },
+        {
+          "parameter_name": "Trade Effluent Generation",
+          "consented_quantity": 0.00,
+          "actual_quantity": 0.00,
+          "unit": "kL/day",
+          "status": "ZERO_TRADE_EFFLUENT"
+        }
+      ],
+      "water_source": "MIDC Piped Water Supply",
+      "cooling_configuration": "Chilled water plant with closed-loop cooling towers",
+      "wastewater_management": "Effluent treated in campus STP and reused internally for flushing and greenbelt maintenance",
+      "source_document": "MPCB Environmental Statement Form V FY2025, Part-B Water & Raw Material Consumption",
+      "source_url": "https://sttelemediagdc.com/",
+      "page_or_reference": "Part-B Water Consumption Table, page 2",
+      "site_match_status": "VERIFIED_SITE_NAVI_MUMBAI_ONLY",
+      "cross_site_prohibition": "Measured facility telemetry for Navi Mumbai only. Cannot be used for STT Pune 5 or STT Mumbai 2."
+    },
+    {
+      "id": "reg-obs-stt-nm-formv-fy26",
+      "reporting_facility": "STT Navi Mumbai Data Centre Campus",
+      "operator": "STT Global Data Centres India Private Limited",
+      "site_code": "IN-MH-NAV-STT-01",
+      "state": "Maharashtra",
+      "district": "Thane",
+      "locality": "TTC Industrial Area, MIDC, Navi Mumbai",
+      "regulatory_authority": "Maharashtra Pollution Control Board (MPCB)",
+      "document_type": "Environmental Statement Form V (Rule 14)",
+      "identification_number": "MPCB-ENV-STMT-2026-STT-NM",
+      "proposal_number": null,
+      "reporting_period": "FY2025-26 (2025-04-01 to 2026-03-31)",
+      "measurement_boundary": "Campus meter readings (Part-B Water Consumption)",
+      "parameters": [
+        {
+          "parameter_name": "Domestic Water Consumption",
+          "consented_quantity": 5.00,
+          "actual_quantity": 2.30,
+          "unit": "kL/day",
+          "status": "AUDITED_METERED"
+        },
+        {
+          "parameter_name": "Cooling Make-up & Utility Water",
+          "consented_quantity": 16.78,
+          "actual_quantity": 13.90,
+          "unit": "kL/day",
+          "status": "AUDITED_METERED"
+        },
+        {
+          "parameter_name": "Total Operational Freshwater Consumption",
+          "consented_quantity": 21.78,
+          "actual_quantity": 16.20,
+          "unit": "kL/day",
+          "status": "AUDITED_METERED"
+        },
+        {
+          "parameter_name": "Domestic Sewage Generation",
+          "consented_quantity": 4.00,
+          "actual_quantity": 1.80,
+          "unit": "kL/day",
+          "status": "AUDITED_METERED"
+        }
+      ],
+      "water_source": "MIDC Piped Water Supply",
+      "cooling_configuration": "Chilled water plant with optimized Cycles of Concentration",
+      "wastewater_management": "On-site STP recycling",
+      "source_document": "MPCB Environmental Statement Form V FY2026, Part-B Water & Raw Material Consumption",
+      "source_url": "https://sttelemediagdc.com/",
+      "page_or_reference": "Part-B Water Consumption Table, page 2",
+      "site_match_status": "VERIFIED_SITE_NAVI_MUMBAI_ONLY",
+      "cross_site_prohibition": "Measured facility telemetry for Navi Mumbai only."
+    },
+    {
+      "id": "reg-obs-stt-esg-fy25-portfolio",
+      "reporting_facility": "STT GDC India Portfolio (All Facilities)",
+      "operator": "STT GDC India",
+      "site_code": "PORTFOLIO-INDIA",
+      "state": "National / Multi-State",
+      "district": "Portfolio",
+      "locality": "28 facilities across 10 cities",
+      "regulatory_authority": "Corporate ESG Reporting (GRI / BRSR aligned)",
+      "document_type": "Corporate ESG Report",
+      "identification_number": "STT-GDC-INDIA-ESG-FY2025",
+      "proposal_number": null,
+      "reporting_period": "FY2024-25 (Published March 2026)",
+      "measurement_boundary": "Fleet-wide weighted average across all 28 operating facilities in India",
+      "parameters": [
+        {
+          "parameter_name": "Measured Fleet Operating PUE",
+          "consented_quantity": null,
+          "actual_quantity": 1.62,
+          "unit": "ratio",
+          "status": "PORTFOLIO_WEIGHTED_AVERAGE"
+        },
+        {
+          "parameter_name": "Renewable Electricity Sourcing Share",
+          "consented_quantity": null,
+          "actual_quantity": 38.0,
+          "unit": "%",
+          "status": "PORTFOLIO_AGGREGATE"
+        },
+        {
+          "parameter_name": "Facility-Specific Measured WUE",
+          "consented_quantity": null,
+          "actual_quantity": null,
+          "unit": "L/kWh",
+          "status": "UNPUBLISHED_AT_FACILITY_LEVEL"
+        }
+      ],
+      "water_source": "Municipal and industrial piped supplies; zero unauthorized groundwater extraction",
+      "cooling_configuration": "Water-saving strategies: air-cooled chillers in water-stressed regions (e.g. Pune 5); closed-loop chilled water; rainwater harvesting; wastewater recycling",
+      "wastewater_management": "On-site STP recycling at campuses",
+      "source_document": "STT GDC India ESG Report FY2025",
+      "source_url": "https://assets.sttelemediagdc.com/sttgdc/global_en/public/2026-03/STT-GDC-India-ESG-Report-FY2025.pdf",
+      "page_or_reference": "Environment / Water Stewardship & HVAC Optimization, pages 28-32",
+      "site_match_status": "PORTFOLIO_LEVEL_ONLY",
+      "cross_site_prohibition": "Strictly prohibited from being used as site-specific measured WUE for STT Pune 5 or STT Mumbai 2."
+    }
+  ]
+}

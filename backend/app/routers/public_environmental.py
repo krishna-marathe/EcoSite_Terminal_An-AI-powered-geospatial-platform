@@ -28,7 +28,10 @@ from ..schemas.environmental_monitoring import (
     RangeValue,
     SourceHealth,
     StationContext,
+    RegulatoryWaterRegistryResponse,
 )
+import json
+from pathlib import Path
 
 _URL_ADAPTER = TypeAdapter(HttpUrl)
 
@@ -337,4 +340,64 @@ def environmental_state_summary(
             )
             for item in result.source_health
         ],
+    )
+
+
+REGULATORY_WATER_FILE = Path(__file__).resolve().parents[3] / "data" / "regulatory_water_observations.json"
+
+
+@router.get(
+    "/environmental/regulatory-water-observations",
+    response_model=RegulatoryWaterRegistryResponse,
+    tags=["Environmental Monitoring"],
+)
+def get_regulatory_water_observations(
+    request: Request,
+    site_code: str | None = Query(default=None, description="Filter by site code (e.g. IN-MH-NAV-STT-01)"),
+    facility_id: str | None = Query(default=None, description="Filter by facility or keyword"),
+    state: str | None = Query(default=None, description="Filter by state name"),
+) -> RegulatoryWaterRegistryResponse:
+    """
+    Retrieves primary-source statutory water clearance orders, MPCB Form V environmental statements,
+    and fleet ESG water disclosures.
+
+    Epistemic Boundary Rules Enforced:
+    1. Navi Mumbai regulatory observations apply strictly to verified Navi Mumbai sites and must NEVER be attached to STT Pune 5 or STT Mumbai 2.
+    2. Portfolio-wide ESG metrics are aggregate figures and must NEVER be presented as measured single-facility WUE.
+    """
+    if not REGULATORY_WATER_FILE.exists():
+        return RegulatoryWaterRegistryResponse(
+            registry_version="2026.10-regulatory-water-v1",
+            generated_at="",
+            description="Observations file not found",
+            epistemic_guards=[],
+            count=0,
+            observations=[],
+        )
+
+    with open(REGULATORY_WATER_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    observations = data.get("observations", [])
+    if site_code:
+        observations = [o for o in observations if o.get("site_code", "").lower() == site_code.strip().lower()]
+    if facility_id:
+        f_lower = facility_id.strip().lower()
+        observations = [
+            o for o in observations
+            if f_lower in o.get("reporting_facility", "").lower()
+            or f_lower in o.get("id", "").lower()
+            or f_lower in o.get("site_code", "").lower()
+        ]
+    if state:
+        s_lower = state.strip().lower()
+        observations = [o for o in observations if s_lower in o.get("state", "").lower()]
+
+    return RegulatoryWaterRegistryResponse(
+        registry_version=data.get("registry_version", "2026.10-regulatory-water-v1"),
+        generated_at=data.get("generated_at", ""),
+        description=data.get("description", ""),
+        epistemic_guards=data.get("epistemic_guards", []),
+        count=len(observations),
+        observations=observations,
     )

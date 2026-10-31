@@ -120,3 +120,51 @@ class MLPredictionsApiTests(unittest.TestCase):
         self.assertIn("evaporative_hybrid_kld", data_12["benchmark_cooling_options"])
         self.assertIn("air_cooled_dry_kld", data_12["benchmark_cooling_options"])
 
+    def test_regional_lgbm_inference_runs_booster_and_returns_provenance(self):
+        """GET /api/v1/ml/regional-lgbm-inference executes live Booster inference on 20 features."""
+        res = self.client.get("/api/v1/ml/regional-lgbm-inference?target_date=2026-11-20")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertEqual(data["status"], "OK")
+        self.assertEqual(data["scope"], "MAHARASHTRA_MACRO_GRID_PEAK_MET")
+        self.assertEqual(data["lead_days"], 24)
+        self.assertEqual(data["horizon_status"], "OPERATIONALLY_BACKTESTED_HORIZON")
+        self.assertGreater(data["predictions"]["lightgbm_predicted_peak_met_mw"], 20000)
+        self.assertGreater(data["predictions"]["seasonal_naive_baseline_mw"], 20000)
+        self.assertEqual(data["model_metadata"]["num_trees"], 100)
+        self.assertEqual(data["model_metadata"]["num_features"], 20)
+        self.assertEqual(len(data["features"]), 20)
+        self.assertIn("climo_t2m_max_c", data["features"])
+        self.assertIn("lag_364d_mw", data["features"])
+
+    def test_unspecified_capacity_boundary_returns_dual_engineering_scenarios(self):
+        """When capacity_boundary is power_capacity_unspecified, dual scenarios A & B are returned without false gap."""
+        res = self.client.post(
+            "/api/v1/ml/predict",
+            json={
+                "capacity_mw": 24,
+                "power_demand_mw": 0,
+                "water_demand_kl_day": 0,
+                "location": "IN-MH",
+                "months_ahead": 6,
+                "model_version": "ML-F4.1",
+                "capacity_boundary": "power_capacity_unspecified",
+            },
+        )
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertEqual(data["capacity_boundary_status"], "UNSPECIFIED_BOUNDARY")
+        self.assertIsNotNone(data["boundary_scenarios"])
+        scen_a = data["boundary_scenarios"]["scenario_a_intake_boundary"]
+        scen_b = data["boundary_scenarios"]["scenario_b_it_load_boundary"]
+        self.assertEqual(scen_a["derived_it_capacity_mw"], 17.78)
+        self.assertEqual(scen_a["derived_power_demand_mw"], 24.0)
+        self.assertEqual(scen_b["derived_it_capacity_mw"], 24.0)
+        self.assertEqual(scen_b["derived_power_demand_mw"], 32.4)
+        self.assertIn("UNSPECIFIED_BOUNDARY", data["capacity_boundary_status"])
+
+    def test_regional_lgbm_rejects_dates_before_origin(self):
+        """GET /api/v1/ml/regional-lgbm-inference rejects target dates on or prior to forecast origin."""
+        res = self.client.get("/api/v1/ml/regional-lgbm-inference?target_date=2026-10-25")
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("must be strictly after forecast origin", res.json()["detail"])

@@ -92,10 +92,23 @@ def _build_request_from_public_facility(facility: PublicFacility) -> FacilityRes
             elif disc.capacityType in ("power_capacity", "total_power", "power_capacity_unspecified"):
                 power_cap_mw = disc.value
 
+    is_boundary_unspecified = any(
+        disc.capacityType == "power_capacity_unspecified"
+        for disc in facility.capacityDisclosures
+        if disc.unit == "MW"
+    )
+
     if it_load_mw is not None:
         it_val = it_load_mw
         it_type = EvidenceType.DOCUMENTED_COMMITMENT
         citation = f"Public disclosure from {facility.operator} ({facility.verification.source.title})"
+    elif is_boundary_unspecified and power_cap_mw is not None:
+        it_val = round(power_cap_mw / 1.35, 2)
+        it_type = EvidenceType.UNKNOWN
+        citation = (
+            f"Unspecified public disclosure of {power_cap_mw} MW from {facility.operator} "
+            f"({facility.verification.source.title}); IT capacity unstated, estimated at {it_val} MW at benchmark 1.35 PUE."
+        )
     elif power_cap_mw is not None:
         it_val = round(power_cap_mw / 1.35, 2)
         it_type = EvidenceType.OPERATOR_ASSUMPTION
@@ -130,13 +143,37 @@ def _build_request_from_public_facility(facility: PublicFacility) -> FacilityRes
     else:
         wue_param = ResourceParameter(value=None, unit="L/kWh", evidence_type=EvidenceType.UNKNOWN, notes="Unpublished by operator")
 
-    sanction_mw = power_cap_mw or (it_val * 1.35)
-    sanc_param = ResourceParameter(
-        value=sanction_mw,
-        unit="MW",
-        evidence_type=EvidenceType.DOCUMENTED_COMMITMENT if power_cap_mw else EvidenceType.OPERATOR_ASSUMPTION,
-        source_citation=citation,
-    )
+    cooling_sys = "EVAPORATIVE_OR_HYBRID"
+    if facility.id == "stt-pune-5":
+        cooling_sys = "CHILLED_WATER_AIR_COOLED_CHILLERS"
+        sanc_param = ResourceParameter(
+            value=None,
+            unit="MW",
+            evidence_type=EvidenceType.UNKNOWN,
+            notes="100 MVA 220 kV incoming GIS substation hardware rating; confirmed utility power sanction is UNKNOWN. Equipment rating does not establish utility spare capacity.",
+            source_citation=citation,
+        )
+    elif facility.id == "stt-mumbai-dc-2":
+        cooling_sys = "DX_AIR_COOLED"
+        sanc_param = ResourceParameter(
+            value=None,
+            unit="MW",
+            evidence_type=EvidenceType.UNKNOWN,
+            notes="6 MVA installed transformer rating (3x2 MVA, dual 22 kV feeds); confirmed utility power sanction is UNKNOWN.",
+            source_citation=citation,
+        )
+    else:
+        sanction_mw = power_cap_mw or (it_val * 1.35)
+        sanc_type = (
+            EvidenceType.UNKNOWN if is_boundary_unspecified
+            else (EvidenceType.DOCUMENTED_COMMITMENT if power_cap_mw else EvidenceType.OPERATOR_ASSUMPTION)
+        )
+        sanc_param = ResourceParameter(
+            value=sanction_mw,
+            unit="MW",
+            evidence_type=sanc_type,
+            source_citation=citation,
+        )
 
     ppa_param = None
     if matched_re is not None:
@@ -152,6 +189,7 @@ def _build_request_from_public_facility(facility: PublicFacility) -> FacilityRes
         sanctioned_grid_mw=sanc_param,
         water_allocation_kld=None,
         renewable_ppa_pct=ppa_param,
+        cooling_system_type=cooling_sys,
     )
 
 

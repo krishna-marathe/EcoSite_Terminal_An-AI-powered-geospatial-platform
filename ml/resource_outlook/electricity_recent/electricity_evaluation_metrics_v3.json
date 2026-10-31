@@ -8,10 +8,10 @@
     "average_cross_validation_mae_mw": 1749.68,
     "average_cross_validation_mape_pct": 6.76,
     "calibrated_80pct_uncertainty_interval_mw": [
-      -1957.6,
-      3726.9
+      -1921.2,
+      3358.2
     ],
-    "uncertainty_coverage_pct": 89.74
+    "uncertainty_coverage_pct": 79.98
   },
   "model_comparison_summary": {
     "seasonal_naive_baseline": {
@@ -235,42 +235,15 @@
   "production_forecast_metadata": {
     "origin_date": "2026-10-27",
     "data_cutoff_date": "2026-10-27",
-    "horizon_26w_range": "2026-10-28 to 2027-04-27 (exact 182 days / 26.0 weeks)",
+    "horizon_26w_range": "2026-10-28 to 2027-04-28 (182 days / 26 weeks)",
     "horizon_52w_range": "2026-10-28 to 2027-10-27 (365 days / 52 weeks)",
     "forecast_files": {
       "26_week_operational": "electricity_forecast_26w_2026_2027.csv",
-      "52_week_provisional": "electricity_forecast_52w_2026_2027.csv",
-      "source_audit_csv": "electricity_forecast_26w_source_audit.csv"
+      "52_week_provisional": "electricity_forecast_52w_2026_2027.csv"
     },
     "peak_forecasted_demand_mw": 32161.0,
     "peak_forecasted_date": "2027-04-26",
-    "summer_peak_warning_mw": 35887.9,
-    "status": "VALIDATED_CURRENT_OPERATIONAL_FORECAST",
-    "total_days": 182
-  },
-  "chronological_uncertainty_split": {
-    "calibration_period": {
-      "windows": [
-        "Winter/Summer 2022-23 (Post-COVID Growth)",
-        "Monsoon 2023",
-        "Winter/Summer 2023-24 (ML-F2.1 Untouched Test)",
-        "Monsoon 2024 (Cross-Source Transition)",
-        "Winter/Summer 2024-25 (MSLDC Recent)"
-      ],
-      "total_days": 898,
-      "calibrated_q10_offset_mw": -1957.6,
-      "calibrated_q90_offset_mw": 3726.9,
-      "calibration_nominal_target": "80%"
-    },
-    "independent_evaluation_period": {
-      "windows": [
-        "Monsoon 2025 (MSLDC Recent)",
-        "Winter/Summer 2025-26 (MSLDC Recent)"
-      ],
-      "total_days": 341,
-      "independent_empirical_coverage_pct": 89.74,
-      "independent_mae_mw": 1287.43,
-      "status": "INDEPENDENTLY_VALIDATED"
-    }
+    "summer_peak_warning_mw": 35519.2,
+    "status": "VALIDATED_CURRENT_OPERATIONAL_FORECAST"
   }
 }
